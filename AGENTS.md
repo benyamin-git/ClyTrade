@@ -1,6 +1,7 @@
 # ClyTrade — Agent Notes
 
-Local-first trading PWA. See `masterplan.md` for product direction.
+Local-first trading app: a PWA plus Windows and Android wrappers built with
+Tauri v2. See `masterplan.md` for product direction.
 
 ## Commands
 
@@ -10,17 +11,21 @@ Node 22 is required (installed via nvm). Prefix commands in non-interactive shel
 export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 ```
 
-| Command             | Purpose                                                 |
-| ------------------- | ------------------------------------------------------- |
-| `npm run dev`       | Vite dev server                                         |
-| `npm run build`     | Typecheck + production build + PWA service worker       |
-| `npm run preview`   | Serve the production build                              |
-| `npm run typecheck` | `tsc -b` across app and node configs                    |
-| `npm run lint`      | ESLint (flat config)                                    |
-| `npm test`          | Vitest run (jsdom, fake-indexeddb)                      |
-| `npm run format`    | Prettier write                                          |
-| `npm run icons`     | Regenerate PWA icons into `public/icons/`               |
-| `npm run accents`   | Regenerate accent palettes into `src/theme/accents.css` |
+| Command                            | Purpose                                                             |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `npm run dev`                      | Vite dev server                                                     |
+| `npm run build`                    | Typecheck + production build + PWA service worker                   |
+| `npm run preview`                  | Serve the production build                                          |
+| `npm run typecheck`                | `tsc -b` across app and node configs                                |
+| `npm run lint`                     | ESLint (flat config)                                                |
+| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                  |
+| `npm run format`                   | Prettier write                                                      |
+| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                           |
+| `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`     |
+| `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`             |
+| `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                        |
+| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK, Rust)           |
+| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `Cargo.toml` |
 
 Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing work.
 
@@ -38,6 +43,16 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
   live in `src/theme/accents.ts` and must stay in sync with the seed table in
   `scripts/generate-accents.mjs`; a test fails if the generated CSS drifts.
+- Never hand-edit generated native files: `src-tauri/icons/**` (regenerate with
+  `npm run icons:native`) and the generated parts of `src-tauri/gen/android/**`
+  listed in its own `.gitignore`. `gen/android` is a committed Tauri project and
+  may be customized — the release build type intentionally signs with the debug
+  keystore for test builds — so keep such edits minimal and documented here.
+- Releases: the version lives in `package.json`; `src-tauri/tauri.conf.json`
+  reads it from there and Tauri derives the Android `versionCode`. Use
+  `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag
+  `v<version>`. Artifact names are produced by `scripts/collect-artifacts.mjs`
+  in `.github/workflows/release.yml`; do not rename builds by hand.
 
 ## Architecture
 
@@ -50,6 +65,7 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
 | Design system | `src/ui/`           | Primitives and layout components                                                    |
 | Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes              |
 | Docs          | `src/docs/`         | Markdown + registry rendered in Settings → Documentation                            |
+| Native shell  | `src-tauri/`        | Tauri v2 config, Rust entry point and the committed Android project                 |
 
 Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculations`.
 `calculations` imports nothing except its own `types.ts` and `src/lib` helpers.
@@ -74,5 +90,8 @@ Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculat
   `src/docs/registry.ts`.
 - Data changes go through `src/data/repositories/*`; components read with
   `useLiveQuery`.
+- `__APP_VERSION__` and `__APP_PLATFORM__` are injected by `vite.config.ts` from
+  `package.json` and `TAURI_ENV_PLATFORM`. Read them through `src/lib/version.ts`;
+  never touch `process.env` from app code.
 - User-facing documentation lives in `src/docs/**` and must explain the _why_ behind
   opinionated decisions, not just the how.

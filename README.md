@@ -51,6 +51,8 @@ calculators, journal and themes once the UI polish pass is done.
 - **Dexie / IndexedDB** for local persistence, with versioned schema and JSON
   export/import
 - **react-router** (hash routing), **Recharts** for charts, **zod** for validation
+- **Tauri v2** wrappers for the Windows (`.exe`) and Android (`.apk`) builds;
+  the PWA stays the reference platform
 - Pure, dependency-free calculation modules in `src/calculations/`, each with a
   table-driven test suite
 
@@ -73,6 +75,25 @@ npm run accents    # regenerate accent color palettes
 To test installability and offline mode, use `npm run build && npm run preview`.
 The service worker is disabled in the dev server.
 
+### Native builds
+
+The Windows and Android wrappers are [Tauri v2](https://v2.tauri.app) projects
+in `src-tauri/` and reuse the same frontend build. `npm run build` always
+produces the PWA; when Tauri runs the build it sets `TAURI_ENV_PLATFORM`, which
+disables the service worker for the native bundle.
+
+```bash
+npm run tauri:build     # Windows .exe + NSIS installer (needs Windows + Rust)
+npm run android:apk     # Android APK (needs JDK 17, Android SDK/NDK and Rust)
+npm run icons:native    # regenerate native icons from public/icons/icon-512.png
+```
+
+Release artifacts for both platforms are produced by
+[`.github/workflows/release.yml`](./.github/workflows/release.yml): run the
+workflow from the Actions tab to download test builds, or push a `v*` tag to get
+a draft GitHub Release. See the in-app **Platforms & Releases** documentation
+for what each build is and how to move data between installs.
+
 ## Project layout
 
 | Path                | Contents                                                                              |
@@ -84,6 +105,7 @@ The service worker is disabled in the dev server.
 | `src/ui/`           | Design-system primitives and layout components                                        |
 | `src/theme/`        | MD3 design tokens and the three themes                                                |
 | `src/docs/`         | Markdown documentation rendered inside the app                                        |
+| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust + generated Android project)  |
 | `masterplan.md`     | Product direction and design decisions                                                |
 
 ## Documentation
@@ -91,6 +113,23 @@ The service worker is disabled in the dev server.
 The full user documentation lives inside the app under **Settings →
 Documentation**, and its source is `src/docs/**`. Product direction, scope and
 the reasoning behind major decisions live in [`masterplan.md`](./masterplan.md).
+
+## Releases & versioning
+
+ClyTrade follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
+Until `1.0.0`, breaking changes may land in minor releases. Release artifacts
+are named
+
+| Platform            | Artifact                                   |
+| ------------------- | ------------------------------------------ |
+| Windows (portable)  | `ClyTrade-<version>-windows-x64.exe`       |
+| Windows (installer) | `ClyTrade-<version>-windows-x64-setup.exe` |
+| Android             | `ClyTrade-<version>-android-universal.apk` |
+
+`npm run version:set -- <version>` updates the version everywhere it lives
+(`package.json`, the lockfiles, `src-tauri/Cargo.toml`). Pushing a `v<version>`
+tag builds both platforms and opens a draft GitHub Release; changelog entries
+live in [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Roadmap
 

@@ -5,6 +5,7 @@ import dataAndBackups from './general/data-and-backups.md?raw'
 import themes from './general/themes.md?raw'
 import designPhilosophy from './general/design-philosophy.md?raw'
 import aiUsage from './general/ai-usage.md?raw'
+import releases from './general/releases.md?raw'
 import positionSize from './calculators/position-size.md?raw'
 import marginLeverage from './calculators/margin-leverage.md?raw'
 import liquidationPrice from './calculators/liquidation-price.md?raw'
@@ -42,6 +43,13 @@ export const DOCS: readonly DocEntry[] = [
     group: 'Basics',
     summary: 'ClyTrade is written by AI. Here is how it is directed, reviewed and verified.',
     body: aiUsage,
+  },
+  {
+    slug: 'releases',
+    title: 'Platforms & Releases',
+    group: 'Basics',
+    summary: 'PWA, Windows and Android builds, version numbering and moving data between them.',
+    body: releases,
   },
   {
     slug: 'journal',

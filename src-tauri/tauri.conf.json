@@ -1,0 +1,50 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "ClyTrade",
+  "mainBinaryName": "ClyTrade",
+  "version": "../package.json",
+  "identifier": "com.clytrade.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "ClyTrade",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 360,
+        "minHeight": 480,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "benyamin-git",
+    "copyright": "Copyright (C) 2026 benyamin-git",
+    "category": "Finance",
+    "shortDescription": "Local-first trading journal, portfolio and calculators.",
+    "longDescription": "ClyTrade is a fast, opinionated, local-first trading app: a trade journal, a spot portfolio tracker and a set of calculators that compute as you type. No account, no server, no subscription. Your data stays on your device.",
+    "license": "GPL-3.0-only",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "android": {
+      "debugApplicationIdSuffix": ".debug"
+    }
+  }
+}

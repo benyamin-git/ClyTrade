@@ -4,6 +4,7 @@ import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { CURRENCIES, currencySymbol } from '@/lib/currency'
 import { TIME_RANGES } from '@/lib/dates'
+import { APP_VERSION, PLATFORM_LABEL } from '@/lib/version'
 import { Card } from '@/ui/components/Card'
 import { Field } from '@/ui/components/Field'
 import { NumberField } from '@/ui/components/NumberField'
@@ -111,6 +112,10 @@ function PreferencesForm() {
         <p className="text-xs text-on-surface-variant">
           These defaults pre-fill the calculators and new journal entries. Changes are saved
           immediately.
+        </p>
+
+        <p className="text-xs text-on-surface-variant">
+          ClyTrade {APP_VERSION} · {PLATFORM_LABEL}
         </p>
       </div>
     </ViewportPage>

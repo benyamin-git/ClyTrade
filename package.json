@@ -34,7 +34,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "icons": "node scripts/generate-icons.mjs",
-    "accents": "node scripts/generate-accents.mjs"
+    "icons:native": "tauri icon public/icons/icon-512.png",
+    "accents": "node scripts/generate-accents.mjs",
+    "tauri": "tauri",
+    "tauri:build": "tauri build",
+    "android:init": "tauri android init",
+    "android:apk": "tauri android build --apk",
+    "android:apk:debug": "tauri android build --apk --debug",
+    "version:set": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@fontsource-variable/roboto": "^5.3.0",
@@ -51,6 +58,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "^2.11.5",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
