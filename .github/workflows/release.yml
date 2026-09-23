@@ -106,15 +106,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android NDK
+      - name: Configure Android NDK
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "ndk;27.0.12077973"
-          echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
+          NDK_HOME="${NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
+          if [ -z "$NDK_HOME" ]; then
+            NDK_HOME="$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null | sort -V | tail -1)"
+          fi
+          if [ -z "$NDK_HOME" ]; then
+            echo "No Android NDK found on the runner" >&2
+            exit 1
+          fi
+          echo "NDK_HOME=$NDK_HOME" >> "$GITHUB_ENV"
+          echo "Using NDK_HOME=$NDK_HOME"
 
       - name: Install dependencies
         run: npm ci
