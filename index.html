@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="ClyTrade — fast, local-first trading journal, portfolio and calculators."
+    />
+    <meta name="theme-color" content="#1c1b1f" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ClyTrade" />
+    <title>ClyTrade</title>
+    <script>
+      ;(function () {
+        try {
+          var stored = localStorage.getItem('clytrade.theme')
+          var valid = stored === 'md3-light' || stored === 'md3-dark' || stored === 'black-night'
+          var theme = valid
+            ? stored
+            : window.matchMedia('(prefers-color-scheme: light)').matches
+              ? 'md3-light'
+              : 'md3-dark'
+          document.documentElement.dataset.theme = theme
+        } catch (error) {
+          document.documentElement.dataset.theme = 'md3-dark'
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
