@@ -136,10 +136,13 @@ That said, everything else is welcome:
 
 ## AI-assisted development
 
-Large parts of this project are written with AI assistance. The code is
-reviewed, tested and verified like any other work — but if AI-assisted software
-is a dealbreaker for you, this project is probably not for you, and that is
-completely fine.
+ClyTrade is written almost entirely by AI. The maintainer directs the work,
+makes the product decisions, reviews every change and runs the tests — but the
+code and documentation are AI-generated. If AI-written software is a dealbreaker
+for you, this project is probably not for you, and that is completely fine.
+
+The same statement, with more detail, is included in the app under **Settings →
+Documentation → AI Usage**.
 
 ## Disclaimer
 

@@ -40,7 +40,7 @@ export const DOCS: readonly DocEntry[] = [
     slug: 'ai-usage',
     title: 'AI Usage',
     group: 'Basics',
-    summary: 'How AI assistance is used, and how the code is verified.',
+    summary: 'ClyTrade is written by AI. Here is how it is directed, reviewed and verified.',
     body: aiUsage,
   },
   {
