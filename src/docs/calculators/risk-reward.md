@@ -9,7 +9,8 @@ R multiple, the break-even win rate, and the expectancy at a given win rate.
 
 1. Enter **Entry**, **Stop** and **Target** prices.
 2. Optionally enter your historical **Win rate %** to see expectancy in R.
-3. Read the ratio, break-even win rate and expectancy on the right.
+3. Set **Entry fee** and **Exit fee** (they come from Settings → Preferences).
+4. Read the ratio, break-even win rate and expectancy on the right.
 
 ## Why it works this way
 
@@ -20,13 +21,23 @@ R multiple, the break-even win rate, and the expectancy at a given win rate.
   setups that rarely trigger.
 - **Expectancy decides if a strategy is worth running.** Positive expectancy at
   your actual win rate is the only reason to take a setup repeatedly.
+- **Fees are part of the geometry.** A 3R setup with 0.1% fees per side is
+  closer to 2.85R in practice. When fees are included, the ratio, break-even win
+  rate and expectancy use net numbers; the Risk and Reward cards show the gross
+  distance underneath. Turn fees off in Settings → Preferences to see the raw
+  geometry.
 
 ## Formula
 
 ```
 risk              = |entry − stop|
 reward            = |target − entry|
-riskRewardRatio   = reward / risk
+entryFee          = entry × entryFeePercent / 100
+exitFeeAtStop     = stop × exitFeePercent / 100
+exitFeeAtTarget   = target × exitFeePercent / 100
+netRisk           = risk + entryFee + exitFeeAtStop       (when fees are included)
+netReward         = reward − entryFee − exitFeeAtTarget   (when fees are included)
+riskRewardRatio   = netReward / netRisk
 breakEvenWinRate  = 1 / (1 + riskRewardRatio) × 100
 expectancyR       = winRate/100 × riskRewardRatio − (1 − winRate/100)
 ```
@@ -34,5 +45,6 @@ expectancyR       = winRate/100 × riskRewardRatio − (1 − winRate/100)
 ## Assumptions
 
 - Distances are absolute; direction does not change the ratio.
-- Fees and slippage are excluded.
-- One target, one stop, no scaling out.
+- Fees are percentages of notional. This calculator works per unit and has no
+  position size, so an absolute currency fee would have no meaning here.
+- One target, one stop, no scaling out. Slippage is excluded.

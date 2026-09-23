@@ -29,7 +29,10 @@ const filterOptions = [
 export function JournalOverviewPage() {
   const { preferences } = usePreferences()
   const trades = useLiveQuery(() => listTrades(), [], undefined)
-  const rows = useMemo(() => toTradeRows(trades ?? []), [trades])
+  const rows = useMemo(
+    () => toTradeRows(trades ?? [], preferences.feesInRisk),
+    [trades, preferences.feesInRisk],
+  )
   const [filter, setFilter] = useState<TradeFilter>('all')
   const [form, setForm] = useState<{ trade: Trade | null } | null>(null)
   const [deleting, setDeleting] = useState<Trade | null>(null)

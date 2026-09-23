@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { calculateMarginLeverage } from '@/calculations/marginLeverage'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
@@ -45,14 +46,14 @@ function MarginLeverageCalculator() {
         <>
           <NumberField
             label="Account size"
-            unit={preferences.currency}
+            unit={currencySymbol(preferences.currency)}
             value={accountSize}
             onChange={setAccountSize}
             min={0}
           />
           <NumberField
             label="Position notional"
-            unit={preferences.currency}
+            unit={currencySymbol(preferences.currency)}
             value={positionNotional}
             onChange={setPositionNotional}
             min={0}

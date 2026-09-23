@@ -10,6 +10,7 @@ export const preferencesSchema = z.object({
   feePercent: z.number().min(0),
   maintenanceMarginPercent: z.number().min(0).max(100),
   defaultTimeRange: timeRangeSchema,
+  feesInRisk: z.boolean().default(true),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>
@@ -22,6 +23,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   feePercent: 0.05,
   maintenanceMarginPercent: 0.5,
   defaultTimeRange: '30d',
+  feesInRisk: true,
 }
 
 export interface SettingRow {

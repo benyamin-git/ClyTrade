@@ -3,11 +3,13 @@ import { calculateFeesPnl } from '@/calculations/feesPnl'
 import type { Direction } from '@/calculations/types'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
-import { NumberField } from '@/ui/components/NumberField'
+import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
 
 function FeesPnlCalculator() {
   const { preferences } = usePreferences()
@@ -16,9 +18,20 @@ function FeesPnlCalculator() {
   const [size, setSize] = useState<number | null>(null)
   const [direction, setDirection] = useState<Direction>('long')
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
-  const [entryFeePercent, setEntryFeePercent] = useState<number | null>(preferences.feePercent)
-  const [exitFeePercent, setExitFeePercent] = useState<number | null>(preferences.feePercent)
-  const [fundingPercent, setFundingPercent] = useState<number | null>(0)
+  const [entryFee, setEntryFee] = useState<number | null>(preferences.feePercent)
+  const [entryFeeUnit, setEntryFeeUnit] = useState<UnitMode>('percent')
+  const [exitFee, setExitFee] = useState<number | null>(preferences.feePercent)
+  const [exitFeeUnit, setExitFeeUnit] = useState<UnitMode>('percent')
+  const [funding, setFunding] = useState<number | null>(0)
+  const [fundingUnit, setFundingUnit] = useState<UnitMode>('percent')
+
+  const unitOptions: readonly NumberUnitOption[] = [
+    { value: 'percent', label: '%' },
+    { value: 'currency', label: currencySymbol(preferences.currency) },
+  ]
+
+  const entryNotional = entryPrice !== null && size !== null ? entryPrice * size : null
+  const exitNotional = exitPrice !== null && size !== null ? exitPrice * size : null
 
   const result = useMemo(() => {
     if (
@@ -26,12 +39,17 @@ function FeesPnlCalculator() {
       exitPrice === null ||
       size === null ||
       leverage === null ||
-      entryFeePercent === null ||
-      exitFeePercent === null ||
-      fundingPercent === null
+      entryFee === null ||
+      exitFee === null ||
+      funding === null
     ) {
       return null
     }
+    const entryFeePercent =
+      entryFeeUnit === 'percent' ? entryFee : toPercent(entryFee, entryNotional)
+    const exitFeePercent = exitFeeUnit === 'percent' ? exitFee : toPercent(exitFee, exitNotional)
+    const fundingPercent = fundingUnit === 'percent' ? funding : toPercent(funding, entryNotional)
+    if (entryFeePercent === null || exitFeePercent === null || fundingPercent === null) return null
     return calculateFeesPnl({
       entryPrice,
       exitPrice,
@@ -49,11 +67,37 @@ function FeesPnlCalculator() {
     size,
     direction,
     leverage,
-    entryFeePercent,
-    exitFeePercent,
-    fundingPercent,
+    entryFee,
+    entryFeeUnit,
+    entryNotional,
+    exitFee,
+    exitFeeUnit,
+    exitNotional,
+    funding,
+    fundingUnit,
     preferences.accountSize,
   ])
+
+  function switchEntryFeeUnit(next: string) {
+    const mode = next as UnitMode
+    if (mode === entryFeeUnit) return
+    setEntryFee(convertUnit(entryFee, entryFeeUnit, mode, entryNotional))
+    setEntryFeeUnit(mode)
+  }
+
+  function switchExitFeeUnit(next: string) {
+    const mode = next as UnitMode
+    if (mode === exitFeeUnit) return
+    setExitFee(convertUnit(exitFee, exitFeeUnit, mode, exitNotional))
+    setExitFeeUnit(mode)
+  }
+
+  function switchFundingUnit(next: string) {
+    const mode = next as UnitMode
+    if (mode === fundingUnit) return
+    setFunding(convertUnit(funding, fundingUnit, mode, entryNotional))
+    setFundingUnit(mode)
+  }
 
   return (
     <CalculatorLayout
@@ -76,29 +120,42 @@ function FeesPnlCalculator() {
                 { value: 'long', label: 'Long' },
                 { value: 'short', label: 'Short' },
               ]}
+              ariaLabel="Direction"
             />
           </div>
           <NumberField label="Leverage" unit="×" value={leverage} onChange={setLeverage} min={1} />
           <NumberField
             label="Entry fee"
-            unit="%"
-            value={entryFeePercent}
-            onChange={setEntryFeePercent}
+            value={entryFee}
+            onChange={setEntryFee}
+            unitOptions={unitOptions}
+            unitValue={entryFeeUnit}
+            onUnitChange={switchEntryFeeUnit}
             min={0}
+            hint={entryFeeUnit === 'currency' ? 'Absolute cost' : undefined}
           />
           <NumberField
             label="Exit fee"
-            unit="%"
-            value={exitFeePercent}
-            onChange={setExitFeePercent}
+            value={exitFee}
+            onChange={setExitFee}
+            unitOptions={unitOptions}
+            unitValue={exitFeeUnit}
+            onUnitChange={switchExitFeeUnit}
             min={0}
+            hint={exitFeeUnit === 'currency' ? 'Absolute cost' : undefined}
           />
           <NumberField
             label="Funding (total)"
-            unit="%"
-            value={fundingPercent}
-            onChange={setFundingPercent}
-            hint="Positive = paid over the hold"
+            value={funding}
+            onChange={setFunding}
+            unitOptions={unitOptions}
+            unitValue={fundingUnit}
+            onUnitChange={switchFundingUnit}
+            hint={
+              fundingUnit === 'currency'
+                ? 'Absolute cost over the hold'
+                : 'Positive = paid over the hold'
+            }
           />
         </>
       }

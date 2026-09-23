@@ -26,8 +26,15 @@
               ? 'md3-light'
               : 'md3-dark'
           document.documentElement.dataset.theme = theme
+          var accent = localStorage.getItem('clytrade.accent')
+          var accents = ['blue', 'teal', 'green', 'lime', 'amber', 'orange', 'rose', 'violet']
+          if (accent !== 'purple') {
+            document.documentElement.dataset.accent =
+              accents.indexOf(accent) === -1 ? 'blue' : accent
+          }
         } catch (error) {
           document.documentElement.dataset.theme = 'md3-dark'
+          document.documentElement.dataset.accent = 'blue'
         }
       })()
     </script>

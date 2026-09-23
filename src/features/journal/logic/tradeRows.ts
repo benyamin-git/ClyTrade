@@ -6,7 +6,7 @@ export interface TradeRow {
   metrics: TradeMetricsResult | null
 }
 
-export function toTradeRows(trades: readonly Trade[]): TradeRow[] {
+export function toTradeRows(trades: readonly Trade[], includeFees: boolean): TradeRow[] {
   return trades.map((trade) => ({
     trade,
     metrics: calculateTradeMetrics({
@@ -20,6 +20,7 @@ export function toTradeRows(trades: readonly Trade[]): TradeRow[] {
       targetPrice: trade.targetPrice,
       openedAt: trade.openedAt,
       closedAt: trade.closedAt,
+      includeFees,
     }),
   }))
 }

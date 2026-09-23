@@ -1,21 +1,49 @@
 import { useMemo, useState } from 'react'
 import { calculateRiskReward } from '@/calculations/riskReward'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
+import { usePreferences } from '@/features/settings/SettingsContext'
 import { formatNumber, formatPrice } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
 
 function RiskRewardCalculator() {
+  const { preferences } = usePreferences()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
   const [stopPrice, setStopPrice] = useState<number | null>(null)
   const [targetPrice, setTargetPrice] = useState<number | null>(null)
   const [winRatePercent, setWinRatePercent] = useState<number | null>(null)
+  const [entryFeePercent, setEntryFeePercent] = useState<number | null>(preferences.feePercent)
+  const [exitFeePercent, setExitFeePercent] = useState<number | null>(preferences.feePercent)
 
   const result = useMemo(() => {
-    if (entryPrice === null || stopPrice === null || targetPrice === null) return null
-    return calculateRiskReward({ entryPrice, stopPrice, targetPrice, winRatePercent })
-  }, [entryPrice, stopPrice, targetPrice, winRatePercent])
+    if (
+      entryPrice === null ||
+      stopPrice === null ||
+      targetPrice === null ||
+      entryFeePercent === null ||
+      exitFeePercent === null
+    ) {
+      return null
+    }
+    return calculateRiskReward({
+      entryPrice,
+      stopPrice,
+      targetPrice,
+      winRatePercent,
+      entryFeePercent,
+      exitFeePercent,
+      includeFees: preferences.feesInRisk,
+    })
+  }, [
+    entryPrice,
+    stopPrice,
+    targetPrice,
+    winRatePercent,
+    entryFeePercent,
+    exitFeePercent,
+    preferences.feesInRisk,
+  ])
 
   const notices =
     entryPrice !== null && stopPrice !== null && entryPrice === stopPrice
@@ -41,6 +69,20 @@ function RiskRewardCalculator() {
             min={0}
             max={100}
             hint="Add your historical win rate to see expectancy"
+          />
+          <NumberField
+            label="Entry fee"
+            unit="%"
+            value={entryFeePercent}
+            onChange={setEntryFeePercent}
+            min={0}
+          />
+          <NumberField
+            label="Exit fee"
+            unit="%"
+            value={exitFeePercent}
+            onChange={setExitFeePercent}
+            min={0}
           />
         </>
       }
@@ -69,8 +111,18 @@ function RiskRewardCalculator() {
               }
               hint={result.expectancyR === null ? 'Enter a win rate' : 'per trade at this win rate'}
             />
-            <Stat label="Risk" value={formatPrice(result.risk)} hint="price distance" />
-            <Stat label="Reward" value={formatPrice(result.reward)} hint="price distance" />
+            <Stat
+              label="Risk"
+              value={formatPrice(preferences.feesInRisk ? result.netRisk : result.risk)}
+              hint={preferences.feesInRisk ? `gross ${formatPrice(result.risk)}` : 'price distance'}
+            />
+            <Stat
+              label="Reward"
+              value={formatPrice(preferences.feesInRisk ? result.netReward : result.reward)}
+              hint={
+                preferences.feesInRisk ? `gross ${formatPrice(result.reward)}` : 'price distance'
+              }
+            />
             <Stat
               label="Stop / target move"
               value={`${formatNumber(result.stopMovePercent, { maximumFractionDigits: 2 })}% / ${formatNumber(result.targetMovePercent, { maximumFractionDigits: 2 })}%`}

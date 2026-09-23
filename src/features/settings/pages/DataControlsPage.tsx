@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Download, MonitorDown, RotateCcw, Upload } from 'lucide-react'
+import { Download, FlaskConical, MonitorDown, RotateCcw, Upload } from 'lucide-react'
 import {
   clearAllData,
   downloadBackup,
@@ -8,6 +8,7 @@ import {
   parseBackup,
   type ImportMode,
 } from '@/data/backup'
+import { loadSampleData } from '@/data/sampleData'
 import { useInstallPrompt } from '@/features/settings/logic/useInstallPrompt'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
@@ -23,6 +24,7 @@ export function DataControlsPage() {
   const [message, setMessage] = useState<Message>(null)
   const [busy, setBusy] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [confirmSample, setConfirmSample] = useState(false)
   const { canInstall, installed, promptInstall } = useInstallPrompt()
 
   async function handleExport() {
@@ -57,6 +59,19 @@ export function DataControlsPage() {
     } finally {
       setBusy(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleLoadSample() {
+    setBusy(true)
+    try {
+      await loadSampleData()
+      setConfirmSample(false)
+      setMessage({ tone: 'ok', text: 'Sample data loaded.' })
+    } catch {
+      setMessage({ tone: 'error', text: 'Could not load sample data.' })
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -144,6 +159,26 @@ export function DataControlsPage() {
           </div>
         </Card>
 
+        <Card title="Sample data">
+          <div className="flex flex-col gap-3 p-4">
+            <p className="text-xs text-on-surface-variant">
+              Add a set of example trades and assets to explore the journal, stats and portfolio.
+              Your own records are kept; loading again refreshes the samples. Reset removes them.
+            </p>
+            <div>
+              <Button
+                size="sm"
+                variant="tonal"
+                icon={<FlaskConical />}
+                onClick={() => setConfirmSample(true)}
+                disabled={busy}
+              >
+                Load sample data
+              </Button>
+            </div>
+          </div>
+        </Card>
+
         <Card title="Reset">
           <div className="flex flex-col gap-3 p-4">
             <p className="text-xs text-on-surface-variant">
@@ -172,6 +207,27 @@ export function DataControlsPage() {
             {message.text}
           </p>
         ) : null}
+
+        <Sheet
+          open={confirmSample}
+          onClose={() => setConfirmSample(false)}
+          title="Load sample data"
+          footer={
+            <>
+              <Button variant="text" onClick={() => setConfirmSample(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => void handleLoadSample()} disabled={busy}>
+                Load samples
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm">
+            This adds example trades and assets to the journal and portfolio. Records you created
+            yourself are not touched, and the samples can be removed with Reset all data.
+          </p>
+        </Sheet>
 
         <Sheet
           open={confirmReset}

@@ -1,11 +1,12 @@
 import { Check } from 'lucide-react'
+import { ACCENTS, THEME_NATIVE_ACCENT } from '@/theme/accents'
 import { useTheme } from '@/theme/ThemeContext'
 import { THEMES } from '@/theme/theme'
 import { cn } from '@/lib/cn'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 
 export function ThemesPage() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, accent, setAccent } = useTheme()
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
@@ -52,6 +53,46 @@ export function ThemesPage() {
               </button>
             )
           })}
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-app-md border border-outline-variant/60 p-4">
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-sm font-medium">Accent</h2>
+            <p className="text-xs text-on-surface-variant">
+              Recolors the primary, secondary and tertiary families and tints the surfaces of the
+              active theme. Blue is the default; Purple restores the palette the theme ships with.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {ACCENTS.map((option) => {
+              const active = option.id === accent
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setAccent(option.id)}
+                  aria-pressed={active}
+                  aria-label={option.label}
+                  title={option.label}
+                  className={cn(
+                    'flex w-20 flex-col items-center gap-2 rounded-app-md border p-2 transition-colors',
+                    active
+                      ? 'border-primary bg-primary-container/30'
+                      : 'border-outline-variant/60 hover:border-outline',
+                  )}
+                >
+                  <span
+                    data-theme={theme}
+                    data-accent={option.id === THEME_NATIVE_ACCENT ? undefined : option.id}
+                    className="size-10 rounded-app-full border border-outline-variant/40 bg-primary"
+                  />
+                  <span className="w-full text-center text-2xs leading-tight text-on-surface-variant">
+                    {option.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <p className="text-xs text-on-surface-variant">

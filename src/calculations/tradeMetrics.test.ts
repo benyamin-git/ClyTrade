@@ -12,6 +12,7 @@ const base: TradeMetricsInput = {
   targetPrice: 115,
   openedAt: 1_000,
   closedAt: 2_000,
+  includeFees: false,
 }
 
 describe('calculateTradeMetrics', () => {
@@ -26,6 +27,12 @@ describe('calculateTradeMetrics', () => {
     expect(result?.rMultiple).toBeCloseTo(1.9, 10)
     expect(result?.plannedRiskReward).toBeCloseTo(3, 10)
     expect(result?.durationMs).toBeCloseTo(1_000, 10)
+  })
+
+  it('adds fees to the risk amount when fees are included', () => {
+    const result = calculateTradeMetrics({ ...base, includeFees: true })
+    expect(result?.riskAmount).toBeCloseTo(11, 10)
+    expect(result?.rMultiple).toBeCloseTo(19 / 11, 10)
   })
 
   it('inverts PnL for a short', () => {

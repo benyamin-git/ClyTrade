@@ -11,6 +11,7 @@ export interface TradeMetricsInput {
   targetPrice: number | null
   openedAt: number
   closedAt: number | null
+  includeFees: boolean
 }
 
 export interface TradeMetricsResult {
@@ -32,12 +33,14 @@ export interface TradeMetricsResult {
  * grossPnl          = (exitPrice - entryPrice) * size * (long ? 1 : -1)
  * netPnl            = grossPnl - fees                     (fees are absolute)
  * returnPercent     = netPnl / margin * 100
- * riskAmount        = |entryPrice - stopPrice| * size
+ * riskAmount        = |entryPrice - stopPrice| * size (+ fees when included)
  * rMultiple         = netPnl / riskAmount
  * plannedRiskReward = |targetPrice - entryPrice| / |entryPrice - stopPrice|
  *
- * Assumptions: `fees` is the total absolute cost of the trade. Metrics that
- * require an exit, a stop or a target are `null` when the input is missing.
+ * Assumptions: `fees` is the total absolute cost of the trade. With
+ * `includeFees` the fees are added to the risk amount, so a trade that risks
+ * 1 and pays 0.5 in fees has a risk of 1.5. Metrics that require an exit, a
+ * stop or a target are `null` when the input is missing.
  */
 export function calculateTradeMetrics(input: TradeMetricsInput): TradeMetricsResult | null {
   const {
@@ -51,6 +54,7 @@ export function calculateTradeMetrics(input: TradeMetricsInput): TradeMetricsRes
     targetPrice,
     openedAt,
     closedAt,
+    includeFees,
   } = input
 
   const numericInputs = [entryPrice, size, leverage, fees, openedAt]
@@ -69,7 +73,8 @@ export function calculateTradeMetrics(input: TradeMetricsInput): TradeMetricsRes
 
   const grossPnl = exitPrice === null ? null : (exitPrice - entryPrice) * size * directionSign
   const netPnl = grossPnl === null ? null : grossPnl - fees
-  const riskAmount = stopPrice === null ? null : Math.abs(entryPrice - stopPrice) * size
+  const riskAmount =
+    stopPrice === null ? null : Math.abs(entryPrice - stopPrice) * size + (includeFees ? fees : 0)
   const stopDistance = stopPrice === null ? null : Math.abs(entryPrice - stopPrice)
 
   return {

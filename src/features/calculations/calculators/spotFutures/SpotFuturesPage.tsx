@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { calculateSpotFutures } from '@/calculations/spotFutures'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber } from '@/lib/format'
-import { NumberField } from '@/ui/components/NumberField'
+import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { UnitMode } from '../../logic/units'
 
 function SpotFuturesCalculator() {
   const { preferences } = usePreferences()
@@ -13,7 +15,13 @@ function SpotFuturesCalculator() {
   const [price, setPrice] = useState<number | null>(null)
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
   const [contractSize, setContractSize] = useState<number | null>(1)
-  const [feePercent, setFeePercent] = useState<number | null>(preferences.feePercent)
+  const [fee, setFee] = useState<number | null>(preferences.feePercent)
+  const [feeUnit, setFeeUnit] = useState<UnitMode>('percent')
+
+  const unitOptions: readonly NumberUnitOption[] = [
+    { value: 'percent', label: '%' },
+    { value: 'currency', label: currencySymbol(preferences.currency) },
+  ]
 
   const result = useMemo(() => {
     if (
@@ -21,12 +29,26 @@ function SpotFuturesCalculator() {
       price === null ||
       leverage === null ||
       contractSize === null ||
-      feePercent === null
+      fee === null
     ) {
       return null
     }
-    return calculateSpotFutures({ capital, price, leverage, contractSize, feePercent })
-  }, [capital, price, leverage, contractSize, feePercent])
+    return calculateSpotFutures({
+      capital,
+      price,
+      leverage,
+      contractSize,
+      feePercent: feeUnit === 'percent' ? fee : null,
+      feeAmount: feeUnit === 'currency' ? fee : null,
+    })
+  }, [capital, price, leverage, contractSize, fee, feeUnit])
+
+  function switchFeeUnit(next: string) {
+    const mode = next as UnitMode
+    if (mode === feeUnit) return
+    setFee(null)
+    setFeeUnit(mode)
+  }
 
   return (
     <CalculatorLayout
@@ -37,7 +59,7 @@ function SpotFuturesCalculator() {
         <>
           <NumberField
             label="Capital"
-            unit={preferences.currency}
+            unit={currencySymbol(preferences.currency)}
             value={capital}
             onChange={setCapital}
             min={0}
@@ -53,10 +75,13 @@ function SpotFuturesCalculator() {
           />
           <NumberField
             label="Fee per side"
-            unit="%"
-            value={feePercent}
-            onChange={setFeePercent}
+            value={fee}
+            onChange={setFee}
+            unitOptions={unitOptions}
+            unitValue={feeUnit}
+            onUnitChange={switchFeeUnit}
             min={0}
+            hint={feeUnit === 'currency' ? 'Absolute cost per side' : undefined}
           />
         </>
       }

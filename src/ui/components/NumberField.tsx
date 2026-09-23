@@ -3,12 +3,21 @@ import { cn } from '@/lib/cn'
 import { clamp } from '@/lib/money'
 import { parseNumberInput } from '@/lib/format'
 import { Field } from './Field'
+import { SegmentedControl } from './SegmentedControl'
+
+export interface NumberUnitOption {
+  value: string
+  label: string
+}
 
 export interface NumberFieldProps {
   label: string
   value: number | null
   onChange: (value: number | null) => void
   unit?: string
+  unitOptions?: readonly NumberUnitOption[]
+  unitValue?: string
+  onUnitChange?: (value: string) => void
   placeholder?: string
   hint?: string
   error?: string | null
@@ -27,6 +36,9 @@ export function NumberField({
   value,
   onChange,
   unit,
+  unitOptions,
+  unitValue,
+  onUnitChange,
   placeholder,
   hint,
   error,
@@ -37,6 +49,12 @@ export function NumberField({
 }: NumberFieldProps) {
   const id = useId()
   const [raw, setRaw] = useState(() => toRaw(value))
+  const [lastUnit, setLastUnit] = useState(unitValue)
+
+  if (unitValue !== lastUnit) {
+    setLastUnit(unitValue)
+    setRaw(toRaw(value))
+  }
 
   function handleBlur() {
     const parsed = parseNumberInput(raw)
@@ -74,7 +92,18 @@ export function NumberField({
           onFocus={(event) => event.target.select()}
           className="tabular w-full min-w-0 bg-transparent text-base outline-none placeholder:text-on-surface-variant/50"
         />
-        {unit ? <span className="shrink-0 text-xs text-on-surface-variant">{unit}</span> : null}
+        {unitOptions && unitValue && onUnitChange ? (
+          <SegmentedControl
+            value={unitValue}
+            options={unitOptions}
+            onChange={onUnitChange}
+            size="xs"
+            variant="inline"
+            ariaLabel={`${label} unit`}
+          />
+        ) : unit ? (
+          <span className="shrink-0 text-xs text-on-surface-variant">{unit}</span>
+        ) : null}
       </div>
     </Field>
   )

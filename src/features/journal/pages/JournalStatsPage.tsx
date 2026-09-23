@@ -39,11 +39,11 @@ export function JournalStatsPage() {
   const trades = useLiveQuery(() => listTrades(), [], undefined)
 
   const rows = useMemo(() => {
-    const all = toTradeRows(trades ?? [])
+    const all = toTradeRows(trades ?? [], preferences.feesInRisk)
     return all.filter(
       (row) => row.trade.closedAt !== null && isWithinRange(row.trade.closedAt, range),
     )
-  }, [trades, range])
+  }, [trades, range, preferences.feesInRisk])
 
   const statsRows = useMemo(
     () =>

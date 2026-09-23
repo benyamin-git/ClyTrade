@@ -3,6 +3,7 @@
 @import '../theme/themes/md3-light.css';
 @import '../theme/themes/md3-dark.css';
 @import '../theme/themes/black-night.css';
+@import '../theme/accents.css';
 
 @layer base {
   html {

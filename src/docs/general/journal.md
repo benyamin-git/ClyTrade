@@ -25,5 +25,9 @@ Stats.
   computes what it means. This keeps entries fast and consistent.
 - **Every metric has one definition.** The same calculation module is used in
   the row, in Stats and in the in-app documentation.
+- **R depends on your risk definition.** By default the R denominator is the
+  stop risk plus the trade's fees, so a trade that risks 1 and pays 0.5 in fees
+  needs +1.5 to be 1R. Switch it off in Settings → Preferences to divide by the
+  stop risk alone.
 - **Notes and tags are optional but first-class.** Patterns only become visible
   when trades are labelled.

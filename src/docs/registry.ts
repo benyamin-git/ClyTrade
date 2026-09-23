@@ -61,14 +61,14 @@ export const DOCS: readonly DocEntry[] = [
     slug: 'data-and-backups',
     title: 'Data & Backups',
     group: 'Features',
-    summary: 'Where data lives, how to export, import and reset it.',
+    summary: 'Where data lives, how to export, import, reset and load sample data.',
     body: dataAndBackups,
   },
   {
     slug: 'themes',
     title: 'Themes',
     group: 'Features',
-    summary: 'Material Light, Material Dark and Black Night.',
+    summary: 'Material Light, Material Dark and Black Night, plus preset accents.',
     body: themes,
   },
   {

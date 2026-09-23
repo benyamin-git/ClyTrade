@@ -17,6 +17,10 @@
   changed once instead of per calculation.
 - Costs are shown next to profits. ROI on margin is shown next to account
   return. Liquidation distance is shown next to liquidation price.
+- Fields that have more than one meaning accept more than one unit: risk and
+  fees can be a percentage or an absolute amount, and the `%` / currency toggle
+  sits inside the field. The currency list is display-only — no exchange rates,
+  no surprises.
 - Calculations live in dedicated, tested modules. They never guess, never throw
   and never hide an assumption — the formula and its limits are documented in
   the app.

@@ -10,16 +10,17 @@ Node 22 is required (installed via nvm). Prefix commands in non-interactive shel
 export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 ```
 
-| Command             | Purpose                                           |
-| ------------------- | ------------------------------------------------- |
-| `npm run dev`       | Vite dev server                                   |
-| `npm run build`     | Typecheck + production build + PWA service worker |
-| `npm run preview`   | Serve the production build                        |
-| `npm run typecheck` | `tsc -b` across app and node configs              |
-| `npm run lint`      | ESLint (flat config)                              |
-| `npm test`          | Vitest run (jsdom, fake-indexeddb)                |
-| `npm run format`    | Prettier write                                    |
-| `npm run icons`     | Regenerate PWA icons into `public/icons/`         |
+| Command             | Purpose                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `npm run dev`       | Vite dev server                                         |
+| `npm run build`     | Typecheck + production build + PWA service worker       |
+| `npm run preview`   | Serve the production build                              |
+| `npm run typecheck` | `tsc -b` across app and node configs                    |
+| `npm run lint`      | ESLint (flat config)                                    |
+| `npm test`          | Vitest run (jsdom, fake-indexeddb)                      |
+| `npm run format`    | Prettier write                                          |
+| `npm run icons`     | Regenerate PWA icons into `public/icons/`               |
+| `npm run accents`   | Regenerate accent palettes into `src/theme/accents.css` |
 
 Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing work.
 
@@ -33,6 +34,10 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   inputs. Keep the table-driven style.
 - Do not add comments to code unless asked.
 - Do not commit unless asked.
+- Never hand-edit generated files (`public/icons/`, `src/theme/accents.css`).
+  Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
+  live in `src/theme/accents.ts` and must stay in sync with the seed table in
+  `scripts/generate-accents.mjs`; a test fails if the generated CSS drifts.
 
 ## Architecture
 
@@ -43,7 +48,7 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
 | Calculations  | `src/calculations/` | Pure, protected math layer                                                          |
 | Data          | `src/data/`         | Dexie schema, models (zod), repositories, backup                                    |
 | Design system | `src/ui/`           | Primitives and layout components                                                    |
-| Theme         | `src/theme/`        | MD3 CSS-variable tokens and theme switching                                         |
+| Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes              |
 | Docs          | `src/docs/`         | Markdown + registry rendered in Settings → Documentation                            |
 
 Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculations`.

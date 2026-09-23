@@ -7,6 +7,7 @@ const base: SpotFuturesInput = {
   leverage: 10,
   contractSize: 0.1,
   feePercent: 0.05,
+  feeAmount: null,
 }
 
 describe('calculateSpotFutures', () => {
@@ -22,6 +23,14 @@ describe('calculateSpotFutures', () => {
     expect(result?.liquidationMovePercent).toBeCloseTo(10, 10)
   })
 
+  it('charges an absolute fee per side when provided', () => {
+    const result = calculateSpotFutures({ ...base, feePercent: null, feeAmount: 3 })
+    expect(result?.spotFee).toBeCloseTo(3, 10)
+    expect(result?.futuresFee).toBeCloseTo(3, 10)
+    expect(result?.spotQuantity).toBeCloseTo(10, 10)
+    expect(result?.futuresQuantity).toBeCloseTo(100, 10)
+  })
+
   it('matches spot at 1x leverage', () => {
     const result = calculateSpotFutures({ ...base, leverage: 1 })
     expect(result?.futuresQuantity).toBeCloseTo(result?.spotQuantity ?? NaN, 10)
@@ -33,6 +42,10 @@ describe('calculateSpotFutures', () => {
     ['zero price', { ...base, price: 0 }],
     ['zero contract size', { ...base, contractSize: 0 }],
     ['leverage below 1', { ...base, leverage: 0 }],
+    ['no fee mode', { ...base, feePercent: null }],
+    ['both fee modes', { ...base, feeAmount: 3 }],
+    ['negative percent fee', { ...base, feePercent: -0.05 }],
+    ['negative amount fee', { ...base, feePercent: null, feeAmount: -3 }],
   ])('returns null for %s', (_name, input) => {
     expect(calculateSpotFutures(input)).toBeNull()
   })

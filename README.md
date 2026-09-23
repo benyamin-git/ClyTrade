@@ -42,7 +42,7 @@ calculators, journal and themes once the UI polish pass is done.
 | **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.            |
 | **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                       |
 | **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures. |
-| **Settings**     | Default inputs, three themes (Material Light, Material Dark, Black Night), data export/import/reset and the full documentation.         |
+| **Settings**     | Default inputs, three themes with preset accent colors, data export/import/reset, sample data and the full documentation.               |
 
 ## Tech
 
@@ -67,6 +67,7 @@ npm test           # run the test suite
 npm run lint       # eslint
 npm run typecheck  # tsc -b
 npm run icons      # regenerate PWA icons
+npm run accents    # regenerate accent color palettes
 ```
 
 To test installability and offline mode, use `npm run build && npm run preview`.
@@ -99,10 +100,6 @@ V1 covers the offline core. Planned next:
 - Optional sync between devices
 - Translations and language support (see below)
 - More calculators, more stats, import from exchange CSVs
-- Accent color customization on top of the three themes
-- A preference for whether fees count toward risk in the calculators
-- Per-input unit selection (currency or percentage) for fields that accept both
-- Sample data for demos, screenshots and testing
 
 Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
 
