@@ -128,8 +128,8 @@ are named
 
 `npm run version:set -- <version>` updates the version everywhere it lives
 (`package.json`, the lockfiles, `src-tauri/Cargo.toml`). Pushing a `v<version>`
-tag builds both platforms and opens a draft GitHub Release; changelog entries
-live in [`CHANGELOG.md`](./CHANGELOG.md).
+tag builds both platforms and opens a draft GitHub Release; `0.x` tags are
+marked as pre-releases. Changelog entries live in [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Roadmap
 

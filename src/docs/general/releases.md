@@ -20,6 +20,11 @@ While ClyTrade is `0.x`, expect breaking changes between minor versions;
 `1.0.0` is the first stable release. Test builds may carry a suffix such as
 `0.1.0-rc.1`.
 
+Every `0.x` release is published as a **pre-release** on GitHub, so the "Latest
+release" badge stays reserved for `1.0.0`. Pre-release means "use it, but
+expect changes" — the app is fully functional, it is just not the stable
+milestone yet.
+
 **Settings → Preferences** shows the exact build you are running at the bottom
 of the page, followed by the platform (`Web`, `Windows`, `Android`). The same
 version appears in the Windows file properties and in the Android app info, so
