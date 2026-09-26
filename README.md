@@ -9,6 +9,26 @@ No account. No server. No subscription. Your data stays on your device.
 > **Status:** early development. V1 is feature-complete for personal use, but
 > expect rough edges and breaking changes before a stable release.
 
+## Screenshots
+
+Captured in the desktop layout with the sample data and the Material Dark theme.
+
+| Journal stats                                                                            | Portfolio stats                                                                             |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ![Journal stats — equity curve and PnL per trade](screenshots/desktop/journal-stats.png) | ![Portfolio stats — allocation and unrealized PnL](screenshots/desktop/portfolio-stats.png) |
+| **Journal** — equity curve, win rate, profit factor and PnL per trade                    | **Portfolio** — allocation and unrealized PnL by asset                                      |
+
+| Journal overview                                                                                         | Position Size calculator                                                                |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| ![Journal overview — trade table with net PnL and R multiples](screenshots/desktop/journal-overview.png) | ![Position Size calculator — inputs and results](screenshots/desktop/position-size.png) |
+| **Journal** — every trade with net PnL and R multiples                                                   | **Calculations** — risk-first position sizing                                           |
+
+![Settings — three themes and eight accent colors](screenshots/desktop/settings-themes.png)
+
+Regenerate them with `npm run screenshots`; the first run needs
+`npm run screenshots:install` once to fetch Chromium. The script starts the dev
+server, loads the sample data and captures each page at 1440×900.
+
 ---
 
 ## Why ClyTrade exists
@@ -29,11 +49,6 @@ ClyTrade is an opinionated answer to that:
   explains the _why_ behind the design, not just the how.
 - **Compact by design.** 40px controls, 36px table rows and dense data tables —
   built for a trading session, not a marketing page.
-
-## Screenshots
-
-Screenshots are coming with the first tagged release. The README will show the
-calculators, journal and themes once the UI polish pass is done.
 
 ## What is in V1
 
@@ -70,6 +85,7 @@ npm run lint       # eslint
 npm run typecheck  # tsc -b
 npm run icons      # regenerate PWA icons
 npm run accents    # regenerate accent color palettes
+npm run screenshots # capture desktop screenshots of the key pages
 ```
 
 To test installability and offline mode, use `npm run build && npm run preview`.

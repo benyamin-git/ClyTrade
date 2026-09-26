@@ -23,6 +23,8 @@ export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 | `npm run icons`                    | Regenerate PWA icons into `public/icons/`                           |
 | `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`     |
 | `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`             |
+| `npm run screenshots`              | Capture desktop screenshots of the key pages into `screenshots/`    |
+| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs (first run only)          |
 | `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                        |
 | `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK, Rust)           |
 | `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `Cargo.toml` |
@@ -43,6 +45,9 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
   live in `src/theme/accents.ts` and must stay in sync with the seed table in
   `scripts/generate-accents.mjs`; a test fails if the generated CSS drifts.
+- `screenshots/**` is generated but committed for the README. Never hand-edit the
+  PNGs; regenerate them with `npm run screenshots` after UI changes that affect
+  the captured pages.
 - Never hand-edit generated native files: `src-tauri/icons/**` (regenerate with
   `npm run icons:native`) and the generated parts of `src-tauri/gen/android/**`
   listed in its own `.gitignore`. `gen/android` is a committed Tauri project and

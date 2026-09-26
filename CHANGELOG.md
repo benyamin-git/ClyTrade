@@ -6,6 +6,11 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `npm run screenshots` captures the journal, portfolio, Position Size and theme
+  pages with the sample data, and the README shows the results.
+
 ## [0.1.0] - 2026-09-23
 
 First tagged release. Windows and Android builds are unsigned test builds; the
