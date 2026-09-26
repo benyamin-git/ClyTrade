@@ -13,7 +13,7 @@ import {
 
 const accentsCss = readFileSync(resolve(process.cwd(), 'src/theme/accents.css'), 'utf8')
 
-const PRESET_ACCENTS = ACCENTS.filter((accent) => accent.id !== THEME_NATIVE_ACCENT)
+const PRESET_ACCENTS = ACCENTS.filter((accent) => accent !== THEME_NATIVE_ACCENT)
 
 function paletteBlock(accentId: string, themeId: string): string {
   const start = accentsCss.indexOf(`[data-theme='${themeId}'][data-accent='${accentId}']`)
@@ -30,13 +30,13 @@ describe('accent storage', () => {
   })
 
   it('exposes unique accent ids including the default', () => {
-    const ids = ACCENTS.map((accent) => accent.id)
+    const ids = [...ACCENTS]
     expect(new Set(ids).size).toBe(ids.length)
     expect(ids).toContain(DEFAULT_ACCENT)
   })
 
   it('lists the default accent first', () => {
-    expect(ACCENTS[0]?.id).toBe(DEFAULT_ACCENT)
+    expect(ACCENTS[0]).toBe(DEFAULT_ACCENT)
   })
 
   it.each([
@@ -78,32 +78,26 @@ describe('accent storage', () => {
 })
 
 describe('generated accent palettes', () => {
-  it.each(PRESET_ACCENTS.map((accent) => accent.id))(
-    'ships a full light and dark palette for %s',
-    (id) => {
-      for (const theme of ['md3-light', 'md3-dark']) {
-        const block = paletteBlock(id, theme)
-        for (const role of [
-          '--md-sys-color-primary',
-          '--md-sys-color-secondary-container',
-          '--md-sys-color-tertiary-container',
-          '--md-sys-color-surface-container-lowest',
-        ]) {
-          expect(block).toContain(role)
-        }
+  it.each(PRESET_ACCENTS)('ships a full light and dark palette for %s', (id) => {
+    for (const theme of ['md3-light', 'md3-dark']) {
+      const block = paletteBlock(id, theme)
+      for (const role of [
+        '--md-sys-color-primary',
+        '--md-sys-color-secondary-container',
+        '--md-sys-color-tertiary-container',
+        '--md-sys-color-surface-container-lowest',
+      ]) {
+        expect(block).toContain(role)
       }
-    },
-  )
+    }
+  })
 
-  it.each(PRESET_ACCENTS.map((accent) => accent.id))(
-    'keeps the pure-black surfaces of black-night for %s',
-    (id) => {
-      const block = paletteBlock(id, 'black-night')
-      expect(block).toContain('--md-sys-color-primary')
-      expect(block).toContain('--md-sys-color-secondary-container')
-      expect(block).toContain('--md-sys-color-tertiary-container')
-      expect(block).not.toContain('--md-sys-color-surface-container')
-      expect(block).not.toContain('--md-sys-color-background')
-    },
-  )
+  it.each(PRESET_ACCENTS)('keeps the pure-black surfaces of black-night for %s', (id) => {
+    const block = paletteBlock(id, 'black-night')
+    expect(block).toContain('--md-sys-color-primary')
+    expect(block).toContain('--md-sys-color-secondary-container')
+    expect(block).toContain('--md-sys-color-tertiary-container')
+    expect(block).not.toContain('--md-sys-color-surface-container')
+    expect(block).not.toContain('--md-sys-color-background')
+  })
 })

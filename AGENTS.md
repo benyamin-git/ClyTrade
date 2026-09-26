@@ -41,6 +41,15 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   inputs. Keep the table-driven style.
 - Do not add comments to code unless asked.
 - Do not commit unless asked.
+- User-facing text lives in `src/i18n/en.ts`; `fa.ts` must implement the same keys
+  (enforced by TypeScript and by `dictionaries.test.ts`). Add both dictionaries
+  when adding UI text. `src/calculations/**` must never import `src/i18n`.
+- Persian-specific behavior is deliberate: Latin digits, Gregorian dates with
+  Persian labels, left-to-right charts and a right-to-left layout. Read
+  `src/docs/en/general/language.md` before changing any of it.
+- Documentation bodies live in `src/docs/<locale>/` and fall back to English when
+  a locale is missing a file. Registry titles and summaries live in the i18n
+  dictionaries, not in the markdown.
 - Never hand-edit generated files (`public/icons/`, `src/theme/accents.css`).
   Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
   live in `src/theme/accents.ts` and must stay in sync with the seed table in
@@ -69,12 +78,15 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
 | Data          | `src/data/`         | Dexie schema, models (zod), repositories, backup                                    |
 | Design system | `src/ui/`           | Primitives and layout components                                                    |
 | Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes              |
+| Localization  | `src/i18n/`         | Typed `en`/`fa` dictionaries, locale detection, formatting context and provider     |
 | Docs          | `src/docs/`         | Markdown + registry rendered in Settings → Documentation                            |
 | Native shell  | `src-tauri/`        | Tauri v2 config, Rust entry point and the committed Android project                 |
 
 Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculations`.
 `calculations` imports nothing except its own `types.ts` and `src/lib` helpers.
 `ui` imports nothing from `features`.
+`src/i18n` may import `src/lib`; `src/lib` must never import `src/i18n` (calculations
+depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
 
 ## Conventions
 
@@ -93,6 +105,9 @@ Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculat
 - Navigation is registry-driven: adding a calculator means adding a page, a registry
   entry in `src/features/calculations/registry.ts`, and a doc entry in
   `src/docs/registry.ts`.
+- Direction-aware styling uses logical utilities (`ms-`, `me-`, `ps-`, `pe-`,
+  `start-`, `end-`, `text-start`, `text-end`, `border-s`) and `rtl:` variants for
+  transforms; never physical `left`/`right`. Charts are wrapped in `dir="ltr"`.
 - Data changes go through `src/data/repositories/*`; components read with
   `useLiveQuery`.
 - `__APP_VERSION__` and `__APP_PLATFORM__` are injected by `vite.config.ts` from

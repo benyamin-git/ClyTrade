@@ -4,6 +4,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Trade } from '@/data/models/trade'
 import { deleteTrade, listTrades } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
 import { formatDate } from '@/lib/dates'
 import { cn } from '@/lib/cn'
@@ -20,14 +21,9 @@ import { toTradeRows, type TradeRow } from '../logic/tradeRows'
 
 type TradeFilter = 'all' | 'open' | 'closed'
 
-const filterOptions = [
-  { value: 'all', label: 'All' },
-  { value: 'open', label: 'Open' },
-  { value: 'closed', label: 'Closed' },
-] as const
-
 export function JournalOverviewPage() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const trades = useLiveQuery(() => listTrades(), [], undefined)
   const rows = useMemo(
     () => toTradeRows(trades ?? [], preferences.feesInRisk),
@@ -50,12 +46,12 @@ export function JournalOverviewPage() {
   const columns: readonly Column<TradeRow>[] = [
     {
       key: 'symbol',
-      header: 'Symbol',
+      header: t('journal.columns.symbol'),
       render: (row) => (
         <span className="font-medium">
           {row.trade.symbol}
           {row.trade.tags.length > 0 ? (
-            <span className="ml-1.5 text-2xs text-on-surface-variant">
+            <span className="ms-1.5 text-2xs text-on-surface-variant">
               {row.trade.tags.map((tag) => `#${tag}`).join(' ')}
             </span>
           ) : null}
@@ -64,16 +60,16 @@ export function JournalOverviewPage() {
     },
     {
       key: 'direction',
-      header: 'Side',
+      header: t('journal.columns.side'),
       render: (row) => (
         <span className={row.trade.direction === 'long' ? 'text-profit' : 'text-loss'}>
-          {row.trade.direction === 'long' ? 'Long' : 'Short'}
+          {row.trade.direction === 'long' ? t('direction.long') : t('direction.short')}
         </span>
       ),
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('journal.columns.status'),
       render: (row) => (
         <span
           className={cn(
@@ -83,19 +79,19 @@ export function JournalOverviewPage() {
               : 'bg-surface-container-high text-on-surface-variant',
           )}
         >
-          {row.trade.closedAt === null ? 'Open' : 'Closed'}
+          {row.trade.closedAt === null ? t('status.open') : t('status.closed')}
         </span>
       ),
     },
     {
       key: 'entry',
-      header: 'Entry',
+      header: t('journal.columns.entry'),
       align: 'right',
       render: (row) => <span className="tabular">{formatPrice(row.trade.entryPrice)}</span>,
     },
     {
       key: 'exit',
-      header: 'Exit',
+      header: t('journal.columns.exit'),
       align: 'right',
       render: (row) => (
         <span className="tabular">
@@ -105,7 +101,7 @@ export function JournalOverviewPage() {
     },
     {
       key: 'size',
-      header: 'Size',
+      header: t('journal.columns.size'),
       align: 'right',
       render: (row) => (
         <span className="tabular">
@@ -115,7 +111,7 @@ export function JournalOverviewPage() {
     },
     {
       key: 'pnl',
-      header: 'Net PnL',
+      header: t('journal.columns.netPnl'),
       align: 'right',
       render: (row) => {
         const pnl = row.metrics?.netPnl ?? null
@@ -133,7 +129,7 @@ export function JournalOverviewPage() {
     },
     {
       key: 'r',
-      header: 'R',
+      header: t('journal.columns.r'),
       align: 'right',
       render: (row) => {
         const r = row.metrics?.rMultiple ?? null
@@ -151,7 +147,7 @@ export function JournalOverviewPage() {
     },
     {
       key: 'opened',
-      header: 'Opened',
+      header: t('journal.columns.opened'),
       align: 'right',
       render: (row) => (
         <span className="text-on-surface-variant">{formatDate(row.trade.openedAt)}</span>
@@ -164,7 +160,7 @@ export function JournalOverviewPage() {
       render: (row) => (
         <span className="flex items-center justify-end gap-0.5">
           <IconButton
-            label={`Edit ${row.trade.symbol}`}
+            label={t('journal.editAria', { symbol: row.trade.symbol })}
             size="sm"
             onClick={(event) => {
               event.stopPropagation()
@@ -174,7 +170,7 @@ export function JournalOverviewPage() {
             <Pencil />
           </IconButton>
           <IconButton
-            label={`Delete ${row.trade.symbol}`}
+            label={t('journal.deleteAria', { symbol: row.trade.symbol })}
             size="sm"
             onClick={(event) => {
               event.stopPropagation()
@@ -191,13 +187,22 @@ export function JournalOverviewPage() {
   return (
     <ViewportPage className="gap-3">
       <div className="flex shrink-0 flex-wrap items-center gap-3">
-        <SegmentedControl value={filter} options={filterOptions} onChange={setFilter} size="sm" />
+        <SegmentedControl
+          value={filter}
+          options={[
+            { value: 'all', label: t('journal.filters.all') },
+            { value: 'open', label: t('journal.filters.open') },
+            { value: 'closed', label: t('journal.filters.closed') },
+          ]}
+          onChange={setFilter}
+          size="sm"
+        />
         <span className="text-xs text-on-surface-variant">
-          {filtered.length} {filtered.length === 1 ? 'trade' : 'trades'}
+          {t('journal.tradeCount', { count: filtered.length })}
         </span>
         <div className="flex-1" />
         <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
-          Add trade
+          {t('journal.addTrade')}
         </Button>
       </div>
 
@@ -209,11 +214,11 @@ export function JournalOverviewPage() {
           onRowClick={(row) => setForm({ trade: row.trade })}
           empty={
             <EmptyState
-              title="No trades yet"
-              description="Add your first futures trade to start building the journal."
+              title={t('journal.emptyTitle')}
+              description={t('journal.emptyDescription')}
               action={
                 <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
-                  Add trade
+                  {t('journal.addTrade')}
                 </Button>
               }
             />
@@ -226,11 +231,11 @@ export function JournalOverviewPage() {
       <Sheet
         open={deleting !== null}
         onClose={() => setDeleting(null)}
-        title="Delete trade"
+        title={t('journal.deleteTitle')}
         footer={
           <>
             <Button variant="text" onClick={() => setDeleting(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -239,14 +244,12 @@ export function JournalOverviewPage() {
                 setDeleting(null)
               }}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </>
         }
       >
-        <p className="text-sm">
-          Delete <span className="font-medium">{deleting?.symbol}</span>? This cannot be undone.
-        </p>
+        <p className="text-sm">{t('journal.deleteConfirm', { symbol: deleting?.symbol ?? '' })}</p>
       </Sheet>
     </ViewportPage>
   )

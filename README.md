@@ -52,12 +52,12 @@ ClyTrade is an opinionated answer to that:
 
 ## What is in V1
 
-| Area             | What it does                                                                                                                            |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.            |
-| **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                       |
-| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures. |
-| **Settings**     | Default inputs, three themes with preset accent colors, data export/import/reset, sample data and the full documentation.               |
+| Area             | What it does                                                                                                                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.                                                           |
+| **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                                                                      |
+| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                |
+| **Settings**     | Default inputs, English and Persian interfaces (Persian runs right-to-left), three themes with preset accent colors, data export/import/reset, sample data and the full documentation. |
 
 ## Tech
 
@@ -120,6 +120,7 @@ for what each build is and how to move data between installs.
 | `src/data/`         | Dexie schema, zod models, repositories, backup/restore                                |
 | `src/ui/`           | Design-system primitives and layout components                                        |
 | `src/theme/`        | MD3 design tokens and the three themes                                                |
+| `src/i18n/`         | Typed English/Persian dictionaries, locale detection and the locale provider          |
 | `src/docs/`         | Markdown documentation rendered inside the app                                        |
 | `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust + generated Android project)  |
 | `masterplan.md`     | Product direction and design decisions                                                |
@@ -153,7 +154,7 @@ V1 covers the offline core. Planned next:
 
 - Optional live market data integrations (explicitly opt-in)
 - Optional sync between devices
-- Translations and language support (see below)
+- More languages and translations (see below)
 - More calculators, more stats, import from exchange CSVs
 
 Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
@@ -168,10 +169,12 @@ license. If you outgrow this project's opinions, fork it and make it yours.
 
 ### Translations: yes, please
 
-Translation and language support is one of the things I would genuinely love
-help with. If you want to translate ClyTrade into your language, open a GitHub
-Issue or Discussion with the language you have in mind. Translation support is
-not implemented yet, so this is also a chance to shape how it is built.
+ClyTrade ships in English and Persian (فارسی), and more languages are genuinely
+wanted. If you want to translate ClyTrade into your language, open a GitHub
+Issue or Discussion with the language you have in mind. The approach is
+described in [CONTRIBUTING.md](./CONTRIBUTING.md): typed dictionaries in
+`src/i18n/` and per-locale documentation under `src/docs/<locale>/` with an
+English fallback.
 
 ### Code contributions: no, thank you
 

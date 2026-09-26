@@ -15,6 +15,7 @@ import {
 import { buildEquityCurve, calculateJournalStats } from '@/calculations/journalStats'
 import { listTrades } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { isWithinRange, TIME_RANGES, type TimeRange } from '@/lib/dates'
 import { formatDate } from '@/lib/dates'
 import { formatCompact, formatCurrency, formatNumber } from '@/lib/format'
@@ -35,6 +36,7 @@ const tooltipStyle = {
 
 export function JournalStatsPage() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [range, setRange] = useState<TimeRange>(preferences.defaultTimeRange)
   const trades = useLiveQuery(() => listTrades(), [], undefined)
 
@@ -69,44 +71,47 @@ export function JournalStatsPage() {
       <div className="flex shrink-0 flex-wrap items-center gap-3">
         <SegmentedControl
           value={range}
-          options={TIME_RANGES.map((item) => ({ value: item.id, label: item.label }))}
+          options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
           onChange={setRange}
           size="sm"
           className="no-scrollbar max-w-full overflow-x-auto"
         />
         <span className="text-xs text-on-surface-variant">
-          {stats.closed} closed · {stats.open} open
+          {t('journal.stats.closedOpen', { closed: stats.closed, open: stats.open })}
         </span>
       </div>
 
       {stats.closed === 0 ? (
         <Card className="flex-1">
           <EmptyState
-            title="No closed trades in this range"
-            description="Close a trade in the Journal overview or widen the time range."
+            title={t('journal.stats.emptyTitle')}
+            description={t('journal.stats.emptyDescription')}
           />
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          <Card title="Performance">
+          <Card title={t('journal.stats.performance')}>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 p-4 sm:grid-cols-3 lg:grid-cols-6">
               <Stat
-                label="Net PnL"
+                label={t('calc.feesPnl.netPnl')}
                 value={formatCurrency(stats.netPnl, currency)}
                 tone={stats.netPnl >= 0 ? 'profit' : 'loss'}
                 size="lg"
               />
               <Stat
-                label="Win rate"
+                label={t('journal.stats.winRate')}
                 value={
                   stats.winRatePercent === null
                     ? '—'
                     : `${formatNumber(stats.winRatePercent, { maximumFractionDigits: 1 })}%`
                 }
-                hint={`${stats.wins}W / ${stats.losses}L`}
+                hint={t('journal.stats.winRateHint', {
+                  losses: stats.losses,
+                  wins: stats.wins,
+                })}
               />
               <Stat
-                label="Profit factor"
+                label={t('journal.stats.profitFactor')}
                 value={
                   stats.profitFactor === null
                     ? '—'
@@ -115,7 +120,7 @@ export function JournalStatsPage() {
                 tone={stats.profitFactor !== null && stats.profitFactor >= 1 ? 'profit' : 'loss'}
               />
               <Stat
-                label="Average R"
+                label={t('journal.stats.averageR')}
                 value={
                   stats.averageR === null
                     ? '—'
@@ -124,19 +129,19 @@ export function JournalStatsPage() {
                 tone={stats.averageR !== null && stats.averageR >= 0 ? 'profit' : 'loss'}
               />
               <Stat
-                label="Average win / loss"
+                label={t('journal.stats.averageWinLoss')}
                 value={`${stats.averageWin === null ? '—' : formatCompact(stats.averageWin)} / ${stats.averageLoss === null ? '—' : formatCompact(stats.averageLoss)}`}
               />
               <Stat
-                label="Best / worst"
+                label={t('journal.stats.bestWorst')}
                 value={`${stats.bestTrade === null ? '—' : formatCompact(stats.bestTrade)} / ${stats.worstTrade === null ? '—' : formatCompact(stats.worstTrade)}`}
               />
             </div>
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card title="Equity curve">
-              <div className="h-72 p-3">
+            <Card title={t('journal.stats.equityCurve')}>
+              <div className="h-72 p-3" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={curve} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <defs>
@@ -176,7 +181,7 @@ export function JournalStatsPage() {
                       labelFormatter={(value) => formatDate(Number(value))}
                       formatter={(value) => [
                         formatCurrency(Number(value), currency),
-                        'Cumulative PnL',
+                        t('journal.stats.cumulativePnl'),
                       ]}
                     />
                     <Area
@@ -191,8 +196,8 @@ export function JournalStatsPage() {
               </div>
             </Card>
 
-            <Card title="PnL per trade">
-              <div className="h-72 p-3">
+            <Card title={t('journal.stats.pnlPerTrade')}>
+              <div className="h-72 p-3" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={pnlBars} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid
@@ -213,8 +218,13 @@ export function JournalStatsPage() {
                     />
                     <Tooltip
                       contentStyle={tooltipStyle}
-                      labelFormatter={(value) => `Trade #${value}`}
-                      formatter={(value) => [formatCurrency(Number(value), currency), 'Net PnL']}
+                      labelFormatter={(value) =>
+                        t('journal.stats.tradeNumber', { index: String(value) })
+                      }
+                      formatter={(value) => [
+                        formatCurrency(Number(value), currency),
+                        t('calc.feesPnl.netPnl'),
+                      ]}
                       cursor={{ fill: 'var(--md-sys-color-on-surface)', fillOpacity: 0.05 }}
                     />
                     <Bar dataKey="pnl" radius={[2, 2, 0, 0]}>

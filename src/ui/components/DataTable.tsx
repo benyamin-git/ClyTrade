@@ -39,9 +39,9 @@ export function DataTable<T>({
                 scope="col"
                 className={cn(
                   'border-b border-outline-variant/60 px-3 py-2.5 text-2xs font-semibold tracking-wide text-on-surface-variant uppercase',
-                  column.align === 'right' && 'text-right',
+                  column.align === 'right' && 'text-end',
                   column.align === 'center' && 'text-center',
-                  !column.align && 'text-left',
+                  !column.align && 'text-start',
                   column.className,
                 )}
               >
@@ -65,7 +65,7 @@ export function DataTable<T>({
                   key={column.key}
                   className={cn(
                     'h-row px-3',
-                    column.align === 'right' && 'text-right',
+                    column.align === 'right' && 'text-end',
                     column.align === 'center' && 'text-center',
                     column.className,
                   )}

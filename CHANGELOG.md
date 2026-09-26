@@ -10,6 +10,12 @@ All notable changes to ClyTrade are documented here. The format follows
 
 - `npm run screenshots` captures the journal, portfolio, Position Size and theme
   pages with the sample data, and the README shows the results.
+- **Localization** — English and Persian (فارسی) with a language selector in
+  Preferences. Persian runs the interface right-to-left, uses a bundled Vazirmatn
+  font, formats dates and numbers with Persian labels while keeping Latin digits
+  and Gregorian dates, and is saved with preferences so it travels in backups.
+  UI text lives in typed `src/i18n/` dictionaries, documentation in
+  `src/docs/<locale>/` with an English fallback.
 
 ## [0.1.0] - 2026-09-23
 

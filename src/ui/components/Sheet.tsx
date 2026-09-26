@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { IconButton } from './IconButton'
 
@@ -13,6 +14,8 @@ export interface SheetProps {
 }
 
 export function Sheet({ open, onClose, title, children, footer, className }: SheetProps) {
+  const { t } = useI18n()
+
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -33,7 +36,7 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
     >
       <button
         type="button"
-        aria-label="Close dialog"
+        aria-label={t('common.closeDialog')}
         onClick={onClose}
         className="absolute inset-0 bg-scrim/50 backdrop-blur-[2px]"
       />
@@ -45,7 +48,7 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
       >
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-outline-variant/50 px-4">
           <h2 className="truncate text-base font-semibold">{title}</h2>
-          <IconButton label="Close" onClick={onClose}>
+          <IconButton label={t('common.close')} onClick={onClose}>
             <X />
           </IconButton>
         </header>

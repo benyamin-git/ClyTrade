@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useI18n } from '@/i18n/I18nContext'
 import { Card } from '@/ui/components/Card'
 import { HelpButton } from '@/ui/components/HelpButton'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
@@ -20,6 +21,7 @@ export function CalculatorLayout({
   results,
   notices = [],
 }: CalculatorLayoutProps) {
+  const { t } = useI18n()
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <header className="flex shrink-0 items-start gap-3">
@@ -39,12 +41,12 @@ export function CalculatorLayout({
       ) : null}
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
-        <Card title="Inputs">
+        <Card title={t('calc.inputs')}>
           <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {inputs}
           </div>
         </Card>
-        <Card title="Results">
+        <Card title={t('calc.results')}>
           <div className="p-4">{results}</div>
         </Card>
       </div>

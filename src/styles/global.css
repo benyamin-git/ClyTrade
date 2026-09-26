@@ -59,7 +59,7 @@
 
 @utility scroll-fade-x {
   mask-image: linear-gradient(
-    to right,
+    to var(--app-fade-to, right),
     transparent 0,
     black 0.75rem,
     black calc(100% - 0.75rem),

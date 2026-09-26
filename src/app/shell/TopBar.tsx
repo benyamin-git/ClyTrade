@@ -1,4 +1,5 @@
 import { Menu } from 'lucide-react'
+import { useI18n } from '@/i18n/I18nContext'
 import { IconButton } from '@/ui/components/IconButton'
 
 export interface TopBarProps {
@@ -8,9 +9,10 @@ export interface TopBarProps {
 }
 
 export function TopBar({ title, subtitle, onOpenNav }: TopBarProps) {
+  const { t } = useI18n()
   return (
     <header className="flex h-topbar shrink-0 items-center gap-3 border-b border-outline-variant/60 bg-surface px-3 sm:px-4">
-      <IconButton label="Open navigation" onClick={onOpenNav}>
+      <IconButton label={t('shell.openNavigation')} onClick={onOpenNav}>
         <Menu />
       </IconButton>
       <div className="min-w-0 flex-1">

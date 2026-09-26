@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Download, FlaskConical, MonitorDown, RotateCcw, Upload } from 'lucide-react'
 import {
+  BackupError,
   clearAllData,
   downloadBackup,
   exportBackup,
@@ -10,6 +11,7 @@ import {
 } from '@/data/backup'
 import { loadSampleData } from '@/data/sampleData'
 import { useInstallPrompt } from '@/features/settings/logic/useInstallPrompt'
+import { useI18n } from '@/i18n/I18nContext'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
@@ -19,6 +21,7 @@ import { ViewportPage } from '@/ui/layout/ViewportPage'
 type Message = { tone: 'ok' | 'error'; text: string } | null
 
 export function DataControlsPage() {
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<ImportMode>('merge')
   const [message, setMessage] = useState<Message>(null)
@@ -32,9 +35,9 @@ export function DataControlsPage() {
     try {
       const backup = await exportBackup()
       downloadBackup(backup)
-      setMessage({ tone: 'ok', text: 'Backup downloaded.' })
+      setMessage({ tone: 'ok', text: t('data.export.downloaded') })
     } catch {
-      setMessage({ tone: 'error', text: 'Export failed.' })
+      setMessage({ tone: 'error', text: t('data.export.failed') })
     } finally {
       setBusy(false)
     }
@@ -49,12 +52,17 @@ export function DataControlsPage() {
       await importBackup(backup, mode)
       setMessage({
         tone: 'ok',
-        text: `Imported ${backup.data.trades.length} trades and ${backup.data.assets.length} assets (${mode}).`,
+        text: t('data.import.imported', {
+          assets: backup.data.assets.length,
+          mode: t(`data.import.${mode}`),
+          trades: backup.data.trades.length,
+        }),
       })
     } catch (error) {
       setMessage({
         tone: 'error',
-        text: error instanceof Error ? error.message : 'Import failed.',
+        text:
+          error instanceof BackupError ? t(`data.errors.${error.code}`) : t('data.import.failed'),
       })
     } finally {
       setBusy(false)
@@ -67,9 +75,9 @@ export function DataControlsPage() {
     try {
       await loadSampleData()
       setConfirmSample(false)
-      setMessage({ tone: 'ok', text: 'Sample data loaded.' })
+      setMessage({ tone: 'ok', text: t('data.sample.loaded') })
     } catch {
-      setMessage({ tone: 'error', text: 'Could not load sample data.' })
+      setMessage({ tone: 'error', text: t('data.sample.failed') })
     } finally {
       setBusy(false)
     }
@@ -79,12 +87,10 @@ export function DataControlsPage() {
     <ViewportPage className="gap-4 overflow-y-auto">
       <div className="flex w-full max-w-4xl flex-col gap-4">
         {canInstall || installed ? (
-          <Card title="Install">
+          <Card title={t('data.install.title')}>
             <div className="flex flex-col gap-3 p-4">
               <p className="text-xs text-on-surface-variant">
-                {installed
-                  ? 'ClyTrade is installed on this device and works offline.'
-                  : 'Install ClyTrade as a standalone app. It keeps working without a network connection.'}
+                {installed ? t('data.install.installed') : t('data.install.description')}
               </p>
               {canInstall ? (
                 <div>
@@ -94,7 +100,7 @@ export function DataControlsPage() {
                     onClick={() => void promptInstall()}
                     disabled={busy}
                   >
-                    Install app
+                    {t('data.install.button')}
                   </Button>
                 </div>
               ) : null}
@@ -102,11 +108,9 @@ export function DataControlsPage() {
           </Card>
         ) : null}
 
-        <Card title="Export">
+        <Card title={t('data.export.title')}>
           <div className="flex flex-col gap-3 p-4">
-            <p className="text-xs text-on-surface-variant">
-              Download a single JSON file with all trades, assets and settings.
-            </p>
+            <p className="text-xs text-on-surface-variant">{t('data.export.description')}</p>
             <div>
               <Button
                 size="sm"
@@ -114,24 +118,21 @@ export function DataControlsPage() {
                 onClick={() => void handleExport()}
                 disabled={busy}
               >
-                Export backup
+                {t('data.export.button')}
               </Button>
             </div>
           </div>
         </Card>
 
-        <Card title="Import">
+        <Card title={t('data.import.title')}>
           <div className="flex flex-col gap-3 p-4">
-            <p className="text-xs text-on-surface-variant">
-              Restore a ClyTrade backup. Merge keeps existing records and overwrites matching ids;
-              replace clears the database first.
-            </p>
+            <p className="text-xs text-on-surface-variant">{t('data.import.description')}</p>
             <div className="flex flex-wrap items-center gap-2">
               <SegmentedControl
                 value={mode}
                 options={[
-                  { value: 'merge', label: 'Merge' },
-                  { value: 'replace', label: 'Replace' },
+                  { value: 'merge', label: t('data.import.merge') },
+                  { value: 'replace', label: t('data.import.replace') },
                 ]}
                 onChange={setMode}
                 size="sm"
@@ -143,7 +144,7 @@ export function DataControlsPage() {
                 disabled={busy}
                 onClick={() => fileInputRef.current?.click()}
               >
-                Choose file
+                {t('data.import.chooseFile')}
               </Button>
               <input
                 ref={fileInputRef}
@@ -159,12 +160,9 @@ export function DataControlsPage() {
           </div>
         </Card>
 
-        <Card title="Sample data">
+        <Card title={t('data.sample.title')}>
           <div className="flex flex-col gap-3 p-4">
-            <p className="text-xs text-on-surface-variant">
-              Add a set of example trades and assets to explore the journal, stats and portfolio.
-              Your own records are kept; loading again refreshes the samples. Reset removes them.
-            </p>
+            <p className="text-xs text-on-surface-variant">{t('data.sample.description')}</p>
             <div>
               <Button
                 size="sm"
@@ -173,18 +171,15 @@ export function DataControlsPage() {
                 onClick={() => setConfirmSample(true)}
                 disabled={busy}
               >
-                Load sample data
+                {t('data.sample.button')}
               </Button>
             </div>
           </div>
         </Card>
 
-        <Card title="Reset">
+        <Card title={t('data.reset.title')}>
           <div className="flex flex-col gap-3 p-4">
-            <p className="text-xs text-on-surface-variant">
-              Delete all trades, assets and settings on this device. Export first — there is no
-              undo.
-            </p>
+            <p className="text-xs text-on-surface-variant">{t('data.reset.description')}</p>
             <div>
               <Button
                 size="sm"
@@ -193,7 +188,7 @@ export function DataControlsPage() {
                 onClick={() => setConfirmReset(true)}
                 disabled={busy}
               >
-                Reset all data
+                {t('data.reset.button')}
               </Button>
             </div>
           </div>
@@ -211,51 +206,45 @@ export function DataControlsPage() {
         <Sheet
           open={confirmSample}
           onClose={() => setConfirmSample(false)}
-          title="Load sample data"
+          title={t('data.sample.loadTitle')}
           footer={
             <>
               <Button variant="text" onClick={() => setConfirmSample(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button onClick={() => void handleLoadSample()} disabled={busy}>
-                Load samples
+                {t('data.sample.loadSamples')}
               </Button>
             </>
           }
         >
-          <p className="text-sm">
-            This adds example trades and assets to the journal and portfolio. Records you created
-            yourself are not touched, and the samples can be removed with Reset all data.
-          </p>
+          <p className="text-sm">{t('data.sample.confirm')}</p>
         </Sheet>
 
         <Sheet
           open={confirmReset}
           onClose={() => setConfirmReset(false)}
-          title="Reset all data"
+          title={t('data.reset.title')}
           footer={
             <>
               <Button variant="text" onClick={() => setConfirmReset(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 variant="danger"
                 onClick={() => {
                   void clearAllData().then(() => {
                     setConfirmReset(false)
-                    setMessage({ tone: 'ok', text: 'All data cleared.' })
+                    setMessage({ tone: 'ok', text: t('data.reset.cleared') })
                   })
                 }}
               >
-                Delete everything
+                {t('data.reset.deleteEverything')}
               </Button>
             </>
           }
         >
-          <p className="text-sm">
-            This deletes every trade, asset and setting stored by ClyTrade on this device. The
-            action cannot be undone.
-          </p>
+          <p className="text-sm">{t('data.reset.confirm')}</p>
         </Sheet>
       </div>
     </ViewportPage>

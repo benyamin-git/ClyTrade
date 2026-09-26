@@ -19,6 +19,9 @@ trade — not a dashboard.
 - **Subtabs** sit in a scrollable bar under the top bar, always one tap away.
 - Pages scroll when they need to; long lists and tables scroll inside their own
   region so the controls around them stay put.
+- The interface language is chosen in **Settings → Preferences → Interface**:
+  English or Persian. Persian mirrors the layout right-to-left; see
+  **Language & Direction**.
 
 ## Local-first
 

@@ -14,8 +14,8 @@ export function Markdown({ children }: { children: string }) {
             />
           ),
           p: (props) => <p className="leading-relaxed" {...props} />,
-          ul: (props) => <ul className="flex list-disc flex-col gap-1.5 pl-5" {...props} />,
-          ol: (props) => <ol className="flex list-decimal flex-col gap-1.5 pl-5" {...props} />,
+          ul: (props) => <ul className="flex list-disc flex-col gap-1.5 ps-5" {...props} />,
+          ol: (props) => <ol className="flex list-decimal flex-col gap-1.5 ps-5" {...props} />,
           li: (props) => <li className="leading-relaxed" {...props} />,
           strong: (props) => <strong className="font-medium text-on-surface" {...props} />,
           a: (props) => (

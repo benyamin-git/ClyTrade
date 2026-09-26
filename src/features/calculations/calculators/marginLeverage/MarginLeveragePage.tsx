@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { calculateMarginLeverage } from '@/calculations/marginLeverage'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
@@ -10,6 +11,7 @@ import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout
 
 function MarginLeverageCalculator() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [accountSize, setAccountSize] = useState<number | null>(preferences.accountSize)
   const [positionNotional, setPositionNotional] = useState<number | null>(null)
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
@@ -38,29 +40,35 @@ function MarginLeverageCalculator() {
 
   return (
     <CalculatorLayout
-      title="Margin & Leverage"
-      subtitle="What a position costs to open, and how leveraged you really are"
+      title={t('calc.marginLeverage.title')}
+      subtitle={t('calc.marginLeverage.subtitle')}
       docSlug="calculator-margin-leverage"
-      notices={overBudget ? ['Required margin exceeds the account size.'] : []}
+      notices={overBudget ? [t('calc.marginLeverage.overBudget')] : []}
       inputs={
         <>
           <NumberField
-            label="Account size"
+            label={t('fields.accountSize')}
             unit={currencySymbol(preferences.currency)}
             value={accountSize}
             onChange={setAccountSize}
             min={0}
           />
           <NumberField
-            label="Position notional"
+            label={t('fields.positionNotional')}
             unit={currencySymbol(preferences.currency)}
             value={positionNotional}
             onChange={setPositionNotional}
             min={0}
           />
-          <NumberField label="Leverage" unit="×" value={leverage} onChange={setLeverage} min={1} />
           <NumberField
-            label="Maintenance margin"
+            label={t('fields.leverage')}
+            unit="×"
+            value={leverage}
+            onChange={setLeverage}
+            min={1}
+          />
+          <NumberField
+            label={t('fields.maintenanceMargin')}
             unit="%"
             value={maintenanceMarginPercent}
             onChange={setMaintenanceMarginPercent}
@@ -72,35 +80,35 @@ function MarginLeverageCalculator() {
         result ? (
           <ResultsGrid>
             <Stat
-              label="Required margin"
+              label={t('calc.marginLeverage.requiredMargin')}
               value={formatCurrency(result.requiredMargin, preferences.currency)}
               tone="primary"
               size="lg"
             />
             <Stat
-              label="Margin of account"
+              label={t('calc.marginLeverage.marginOfAccount')}
               value={`${formatNumber(result.marginPercentOfAccount, { maximumFractionDigits: 1 })}%`}
               tone={overBudget ? 'loss' : 'default'}
             />
             <Stat
-              label="Max notional"
+              label={t('calc.marginLeverage.maxNotional')}
               value={formatCurrency(result.maxPositionNotional, preferences.currency)}
-              hint={`at ${formatNumber(leverage ?? 0, { maximumFractionDigits: 2 })}×`}
+              hint={t('calc.marginLeverage.atLeverage', {
+                leverage: formatNumber(leverage ?? 0, { maximumFractionDigits: 2 }),
+              })}
             />
             <Stat
-              label="Effective leverage"
+              label={t('calc.marginLeverage.effectiveLeverage')}
               value={`${formatNumber(result.effectiveLeverage, { maximumFractionDigits: 2 })}×`}
             />
             <Stat
-              label="Liquidation move"
+              label={t('calc.marginLeverage.liquidationMove')}
               value={`${formatNumber(result.liquidationMovePercent, { maximumFractionDigits: 2 })}%`}
-              hint="adverse move that consumes margin"
+              hint={t('calc.marginLeverage.liquidationMoveHint')}
             />
           </ResultsGrid>
         ) : (
-          <p className="text-xs text-on-surface-variant">
-            Enter the position notional to see results.
-          </p>
+          <p className="text-xs text-on-surface-variant">{t('calc.marginLeverage.empty')}</p>
         )
       }
     />

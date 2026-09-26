@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { calculatePositionSize } from '@/calculations/positionSize'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
 import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
@@ -11,6 +12,7 @@ import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
 
 function PositionSizeCalculator() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [accountSize, setAccountSize] = useState<number | null>(preferences.accountSize)
   const [risk, setRisk] = useState<number | null>(preferences.riskPercent)
   const [riskUnit, setRiskUnit] = useState<UnitMode>('percent')
@@ -76,26 +78,26 @@ function PositionSizeCalculator() {
 
   const notices =
     entryPrice !== null && stopPrice !== null && entryPrice === stopPrice
-      ? ['Entry and stop must differ.']
+      ? [t('calc.entryStopDiffer')]
       : []
 
   return (
     <CalculatorLayout
-      title="Position Size"
-      subtitle="Risk-first sizing from your stop distance"
+      title={t('calc.positionSize.title')}
+      subtitle={t('calc.positionSize.subtitle')}
       docSlug="calculator-position-size"
       notices={notices}
       inputs={
         <>
           <NumberField
-            label="Account size"
+            label={t('fields.accountSize')}
             unit={currencySymbol(preferences.currency)}
             value={accountSize}
             onChange={setAccountSize}
             min={0}
           />
           <NumberField
-            label="Risk"
+            label={t('fields.risk')}
             value={risk}
             onChange={setRisk}
             unitOptions={unitOptions}
@@ -103,20 +105,36 @@ function PositionSizeCalculator() {
             onUnitChange={switchRiskUnit}
             min={0}
             max={riskUnit === 'percent' ? 100 : undefined}
-            hint={riskUnit === 'currency' ? 'Absolute risk budget' : undefined}
+            hint={riskUnit === 'currency' ? t('calc.positionSize.riskHint') : undefined}
           />
-          <NumberField label="Entry price" value={entryPrice} onChange={setEntryPrice} min={0} />
-          <NumberField label="Stop price" value={stopPrice} onChange={setStopPrice} min={0} />
-          <NumberField label="Leverage" unit="×" value={leverage} onChange={setLeverage} min={1} />
           <NumberField
-            label="Fee per side"
+            label={t('fields.entryPrice')}
+            value={entryPrice}
+            onChange={setEntryPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.stopPrice')}
+            value={stopPrice}
+            onChange={setStopPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.leverage')}
+            unit="×"
+            value={leverage}
+            onChange={setLeverage}
+            min={1}
+          />
+          <NumberField
+            label={t('fields.feePerSide')}
             value={fee}
             onChange={setFee}
             unitOptions={unitOptions}
             unitValue={feeUnit}
             onUnitChange={switchFeeUnit}
             min={0}
-            hint={feeUnit === 'currency' ? 'Absolute cost per side' : undefined}
+            hint={feeUnit === 'currency' ? t('calc.positionSize.feeHint') : undefined}
           />
         </>
       }
@@ -124,39 +142,43 @@ function PositionSizeCalculator() {
         result ? (
           <ResultsGrid>
             <Stat
-              label="Position size"
+              label={t('calc.positionSize.positionSize')}
               value={formatNumber(result.positionSize, { maximumFractionDigits: 6 })}
-              hint="units"
+              hint={t('calc.units')}
               tone="primary"
               size="lg"
             />
             <Stat
-              label="Risk amount"
+              label={t('calc.positionSize.riskAmount')}
               value={formatCurrency(result.riskAmount, preferences.currency)}
-              hint={preferences.feesInRisk ? 'stop loss + fees' : 'stop loss only'}
+              hint={
+                preferences.feesInRisk
+                  ? t('calc.positionSize.riskHintFees')
+                  : t('calc.positionSize.riskHintOnly')
+              }
             />
             <Stat
-              label="Stop distance"
+              label={t('calc.positionSize.stopDistance')}
               value={`${formatPrice(result.stopDistance)} · ${formatNumber(result.stopDistancePercent, { maximumFractionDigits: 2 })}%`}
             />
             <Stat
-              label="Notional"
+              label={t('calc.positionSize.notional')}
               value={formatCurrency(result.positionNotional, preferences.currency)}
             />
             <Stat
-              label="Required margin"
+              label={t('calc.positionSize.requiredMargin')}
               value={formatCurrency(result.requiredMargin, preferences.currency)}
-              hint={`${formatNumber(result.marginPercentOfAccount, { maximumFractionDigits: 1 })}% of account`}
+              hint={t('calc.percentOfAccount', {
+                value: formatNumber(result.marginPercentOfAccount, { maximumFractionDigits: 1 }),
+              })}
             />
             <Stat
-              label="Fees (round trip)"
+              label={t('calc.positionSize.feesRoundTrip')}
               value={formatCurrency(result.feeEstimate, preferences.currency)}
             />
           </ResultsGrid>
         ) : (
-          <p className="text-xs text-on-surface-variant">
-            Fill in entry and stop prices to see results.
-          </p>
+          <p className="text-xs text-on-surface-variant">{t('calc.positionSize.empty')}</p>
         )
       }
     />

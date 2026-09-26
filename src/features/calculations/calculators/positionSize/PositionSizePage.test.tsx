@@ -2,12 +2,15 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
+import { I18nProvider } from '@/i18n/I18nProvider'
 import { PositionSizePage } from './PositionSizePage'
 
 function renderPage() {
   render(
     <SettingsProvider>
-      <PositionSizePage />
+      <I18nProvider>
+        <PositionSizePage />
+      </I18nProvider>
     </SettingsProvider>,
   )
 }

@@ -19,7 +19,8 @@ Settings → Data Controls → **Export backup** downloads a single JSON file:
 ```
 
 Keep this file somewhere safe. It is the only copy of your data outside the
-browser.
+browser. The `settings` array includes your defaults and your interface
+language, so a restore brings the app back the way you left it.
 
 ## Import
 

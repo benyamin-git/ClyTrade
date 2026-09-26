@@ -32,6 +32,12 @@
             document.documentElement.dataset.accent =
               accents.indexOf(accent) === -1 ? 'blue' : accent
           }
+          var language = localStorage.getItem('clytrade.language')
+          if (language !== 'en' && language !== 'fa') {
+            language = (navigator.language || '').toLowerCase().indexOf('fa') === 0 ? 'fa' : 'en'
+          }
+          document.documentElement.lang = language
+          document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr'
         } catch (error) {
           document.documentElement.dataset.theme = 'md3-dark'
           document.documentElement.dataset.accent = 'blue'

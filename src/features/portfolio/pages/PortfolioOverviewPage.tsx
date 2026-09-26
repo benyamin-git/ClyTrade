@@ -5,6 +5,7 @@ import { calculateAssetMetrics, calculatePortfolioTotals } from '@/calculations/
 import type { Asset } from '@/data/models/asset'
 import { deleteAsset, listAssets } from '@/data/repositories/assets.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { formatCurrency, formatNumber, formatPercent, formatPrice } from '@/lib/format'
 import { Button } from '@/ui/components/Button'
@@ -24,6 +25,7 @@ interface AssetRow {
 
 export function PortfolioOverviewPage() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const assets = useLiveQuery(() => listAssets(), [], undefined)
   const rows = useMemo<AssetRow[]>(
     () =>
@@ -56,19 +58,19 @@ export function PortfolioOverviewPage() {
   const columns: readonly Column<AssetRow>[] = [
     {
       key: 'symbol',
-      header: 'Asset',
+      header: t('portfolio.columns.asset'),
       render: (row) => (
         <span>
           <span className="font-medium">{row.asset.symbol}</span>
           {row.asset.name ? (
-            <span className="ml-1.5 text-2xs text-on-surface-variant">{row.asset.name}</span>
+            <span className="ms-1.5 text-2xs text-on-surface-variant">{row.asset.name}</span>
           ) : null}
         </span>
       ),
     },
     {
       key: 'quantity',
-      header: 'Quantity',
+      header: t('portfolio.columns.quantity'),
       align: 'right',
       render: (row) => (
         <span className="tabular">
@@ -78,18 +80,18 @@ export function PortfolioOverviewPage() {
     },
     {
       key: 'cost',
-      header: 'Avg cost',
+      header: t('portfolio.columns.avgCost'),
       align: 'right',
       render: (row) => <span className="tabular">{formatPrice(row.asset.averageCost)}</span>,
     },
     {
       key: 'price',
-      header: 'Price',
+      header: t('portfolio.columns.price'),
       align: 'right',
       render: (row) => (
         <span className="tabular">
           {row.asset.currentPrice === null ? (
-            <span className="text-on-surface-variant">at cost</span>
+            <span className="text-on-surface-variant">{t('portfolio.atCost')}</span>
           ) : (
             formatPrice(row.asset.currentPrice)
           )}
@@ -98,7 +100,7 @@ export function PortfolioOverviewPage() {
     },
     {
       key: 'value',
-      header: 'Value',
+      header: t('portfolio.columns.value'),
       align: 'right',
       render: (row) => (
         <span className="tabular font-medium">
@@ -108,7 +110,7 @@ export function PortfolioOverviewPage() {
     },
     {
       key: 'pnl',
-      header: 'PnL',
+      header: t('portfolio.columns.pnl'),
       align: 'right',
       render: (row) => {
         const pnl = row.metrics?.pnl ?? null
@@ -126,7 +128,7 @@ export function PortfolioOverviewPage() {
     },
     {
       key: 'pnlPercent',
-      header: 'PnL %',
+      header: t('portfolio.columns.pnlPercent'),
       align: 'right',
       render: (row) => {
         const pct = row.metrics?.pnlPercent ?? null
@@ -149,7 +151,7 @@ export function PortfolioOverviewPage() {
       render: (row) => (
         <span className="flex items-center justify-end gap-0.5">
           <IconButton
-            label={`Edit ${row.asset.symbol}`}
+            label={t('portfolio.editAria', { symbol: row.asset.symbol })}
             size="sm"
             onClick={(event) => {
               event.stopPropagation()
@@ -159,7 +161,7 @@ export function PortfolioOverviewPage() {
             <Pencil />
           </IconButton>
           <IconButton
-            label={`Delete ${row.asset.symbol}`}
+            label={t('portfolio.deleteAria', { symbol: row.asset.symbol })}
             size="sm"
             onClick={(event) => {
               event.stopPropagation()
@@ -176,16 +178,19 @@ export function PortfolioOverviewPage() {
   return (
     <ViewportPage className="gap-3">
       <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3">
-        <Stat label="Total value" value={formatCurrency(totals.value, preferences.currency)} />
         <Stat
-          label="Unrealized PnL"
+          label={t('portfolio.stats.totalValue')}
+          value={formatCurrency(totals.value, preferences.currency)}
+        />
+        <Stat
+          label={t('portfolio.stats.unrealizedPnl')}
           value={formatCurrency(totals.pnl, preferences.currency)}
           tone={totals.pnl >= 0 ? 'profit' : 'loss'}
           hint={totals.pnlPercent === null ? undefined : formatPercent(totals.pnlPercent)}
         />
         <div className="flex-1" />
         <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
-          Add asset
+          {t('portfolio.addAsset')}
         </Button>
       </div>
 
@@ -197,11 +202,11 @@ export function PortfolioOverviewPage() {
           onRowClick={(row) => setForm({ asset: row.asset })}
           empty={
             <EmptyState
-              title="No assets yet"
-              description="Add your first spot holding to track cost basis and allocation."
+              title={t('portfolio.emptyTitle')}
+              description={t('portfolio.emptyDescription')}
               action={
                 <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
-                  Add asset
+                  {t('portfolio.addAsset')}
                 </Button>
               }
             />
@@ -214,11 +219,11 @@ export function PortfolioOverviewPage() {
       <Sheet
         open={deleting !== null}
         onClose={() => setDeleting(null)}
-        title="Delete asset"
+        title={t('portfolio.deleteTitle')}
         footer={
           <>
             <Button variant="text" onClick={() => setDeleting(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -227,13 +232,13 @@ export function PortfolioOverviewPage() {
                 setDeleting(null)
               }}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </>
         }
       >
         <p className="text-sm">
-          Delete <span className="font-medium">{deleting?.symbol}</span>? This cannot be undone.
+          {t('portfolio.deleteConfirm', { symbol: deleting?.symbol ?? '' })}
         </p>
       </Sheet>
     </ViewportPage>

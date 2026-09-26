@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { NavLink, useLocation } from 'react-router'
+import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import type { TabDef } from '@/navigation/types'
 
 export function SubTabBar({ tab }: { tab: TabDef }) {
+  const { t } = useI18n()
   const { pathname } = useLocation()
   const scrollerRef = useRef<HTMLElement>(null)
 
@@ -16,7 +18,7 @@ export function SubTabBar({ tab }: { tab: TabDef }) {
     <div className="shrink-0 border-b border-outline-variant/60 bg-surface">
       <nav
         ref={scrollerRef}
-        aria-label={`${tab.label} sections`}
+        aria-label={t('shell.sections', { tab: t(tab.labelKey) })}
         className="no-scrollbar scroll-fade-x flex h-subtabbar items-stretch gap-1 overflow-x-auto px-3 sm:px-4"
       >
         {tab.subtabs.map((subtab) => (
@@ -33,7 +35,7 @@ export function SubTabBar({ tab }: { tab: TabDef }) {
           >
             {({ isActive }) => (
               <>
-                {subtab.label}
+                {t(subtab.labelKey)}
                 {isActive ? (
                   <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary" />
                 ) : null}

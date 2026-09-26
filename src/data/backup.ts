@@ -50,19 +50,31 @@ export function downloadBackup(backup: BackupFile): void {
   URL.revokeObjectURL(url)
 }
 
+export type BackupErrorCode = 'invalid-json' | 'invalid-backup' | 'future-version'
+
+export class BackupError extends Error {
+  readonly code: BackupErrorCode
+
+  constructor(code: BackupErrorCode) {
+    super(code)
+    this.name = 'BackupError'
+    this.code = code
+  }
+}
+
 export function parseBackup(text: string): BackupFile {
   let json: unknown
   try {
     json = JSON.parse(text)
   } catch {
-    throw new Error('This file is not valid JSON.')
+    throw new BackupError('invalid-json')
   }
   const result = backupSchema.safeParse(json)
   if (!result.success) {
-    throw new Error('This file is not a valid ClyTrade backup.')
+    throw new BackupError('invalid-backup')
   }
   if (result.data.schemaVersion > BACKUP_SCHEMA_VERSION) {
-    throw new Error('This backup was created by a newer version of ClyTrade.')
+    throw new BackupError('future-version')
   }
   return result.data
 }

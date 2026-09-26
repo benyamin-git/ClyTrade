@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import type { TranslationKey } from '@/i18n/types'
 import { PositionSizePage } from './calculators/positionSize/PositionSizePage'
 import { MarginLeveragePage } from './calculators/marginLeverage/MarginLeveragePage'
 import { LiquidationPricePage } from './calculators/liquidationPrice/LiquidationPricePage'
@@ -9,7 +10,7 @@ import { SpotFuturesPage } from './calculators/spotFutures/SpotFuturesPage'
 
 export interface CalculatorDef {
   id: string
-  label: string
+  labelKey: TranslationKey
   path: string
   docSlug: string
   Page: ComponentType
@@ -18,49 +19,49 @@ export interface CalculatorDef {
 export const calculators: readonly CalculatorDef[] = [
   {
     id: 'position-size',
-    label: 'Position Size',
+    labelKey: 'calc.positionSize.title',
     path: '/calculations/position-size',
     docSlug: 'calculator-position-size',
     Page: PositionSizePage,
   },
   {
     id: 'margin-leverage',
-    label: 'Margin & Leverage',
+    labelKey: 'calc.marginLeverage.title',
     path: '/calculations/margin-leverage',
     docSlug: 'calculator-margin-leverage',
     Page: MarginLeveragePage,
   },
   {
     id: 'liquidation-price',
-    label: 'Liquidation Price',
+    labelKey: 'calc.liquidationPrice.title',
     path: '/calculations/liquidation-price',
     docSlug: 'calculator-liquidation-price',
     Page: LiquidationPricePage,
   },
   {
     id: 'risk-reward',
-    label: 'Risk / Reward',
+    labelKey: 'calc.riskReward.title',
     path: '/calculations/risk-reward',
     docSlug: 'calculator-risk-reward',
     Page: RiskRewardPage,
   },
   {
     id: 'fees-pnl',
-    label: 'Fees & PnL',
+    labelKey: 'calc.feesPnl.title',
     path: '/calculations/fees-pnl',
     docSlug: 'calculator-fees-pnl',
     Page: FeesPnlPage,
   },
   {
     id: 'average-entry',
-    label: 'Average Entry / DCA',
+    labelKey: 'calc.averageEntry.title',
     path: '/calculations/average-entry',
     docSlug: 'calculator-average-entry',
     Page: AverageEntryPage,
   },
   {
     id: 'spot-futures',
-    label: 'Spot ↔ Futures',
+    labelKey: 'calc.spotFutures.title',
     path: '/calculations/spot-futures',
     docSlug: 'calculator-spot-futures',
     Page: SpotFuturesPage,

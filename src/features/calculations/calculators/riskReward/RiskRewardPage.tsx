@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { calculateRiskReward } from '@/calculations/riskReward'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { formatNumber, formatPrice } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
@@ -9,6 +10,7 @@ import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout
 
 function RiskRewardCalculator() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
   const [stopPrice, setStopPrice] = useState<number | null>(null)
   const [targetPrice, setTargetPrice] = useState<number | null>(null)
@@ -47,38 +49,56 @@ function RiskRewardCalculator() {
 
   const notices =
     entryPrice !== null && stopPrice !== null && entryPrice === stopPrice
-      ? ['Entry and stop must differ.']
+      ? [t('calc.entryStopDiffer')]
       : []
+
+  const grossHint = t('calc.grossValue', { value: formatPrice(result?.risk ?? 0) })
+  const grossRewardHint = t('calc.grossValue', { value: formatPrice(result?.reward ?? 0) })
 
   return (
     <CalculatorLayout
-      title="Risk / Reward"
-      subtitle="R multiples, break-even win rate and expectancy"
+      title={t('calc.riskReward.title')}
+      subtitle={t('calc.riskReward.subtitle')}
       docSlug="calculator-risk-reward"
       notices={notices}
       inputs={
         <>
-          <NumberField label="Entry price" value={entryPrice} onChange={setEntryPrice} min={0} />
-          <NumberField label="Stop price" value={stopPrice} onChange={setStopPrice} min={0} />
-          <NumberField label="Target price" value={targetPrice} onChange={setTargetPrice} min={0} />
           <NumberField
-            label="Win rate (optional)"
+            label={t('fields.entryPrice')}
+            value={entryPrice}
+            onChange={setEntryPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.stopPrice')}
+            value={stopPrice}
+            onChange={setStopPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.targetPrice')}
+            value={targetPrice}
+            onChange={setTargetPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('calc.riskReward.winRate')}
             unit="%"
             value={winRatePercent}
             onChange={setWinRatePercent}
             min={0}
             max={100}
-            hint="Add your historical win rate to see expectancy"
+            hint={t('calc.riskReward.winRateHint')}
           />
           <NumberField
-            label="Entry fee"
+            label={t('fields.entryFee')}
             unit="%"
             value={entryFeePercent}
             onChange={setEntryFeePercent}
             min={0}
           />
           <NumberField
-            label="Exit fee"
+            label={t('fields.exitFee')}
             unit="%"
             value={exitFeePercent}
             onChange={setExitFeePercent}
@@ -90,17 +110,17 @@ function RiskRewardCalculator() {
         result ? (
           <ResultsGrid>
             <Stat
-              label="Risk / Reward"
+              label={t('calc.riskReward.riskReward')}
               value={`${formatNumber(result.riskRewardRatio, { maximumFractionDigits: 2 })}R`}
               tone={result.riskRewardRatio >= 1 ? 'profit' : 'warning'}
               size="lg"
             />
             <Stat
-              label="Break-even win rate"
+              label={t('calc.riskReward.breakEvenWinRate')}
               value={`${formatNumber(result.breakEvenWinRatePercent, { maximumFractionDigits: 1 })}%`}
             />
             <Stat
-              label="Expectancy"
+              label={t('calc.riskReward.expectancy')}
               value={
                 result.expectancyR === null
                   ? '—'
@@ -109,29 +129,29 @@ function RiskRewardCalculator() {
               tone={
                 result.expectancyR === null ? 'default' : result.expectancyR > 0 ? 'profit' : 'loss'
               }
-              hint={result.expectancyR === null ? 'Enter a win rate' : 'per trade at this win rate'}
-            />
-            <Stat
-              label="Risk"
-              value={formatPrice(preferences.feesInRisk ? result.netRisk : result.risk)}
-              hint={preferences.feesInRisk ? `gross ${formatPrice(result.risk)}` : 'price distance'}
-            />
-            <Stat
-              label="Reward"
-              value={formatPrice(preferences.feesInRisk ? result.netReward : result.reward)}
               hint={
-                preferences.feesInRisk ? `gross ${formatPrice(result.reward)}` : 'price distance'
+                result.expectancyR === null
+                  ? t('calc.riskReward.expectancyHintEmpty')
+                  : t('calc.riskReward.expectancyHint')
               }
             />
             <Stat
-              label="Stop / target move"
+              label={t('fields.risk')}
+              value={formatPrice(preferences.feesInRisk ? result.netRisk : result.risk)}
+              hint={preferences.feesInRisk ? grossHint : t('calc.priceDistance')}
+            />
+            <Stat
+              label={t('calc.riskReward.reward')}
+              value={formatPrice(preferences.feesInRisk ? result.netReward : result.reward)}
+              hint={preferences.feesInRisk ? grossRewardHint : t('calc.priceDistance')}
+            />
+            <Stat
+              label={t('calc.riskReward.stopTargetMove')}
               value={`${formatNumber(result.stopMovePercent, { maximumFractionDigits: 2 })}% / ${formatNumber(result.targetMovePercent, { maximumFractionDigits: 2 })}%`}
             />
           </ResultsGrid>
         ) : (
-          <p className="text-xs text-on-surface-variant">
-            Enter entry, stop and target prices to see results.
-          </p>
+          <p className="text-xs text-on-surface-variant">{t('calc.riskReward.empty')}</p>
         )
       }
     />

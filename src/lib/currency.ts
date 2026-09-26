@@ -2,6 +2,7 @@ export interface CurrencyDef {
   code: string
   symbol: string
   label: string
+  customSymbol?: boolean
 }
 
 export const CURRENCIES: readonly CurrencyDef[] = [
@@ -17,12 +18,17 @@ export const CURRENCIES: readonly CurrencyDef[] = [
   { code: 'BRL', symbol: 'R$', label: 'Brazilian Real' },
   { code: 'KRW', symbol: '₩', label: 'South Korean Won' },
   { code: 'TRY', symbol: '₺', label: 'Turkish Lira' },
+  { code: 'IRT', symbol: 'تومان', label: 'Iranian Toman', customSymbol: true },
 ]
 
 export const DEFAULT_CURRENCY = 'USD'
 
-const SYMBOLS = new Map(CURRENCIES.map((currency) => [currency.code, currency.symbol]))
+const BY_CODE = new Map(CURRENCIES.map((currency) => [currency.code.toUpperCase(), currency]))
+
+export function currencyDef(code: string): CurrencyDef | undefined {
+  return BY_CODE.get(code.toUpperCase())
+}
 
 export function currencySymbol(code: string): string {
-  return SYMBOLS.get(code.toUpperCase()) ?? code.toUpperCase()
+  return currencyDef(code)?.symbol ?? code.toUpperCase()
 }

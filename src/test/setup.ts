@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom/vitest'
 import 'fake-indexeddb/auto'
+import { beforeEach } from 'vitest'
+import { resetIntlContext } from '@/lib/intl'
+
+beforeEach(() => {
+  resetIntlContext()
+  localStorage.clear()
+})
 
 if (typeof window.matchMedia !== 'function') {
   window.matchMedia = (query: string): MediaQueryList =>

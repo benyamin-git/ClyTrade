@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Asset, AssetDraft } from '@/data/models/asset'
 import { createAsset, updateAsset } from '@/data/repositories/assets.repo'
+import { useI18n } from '@/i18n/I18nContext'
 import { Button } from '@/ui/components/Button'
 import { NumberField } from '@/ui/components/NumberField'
 import { Sheet } from '@/ui/components/Sheet'
@@ -13,6 +14,7 @@ export interface AssetFormSheetProps {
 }
 
 export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
+  const { t } = useI18n()
   const [symbol, setSymbol] = useState(asset?.symbol ?? '')
   const [name, setName] = useState(asset?.name ?? '')
   const [quantity, setQuantity] = useState<number | null>(asset?.quantity ?? null)
@@ -24,9 +26,10 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
 
   async function handleSave() {
     const trimmedSymbol = symbol.trim().toUpperCase()
-    if (trimmedSymbol === '') return setError('Symbol is required.')
-    if (quantity === null) return setError('Quantity is required.')
-    if (averageCost === null || averageCost < 0) return setError('Average cost cannot be negative.')
+    if (trimmedSymbol === '') return setError(t('portfolio.validation.symbolRequired'))
+    if (quantity === null) return setError(t('portfolio.validation.quantityRequired'))
+    if (averageCost === null || averageCost < 0)
+      return setError(t('portfolio.validation.avgCostNegative'))
 
     const draft: AssetDraft = {
       symbol: trimmedSymbol,
@@ -46,7 +49,7 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
       }
       onClose()
     } catch {
-      setError('Could not save this asset. Check the values and try again.')
+      setError(t('portfolio.validation.saveFailed'))
       setSaving(false)
     }
   }
@@ -55,44 +58,49 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
     <Sheet
       open
       onClose={onClose}
-      title={asset ? `Edit ${asset.symbol}` : 'Add asset'}
+      title={asset ? t('portfolio.editTitle', { symbol: asset.symbol }) : t('portfolio.addAsset')}
       footer={
         <>
           <Button variant="text" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={() => void handleSave()} disabled={saving}>
-            {asset ? 'Save changes' : 'Add asset'}
+            {asset ? t('common.saveChanges') : t('portfolio.addAsset')}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <TextField label="Symbol" value={symbol} onChange={setSymbol} placeholder="BTC" />
         <TextField
-          label="Name"
+          label={t('fields.symbol')}
+          value={symbol}
+          onChange={setSymbol}
+          placeholder="BTC"
+        />
+        <TextField
+          label={t('fields.name')}
           value={name}
           onChange={setName}
-          placeholder="Bitcoin"
+          placeholder={t('portfolio.namePlaceholder')}
           className="col-span-1 sm:col-span-2"
         />
-        <NumberField label="Quantity" value={quantity} onChange={setQuantity} min={0} />
+        <NumberField label={t('fields.quantity')} value={quantity} onChange={setQuantity} min={0} />
         <NumberField
-          label="Average cost"
+          label={t('fields.averageCost')}
           value={averageCost}
           onChange={setAverageCost}
           min={0}
-          hint="Per unit"
+          hint={t('portfolio.avgCostHint')}
         />
         <NumberField
-          label="Current price"
+          label={t('fields.currentPrice')}
           value={currentPrice}
           onChange={setCurrentPrice}
           min={0}
-          hint="Empty = valued at cost"
+          hint={t('portfolio.currentPriceHint')}
         />
         <TextAreaField
-          label="Notes"
+          label={t('fields.notes')}
           value={notes}
           onChange={setNotes}
           className="col-span-2 sm:col-span-3"

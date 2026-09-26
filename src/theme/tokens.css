@@ -1,6 +1,9 @@
 :root {
   --app-font-sans:
     'Roboto Variable', Roboto, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --app-font-fa:
+    'Vazirmatn Variable', 'Roboto Variable', Roboto, system-ui, -apple-system, 'Segoe UI', Tahoma,
+    sans-serif;
   --app-font-mono: ui-monospace, 'SFMono-Regular', 'Roboto Mono', Menlo, Consolas, monospace;
 
   --app-topbar-h: 4rem;
@@ -17,6 +20,15 @@
 
   --app-ease: cubic-bezier(0.2, 0, 0, 1);
   --app-duration: 160ms;
+}
+
+:root[lang='fa'] {
+  --app-font-sans: var(--app-font-fa);
+  --tracking-wide: 0;
+}
+
+:root[dir='rtl'] {
+  --app-fade-to: left;
 }
 
 @theme inline {

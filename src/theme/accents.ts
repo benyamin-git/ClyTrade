@@ -1,21 +1,16 @@
 export type AccentId =
   'purple' | 'teal' | 'blue' | 'green' | 'lime' | 'amber' | 'orange' | 'rose' | 'violet'
 
-export interface AccentDef {
-  id: AccentId
-  label: string
-}
-
-export const ACCENTS: readonly AccentDef[] = [
-  { id: 'blue', label: 'Blue' },
-  { id: 'teal', label: 'Teal' },
-  { id: 'green', label: 'Green' },
-  { id: 'lime', label: 'Lime' },
-  { id: 'amber', label: 'Amber' },
-  { id: 'orange', label: 'Orange' },
-  { id: 'rose', label: 'Rose' },
-  { id: 'violet', label: 'Violet' },
-  { id: 'purple', label: 'Purple' },
+export const ACCENTS: readonly AccentId[] = [
+  'blue',
+  'teal',
+  'green',
+  'lime',
+  'amber',
+  'orange',
+  'rose',
+  'violet',
+  'purple',
 ]
 
 export const DEFAULT_ACCENT: AccentId = 'blue'
@@ -24,7 +19,7 @@ export const THEME_NATIVE_ACCENT: AccentId = 'purple'
 
 const ACCENT_STORAGE_KEY = 'clytrade.accent'
 
-const ACCENT_IDS = new Set<string>(ACCENTS.map((accent) => accent.id))
+const ACCENT_IDS = new Set<string>(ACCENTS)
 
 export function isAccentId(value: unknown): value is AccentId {
   return typeof value === 'string' && ACCENT_IDS.has(value)

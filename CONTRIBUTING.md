@@ -22,15 +22,23 @@ GPL-3.0 requires forks to remain under the same license.
 
 ## Translations
 
-Translation and language support is the area where help is most wanted.
-Translation is **not implemented yet**, so the first step is to open an Issue or
-Discussion describing:
+ClyTrade ships in English and Persian (فارسی), and more languages are wanted.
+Translation is implemented; the structure is small and type-checked:
 
-- the language (and locale) you want to add
-- whether you can maintain it over time
-- any preferences for how translations should be structured
+- **UI strings** live in `src/i18n/`. `en.ts` is the source of truth. A new
+  language is a dictionary (for example `src/i18n/de.ts`) implementing the same
+  keys, registered in `src/i18n/locales.ts` with its `intlLocale`, text direction
+  and calendar, plus the language list in the `index.html` pre-paint script.
+- **Documentation** lives in `src/docs/<locale>/`. Copy `src/docs/en/**` and
+  translate page by page; a missing file falls back to English. Titles and
+  summaries go in the dictionary next to the other `docs.items.*` keys.
+- **Tests** for dictionary parity, number parsing and locale detection live next
+  to the code. Run `npm test` and `npm run typecheck`.
 
-We will agree on an approach before any code or content is written.
+Persian's opinionated choices (Latin digits, Gregorian dates with Persian
+labels, left-to-right charts) are explained in `src/docs/en/general/language.md`.
+Open a GitHub Issue or Discussion before starting so the locale list stays
+coherent.
 
 ## Development setup
 

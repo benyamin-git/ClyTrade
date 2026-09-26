@@ -10,6 +10,10 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
 - Include the theme and accent choice in backups. They live in localStorage, so
   they are not part of the backup file and do not follow a restore to another
   device.
+- Translate the documentation bodies into Persian. `src/docs/fa/**` currently
+  falls back to English; the registry titles and summaries are translated.
+- Localize the sample data. Strategies, notes and asset names in
+  `src/data/sampleData.ts` are English in both languages.
 - Remember the per-field unit choice (percent or currency) between visits. The
   toggles currently reset to percent whenever a calculator is reopened.
 - Android: on some devices the app bleeds into the status bar at the top of the

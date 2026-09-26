@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { clamp } from '@/lib/money'
 import { parseNumberInput } from '@/lib/format'
@@ -47,6 +48,7 @@ export function NumberField({
   disabled,
   className,
 }: NumberFieldProps) {
+  const { t } = useI18n()
   const id = useId()
   const [raw, setRaw] = useState(() => toRaw(value))
   const [lastUnit, setLastUnit] = useState(unitValue)
@@ -99,7 +101,7 @@ export function NumberField({
             onChange={onUnitChange}
             size="xs"
             variant="inline"
-            ariaLabel={`${label} unit`}
+            ariaLabel={t('common.unitAria', { label })}
           />
         ) : unit ? (
           <span className="shrink-0 text-xs text-on-surface-variant">{unit}</span>

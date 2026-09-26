@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import type { Preferences } from '@/data/models/settings'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
+import { useI18n } from '@/i18n/I18nContext'
+import { LOCALES } from '@/i18n/locales'
 import { CURRENCIES, currencySymbol } from '@/lib/currency'
 import { TIME_RANGES } from '@/lib/dates'
-import { APP_VERSION, PLATFORM_LABEL } from '@/lib/version'
+import { APP_PLATFORM, APP_VERSION, isPlatformId } from '@/lib/version'
 import { Card } from '@/ui/components/Card'
 import { Field } from '@/ui/components/Field'
 import { NumberField } from '@/ui/components/NumberField'
@@ -14,6 +16,7 @@ import { ViewportPage } from '@/ui/layout/ViewportPage'
 
 function PreferencesForm() {
   const { preferences, setPreferences } = usePreferences()
+  const { t, locale, setLocale } = useI18n()
   const [draft, setDraft] = useState<Preferences>(preferences)
 
   function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
@@ -31,20 +34,22 @@ function PreferencesForm() {
     return [{ value: draft.currency, label: draft.currency }, ...options]
   }, [draft.currency])
 
+  const platform = isPlatformId(APP_PLATFORM) ? t(`platform.${APP_PLATFORM}`) : APP_PLATFORM
+
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <div className="flex w-full max-w-4xl flex-col gap-4">
-        <Card title="Defaults">
+        <Card title={t('preferences.defaults')}>
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             <SelectField
-              label="Currency"
+              label={t('preferences.currency')}
               value={draft.currency}
               options={currencyOptions}
               onChange={(value) => update('currency', value)}
-              hint="Display only — no conversion"
+              hint={t('preferences.currencyHint')}
             />
             <NumberField
-              label="Account size"
+              label={t('fields.accountSize')}
               unit={currencySymbol(draft.currency)}
               value={draft.accountSize}
               onChange={(value) => {
@@ -53,7 +58,7 @@ function PreferencesForm() {
               min={0}
             />
             <NumberField
-              label="Risk per trade"
+              label={t('preferences.riskPerTrade')}
               unit="%"
               value={draft.riskPercent}
               onChange={(value) => {
@@ -63,7 +68,7 @@ function PreferencesForm() {
               max={100}
             />
             <NumberField
-              label="Leverage"
+              label={t('fields.leverage')}
               unit="×"
               value={draft.leverage}
               onChange={(value) => {
@@ -72,7 +77,7 @@ function PreferencesForm() {
               min={1}
             />
             <NumberField
-              label="Fee per side"
+              label={t('fields.feePerSide')}
               unit="%"
               value={draft.feePercent}
               onChange={(value) => {
@@ -81,7 +86,7 @@ function PreferencesForm() {
               min={0}
             />
             <NumberField
-              label="Maintenance margin"
+              label={t('fields.maintenanceMargin')}
               unit="%"
               value={draft.maintenanceMarginPercent}
               onChange={(value) => {
@@ -89,33 +94,42 @@ function PreferencesForm() {
               }}
               min={0}
             />
-            <Field label="Fees in risk" hint="Count fees toward the risk budget">
+            <Field label={t('preferences.feesInRisk')} hint={t('preferences.feesInRiskHint')}>
               <SegmentedControl
                 value={draft.feesInRisk ? 'included' : 'excluded'}
                 options={[
-                  { value: 'included', label: 'Included' },
-                  { value: 'excluded', label: 'Excluded' },
+                  { value: 'included', label: t('preferences.included') },
+                  { value: 'excluded', label: t('preferences.excluded') },
                 ]}
                 onChange={(value) => update('feesInRisk', value === 'included')}
-                ariaLabel="Fees in risk"
+                ariaLabel={t('preferences.feesInRisk')}
               />
             </Field>
             <SelectField
-              label="Default stats range"
+              label={t('preferences.defaultStatsRange')}
               value={draft.defaultTimeRange}
-              options={TIME_RANGES.map((range) => ({ value: range.id, label: range.label }))}
+              options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
               onChange={(value) => update('defaultTimeRange', value)}
             />
           </div>
         </Card>
 
-        <p className="text-xs text-on-surface-variant">
-          These defaults pre-fill the calculators and new journal entries. Changes are saved
-          immediately.
-        </p>
+        <Card title={t('preferences.interface')}>
+          <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            <SelectField
+              label={t('preferences.language')}
+              value={locale}
+              options={LOCALES.map((item) => ({ value: item.id, label: item.label }))}
+              onChange={setLocale}
+              hint={t('preferences.languageHint')}
+            />
+          </div>
+        </Card>
+
+        <p className="text-xs text-on-surface-variant">{t('preferences.footerNote')}</p>
 
         <p className="text-xs text-on-surface-variant">
-          ClyTrade {APP_VERSION} · {PLATFORM_LABEL}
+          ClyTrade {APP_VERSION} · {platform}
         </p>
       </div>
     </ViewportPage>

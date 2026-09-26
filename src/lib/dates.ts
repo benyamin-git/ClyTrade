@@ -1,12 +1,8 @@
+import { getIntlContext } from './intl'
+
 export type TimeRange = '7d' | '30d' | '90d' | 'ytd' | 'all'
 
-export const TIME_RANGES: readonly { id: TimeRange; label: string }[] = [
-  { id: '7d', label: '7D' },
-  { id: '30d', label: '30D' },
-  { id: '90d', label: '90D' },
-  { id: 'ytd', label: 'YTD' },
-  { id: 'all', label: 'All' },
-]
+export const TIME_RANGES: readonly TimeRange[] = ['7d', '30d', '90d', 'ytd', 'all']
 
 export function startOfDay(date: Date): Date {
   const copy = new Date(date)
@@ -40,10 +36,19 @@ export function isWithinRange(timestamp: number, range: TimeRange, now = new Dat
   return start === null || timestamp >= start.getTime()
 }
 
+const dateFormatters = new Map<string, Intl.DateTimeFormat>()
+
 export function formatDate(timestamp: number | Date): string {
   const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp
   if (Number.isNaN(date.getTime())) return '—'
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date)
+  const { locale, calendar } = getIntlContext()
+  const key = `${locale}|${calendar ?? ''}`
+  let formatter = dateFormatters.get(key)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', calendar })
+    dateFormatters.set(key, formatter)
+  }
+  return formatter.format(date)
 }
 
 export function toDateInputValue(date: Date): string {

@@ -1,137 +1,182 @@
-import gettingStarted from './general/getting-started.md?raw'
-import journal from './general/journal.md?raw'
-import portfolio from './general/portfolio.md?raw'
-import dataAndBackups from './general/data-and-backups.md?raw'
-import themes from './general/themes.md?raw'
-import designPhilosophy from './general/design-philosophy.md?raw'
-import aiUsage from './general/ai-usage.md?raw'
-import releases from './general/releases.md?raw'
-import positionSize from './calculators/position-size.md?raw'
-import marginLeverage from './calculators/margin-leverage.md?raw'
-import liquidationPrice from './calculators/liquidation-price.md?raw'
-import riskReward from './calculators/risk-reward.md?raw'
-import feesPnl from './calculators/fees-pnl.md?raw'
-import averageEntry from './calculators/average-entry.md?raw'
-import spotFutures from './calculators/spot-futures.md?raw'
+import type { Locale } from '@/i18n/locales'
+import type { Translator } from '@/i18n/translate'
+import type { TranslationKey } from '@/i18n/types'
+
+const enBodies = import.meta.glob('./en/**/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
+
+const localizedBodies = import.meta.glob('./fa/**/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
+
+function slugFromPath(path: string): string {
+  const parts = path.split('/')
+  const file = (parts.pop() ?? path).replace(/\.md$/, '')
+  const folder = parts.pop()
+  return folder === 'calculators' ? `calculator-${file}` : file
+}
+
+function indexBodies(modules: Record<string, string>): Record<string, string> {
+  const index: Record<string, string> = {}
+  for (const [path, body] of Object.entries(modules)) {
+    index[slugFromPath(path)] = body
+  }
+  return index
+}
+
+const EN_BODIES = indexBodies(enBodies)
+const FA_BODIES = indexBodies(localizedBodies)
+
+export interface DocMeta {
+  slug: string
+  groupKey: TranslationKey
+  titleKey: TranslationKey
+  summaryKey: TranslationKey
+}
 
 export interface DocEntry {
   slug: string
-  title: string
   group: string
+  title: string
   summary: string
   body: string
 }
 
-export const DOCS: readonly DocEntry[] = [
+export interface DocGroup {
+  name: string
+  docs: DocEntry[]
+}
+
+export const DOCS: readonly DocMeta[] = [
   {
     slug: 'getting-started',
-    title: 'Getting Started',
-    group: 'Basics',
-    summary: 'What ClyTrade is, how a typical session flows, and how to move around.',
-    body: gettingStarted,
+    groupKey: 'docs.groups.basics',
+    titleKey: 'docs.items.getting-started.title',
+    summaryKey: 'docs.items.getting-started.summary',
   },
   {
     slug: 'design-philosophy',
-    title: 'Design Philosophy',
-    group: 'Basics',
-    summary: 'Why the app is fast, dense, opinionated and local-first.',
-    body: designPhilosophy,
+    groupKey: 'docs.groups.basics',
+    titleKey: 'docs.items.design-philosophy.title',
+    summaryKey: 'docs.items.design-philosophy.summary',
   },
   {
     slug: 'ai-usage',
-    title: 'AI Usage',
-    group: 'Basics',
-    summary: 'ClyTrade is written by AI. Here is how it is directed, reviewed and verified.',
-    body: aiUsage,
+    groupKey: 'docs.groups.basics',
+    titleKey: 'docs.items.ai-usage.title',
+    summaryKey: 'docs.items.ai-usage.summary',
   },
   {
     slug: 'releases',
-    title: 'Platforms & Releases',
-    group: 'Basics',
-    summary: 'PWA, Windows and Android builds, version numbering and moving data between them.',
-    body: releases,
+    groupKey: 'docs.groups.basics',
+    titleKey: 'docs.items.releases.title',
+    summaryKey: 'docs.items.releases.summary',
   },
   {
     slug: 'journal',
-    title: 'Journal',
-    group: 'Features',
-    summary: 'Track futures and perp trades with derived metrics and stats.',
-    body: journal,
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.journal.title',
+    summaryKey: 'docs.items.journal.summary',
   },
   {
     slug: 'portfolio',
-    title: 'Portfolio',
-    group: 'Features',
-    summary: 'Track spot holdings, cost basis and allocation.',
-    body: portfolio,
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.portfolio.title',
+    summaryKey: 'docs.items.portfolio.summary',
   },
   {
     slug: 'data-and-backups',
-    title: 'Data & Backups',
-    group: 'Features',
-    summary: 'Where data lives, how to export, import, reset and load sample data.',
-    body: dataAndBackups,
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.data-and-backups.title',
+    summaryKey: 'docs.items.data-and-backups.summary',
   },
   {
     slug: 'themes',
-    title: 'Themes',
-    group: 'Features',
-    summary: 'Material Light, Material Dark and Black Night, plus preset accents.',
-    body: themes,
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.themes.title',
+    summaryKey: 'docs.items.themes.summary',
+  },
+  {
+    slug: 'language',
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.language.title',
+    summaryKey: 'docs.items.language.summary',
   },
   {
     slug: 'calculator-position-size',
-    title: 'Position Size',
-    group: 'Calculators',
-    summary: 'Size a position from a fixed account risk.',
-    body: positionSize,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-position-size.title',
+    summaryKey: 'docs.items.calculator-position-size.summary',
   },
   {
     slug: 'calculator-margin-leverage',
-    title: 'Margin & Leverage',
-    group: 'Calculators',
-    summary: 'Required margin, buying power and effective leverage.',
-    body: marginLeverage,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-margin-leverage.title',
+    summaryKey: 'docs.items.calculator-margin-leverage.summary',
   },
   {
     slug: 'calculator-liquidation-price',
-    title: 'Liquidation Price',
-    group: 'Calculators',
-    summary: 'Estimated isolated-margin liquidation price and distance.',
-    body: liquidationPrice,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-liquidation-price.title',
+    summaryKey: 'docs.items.calculator-liquidation-price.summary',
   },
   {
     slug: 'calculator-risk-reward',
-    title: 'Risk / Reward',
-    group: 'Calculators',
-    summary: 'R multiples, break-even win rate and expectancy.',
-    body: riskReward,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-risk-reward.title',
+    summaryKey: 'docs.items.calculator-risk-reward.summary',
   },
   {
     slug: 'calculator-fees-pnl',
-    title: 'Fees & PnL',
-    group: 'Calculators',
-    summary: 'Gross and net PnL after fees and funding.',
-    body: feesPnl,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-fees-pnl.title',
+    summaryKey: 'docs.items.calculator-fees-pnl.summary',
   },
   {
     slug: 'calculator-average-entry',
-    title: 'Average Entry / DCA',
-    group: 'Calculators',
-    summary: 'Blended entry price when scaling in.',
-    body: averageEntry,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-average-entry.title',
+    summaryKey: 'docs.items.calculator-average-entry.summary',
   },
   {
     slug: 'calculator-spot-futures',
-    title: 'Spot ↔ Futures',
-    group: 'Calculators',
-    summary: 'Compare spot and leveraged exposure for the same capital.',
-    body: spotFutures,
+    groupKey: 'docs.groups.calculators',
+    titleKey: 'docs.items.calculator-spot-futures.title',
+    summaryKey: 'docs.items.calculator-spot-futures.summary',
   },
 ]
 
-export function getDoc(slug: string): DocEntry | undefined {
-  return DOCS.find((doc) => doc.slug === slug)
+function resolveDoc(meta: DocMeta, locale: Locale, t: Translator): DocEntry {
+  return {
+    slug: meta.slug,
+    group: t(meta.groupKey),
+    title: t(meta.titleKey),
+    summary: t(meta.summaryKey),
+    body:
+      (locale === 'fa' ? FA_BODIES[meta.slug] : EN_BODIES[meta.slug]) ?? EN_BODIES[meta.slug] ?? '',
+  }
 }
 
-export const DOC_GROUPS: readonly string[] = [...new Set(DOCS.map((doc) => doc.group))]
+export function getDocGroups(locale: Locale, t: Translator): DocGroup[] {
+  const groups: DocGroup[] = []
+  for (const meta of DOCS) {
+    const entry = resolveDoc(meta, locale, t)
+    const existing = groups.find((group) => group.name === entry.group)
+    if (existing) {
+      existing.docs.push(entry)
+    } else {
+      groups.push({ name: entry.group, docs: [entry] })
+    }
+  }
+  return groups
+}
+
+export function getDoc(slug: string, locale: Locale, t: Translator): DocEntry | undefined {
+  const meta = DOCS.find((doc) => doc.slug === slug)
+  return meta ? resolveDoc(meta, locale, t) : undefined
+}

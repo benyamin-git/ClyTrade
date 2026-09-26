@@ -3,6 +3,7 @@ import type { Direction } from '@/calculations/types'
 import type { Trade, TradeDraft } from '@/data/models/trade'
 import { createTrade, updateTrade } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { fromDateInputValue, toDateInputValue } from '@/lib/dates'
 import { Button } from '@/ui/components/Button'
 import { DateField } from '@/ui/components/DateField'
@@ -23,6 +24,7 @@ function todayValue(): string {
 
 export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [symbol, setSymbol] = useState(trade?.symbol ?? '')
   const [direction, setDirection] = useState<Direction>(trade?.direction ?? 'long')
   const [entryPrice, setEntryPrice] = useState<number | null>(trade?.entryPrice ?? null)
@@ -46,16 +48,16 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
 
   async function handleSave() {
     const trimmedSymbol = symbol.trim().toUpperCase()
-    if (trimmedSymbol === '') return setError('Symbol is required.')
+    if (trimmedSymbol === '') return setError(t('journal.validation.symbolRequired'))
     if (entryPrice === null || entryPrice <= 0)
-      return setError('Entry price must be greater than 0.')
-    if (size === null || size <= 0) return setError('Size must be greater than 0.')
-    if (leverage === null || leverage < 1) return setError('Leverage must be at least 1.')
+      return setError(t('journal.validation.entryPricePositive'))
+    if (size === null || size <= 0) return setError(t('journal.validation.sizePositive'))
+    if (leverage === null || leverage < 1) return setError(t('journal.validation.leverageMin'))
 
     const openedDate = fromDateInputValue(openedAt)
-    if (!openedDate) return setError('Opened date is required.')
+    if (!openedDate) return setError(t('journal.validation.openedRequired'))
     const closedDate = closedAt === '' ? null : fromDateInputValue(closedAt)
-    if (closedAt !== '' && !closedDate) return setError('Closed date is not valid.')
+    if (closedAt !== '' && !closedDate) return setError(t('journal.validation.closedInvalid'))
 
     const draft: TradeDraft = {
       symbol: trimmedSymbol,
@@ -87,7 +89,7 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
       }
       onClose()
     } catch {
-      setError('Could not save this trade. Check the values and try again.')
+      setError(t('journal.validation.saveFailed'))
       setSaving(false)
     }
   }
@@ -96,21 +98,21 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
     <Sheet
       open
       onClose={onClose}
-      title={trade ? `Edit ${trade.symbol}` : 'Add trade'}
+      title={trade ? t('journal.editTitle', { symbol: trade.symbol }) : t('journal.addTrade')}
       footer={
         <>
           <Button variant="text" onClick={onClose} disabled={saving}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={() => void handleSave()} disabled={saving}>
-            {trade ? 'Save changes' : 'Add trade'}
+            {trade ? t('common.saveChanges') : t('journal.addTrade')}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <TextField
-          label="Symbol"
+          label={t('fields.symbol')}
           value={symbol}
           onChange={setSymbol}
           placeholder="BTCUSDT"
@@ -118,48 +120,74 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
         />
         <div className="flex flex-col gap-1">
           <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">
-            Direction
+            {t('fields.direction')}
           </span>
           <SegmentedControl
             value={direction}
             onChange={setDirection}
             options={[
-              { value: 'long', label: 'Long' },
-              { value: 'short', label: 'Short' },
+              { value: 'long', label: t('direction.long') },
+              { value: 'short', label: t('direction.short') },
             ]}
           />
         </div>
-        <NumberField label="Entry price" value={entryPrice} onChange={setEntryPrice} min={0} />
         <NumberField
-          label="Exit price"
+          label={t('fields.entryPrice')}
+          value={entryPrice}
+          onChange={setEntryPrice}
+          min={0}
+        />
+        <NumberField
+          label={t('fields.exitPrice')}
           value={exitPrice}
           onChange={setExitPrice}
           min={0}
-          hint="Empty = open"
+          hint={t('journal.formStatusHint')}
         />
-        <NumberField label="Size" value={size} onChange={setSize} min={0} />
-        <NumberField label="Leverage" unit="×" value={leverage} onChange={setLeverage} min={1} />
-        <NumberField label="Stop price" value={stopPrice} onChange={setStopPrice} min={0} />
-        <NumberField label="Target price" value={targetPrice} onChange={setTargetPrice} min={0} />
-        <NumberField label="Fees (total)" value={fees} onChange={setFees} min={0} />
-        <DateField label="Opened" value={openedAt} onChange={setOpenedAt} />
-        <DateField label="Closed" value={closedAt} onChange={setClosedAt} hint="Empty = open" />
+        <NumberField label={t('fields.size')} value={size} onChange={setSize} min={0} />
+        <NumberField
+          label={t('fields.leverage')}
+          unit="×"
+          value={leverage}
+          onChange={setLeverage}
+          min={1}
+        />
+        <NumberField
+          label={t('fields.stopPrice')}
+          value={stopPrice}
+          onChange={setStopPrice}
+          min={0}
+        />
+        <NumberField
+          label={t('fields.targetPrice')}
+          value={targetPrice}
+          onChange={setTargetPrice}
+          min={0}
+        />
+        <NumberField label={t('fields.feesTotal')} value={fees} onChange={setFees} min={0} />
+        <DateField label={t('fields.opened')} value={openedAt} onChange={setOpenedAt} />
+        <DateField
+          label={t('fields.closed')}
+          value={closedAt}
+          onChange={setClosedAt}
+          hint={t('journal.formStatusHint')}
+        />
         <TextField
-          label="Strategy"
+          label={t('fields.strategy')}
           value={strategy}
           onChange={setStrategy}
-          placeholder="Breakout"
+          placeholder={t('journal.strategyPlaceholder')}
         />
         <TextField
-          label="Tags"
+          label={t('fields.tags')}
           value={tags}
           onChange={setTags}
           placeholder="scalp, btc"
-          hint="Comma separated"
+          hint={t('journal.tagsHint')}
           className="col-span-2 sm:col-span-1"
         />
         <TextAreaField
-          label="Notes"
+          label={t('fields.notes')}
           value={notes}
           onChange={setNotes}
           className="col-span-2 sm:col-span-3"

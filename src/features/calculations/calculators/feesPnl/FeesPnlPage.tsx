@@ -3,6 +3,7 @@ import { calculateFeesPnl } from '@/calculations/feesPnl'
 import type { Direction } from '@/calculations/types'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { usePreferences } from '@/features/settings/SettingsContext'
+import { useI18n } from '@/i18n/I18nContext'
 import { currencySymbol } from '@/lib/currency'
 import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
 import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
@@ -13,6 +14,7 @@ import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
 
 function FeesPnlCalculator() {
   const { preferences } = usePreferences()
+  const { t } = useI18n()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
   const [exitPrice, setExitPrice] = useState<number | null>(null)
   const [size, setSize] = useState<number | null>(null)
@@ -101,51 +103,73 @@ function FeesPnlCalculator() {
 
   return (
     <CalculatorLayout
-      title="Fees & PnL"
-      subtitle="Gross and net result after every cost"
+      title={t('calc.feesPnl.title')}
+      subtitle={t('calc.feesPnl.subtitle')}
       docSlug="calculator-fees-pnl"
       inputs={
         <>
-          <NumberField label="Entry price" value={entryPrice} onChange={setEntryPrice} min={0} />
-          <NumberField label="Exit price" value={exitPrice} onChange={setExitPrice} min={0} />
-          <NumberField label="Size" value={size} onChange={setSize} min={0} hint="units" />
+          <NumberField
+            label={t('fields.entryPrice')}
+            value={entryPrice}
+            onChange={setEntryPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.exitPrice')}
+            value={exitPrice}
+            onChange={setExitPrice}
+            min={0}
+          />
+          <NumberField
+            label={t('fields.size')}
+            value={size}
+            onChange={setSize}
+            min={0}
+            hint={t('calc.units')}
+          />
           <div className="flex flex-col gap-1">
             <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">
-              Direction
+              {t('fields.direction')}
             </span>
             <SegmentedControl
               value={direction}
               onChange={setDirection}
               options={[
-                { value: 'long', label: 'Long' },
-                { value: 'short', label: 'Short' },
+                { value: 'long', label: t('direction.long') },
+                { value: 'short', label: t('direction.short') },
               ]}
-              ariaLabel="Direction"
+              ariaLabel={t('fields.direction')}
             />
           </div>
-          <NumberField label="Leverage" unit="×" value={leverage} onChange={setLeverage} min={1} />
           <NumberField
-            label="Entry fee"
+            label={t('fields.leverage')}
+            unit="×"
+            value={leverage}
+            onChange={setLeverage}
+            min={1}
+          />
+          <NumberField
+            label={t('fields.entryFee')}
             value={entryFee}
             onChange={setEntryFee}
             unitOptions={unitOptions}
             unitValue={entryFeeUnit}
             onUnitChange={switchEntryFeeUnit}
             min={0}
-            hint={entryFeeUnit === 'currency' ? 'Absolute cost' : undefined}
+            hint={entryFeeUnit === 'currency' ? t('calc.feesPnl.absoluteCost') : undefined}
           />
           <NumberField
-            label="Exit fee"
+            label={t('fields.exitFee')}
             value={exitFee}
             onChange={setExitFee}
             unitOptions={unitOptions}
             unitValue={exitFeeUnit}
             onUnitChange={switchExitFeeUnit}
             min={0}
-            hint={exitFeeUnit === 'currency' ? 'Absolute cost' : undefined}
+            hint={exitFeeUnit === 'currency' ? t('calc.feesPnl.absoluteCost') : undefined}
           />
           <NumberField
-            label="Funding (total)"
+            label={t('fields.funding')}
             value={funding}
             onChange={setFunding}
             unitOptions={unitOptions}
@@ -153,8 +177,8 @@ function FeesPnlCalculator() {
             onUnitChange={switchFundingUnit}
             hint={
               fundingUnit === 'currency'
-                ? 'Absolute cost over the hold'
-                : 'Positive = paid over the hold'
+                ? t('calc.feesPnl.fundingHintCurrency')
+                : t('calc.feesPnl.fundingHintPercent')
             }
           />
         </>
@@ -163,49 +187,49 @@ function FeesPnlCalculator() {
         result ? (
           <ResultsGrid>
             <Stat
-              label="Net PnL"
+              label={t('calc.feesPnl.netPnl')}
               value={formatCurrency(result.netPnl, preferences.currency)}
               tone={result.netPnl >= 0 ? 'profit' : 'loss'}
               size="lg"
             />
             <Stat
-              label="Gross PnL"
+              label={t('calc.feesPnl.grossPnl')}
               value={formatCurrency(result.grossPnl, preferences.currency)}
               tone={result.grossPnl >= 0 ? 'profit' : 'loss'}
             />
             <Stat
-              label="ROI on margin"
+              label={t('calc.feesPnl.roiOnMargin')}
               value={`${formatNumber(result.roiOnMarginPercent, { maximumFractionDigits: 2 })}%`}
               tone={result.roiOnMarginPercent >= 0 ? 'profit' : 'loss'}
-              hint={`${formatNumber(result.netPnlPercentOfAccount, { maximumFractionDigits: 2 })}% of account`}
+              hint={t('calc.percentOfAccount', {
+                value: formatNumber(result.netPnlPercentOfAccount, { maximumFractionDigits: 2 }),
+              })}
             />
             <Stat
-              label="Entry / exit fees"
+              label={t('calc.feesPnl.entryExitFees')}
               value={`${formatCurrency(result.entryFee, preferences.currency)} / ${formatCurrency(result.exitFee, preferences.currency)}`}
             />
             <Stat
-              label="Funding cost"
+              label={t('calc.feesPnl.fundingCost')}
               value={formatCurrency(result.fundingCost, preferences.currency)}
             />
             <Stat
-              label="Total costs"
+              label={t('calc.feesPnl.totalCosts')}
               value={formatCurrency(result.totalCosts, preferences.currency)}
             />
             <Stat
-              label="Break-even move"
+              label={t('calc.feesPnl.breakEvenMove')}
               value={`${formatNumber(result.breakEvenMovePercent, { maximumFractionDigits: 4 })}%`}
-              hint="price move needed to cover costs"
+              hint={t('calc.feesPnl.breakEvenMoveHint')}
             />
             <Stat
-              label="Margin"
+              label={t('calc.feesPnl.margin')}
               value={formatCurrency(result.margin, preferences.currency)}
-              hint={`entry ${formatPrice(entryPrice ?? 0)}`}
+              hint={t('calc.entryValue', { value: formatPrice(entryPrice ?? 0) })}
             />
           </ResultsGrid>
         ) : (
-          <p className="text-xs text-on-surface-variant">
-            Enter entry, exit and size to see results.
-          </p>
+          <p className="text-xs text-on-surface-variant">{t('calc.feesPnl.empty')}</p>
         )
       }
     />

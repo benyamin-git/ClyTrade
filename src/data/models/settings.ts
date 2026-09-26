@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 export const timeRangeSchema = z.enum(['7d', '30d', '90d', 'ytd', 'all'])
 
+export const languageSchema = z.enum(['en', 'fa'])
+
 export const preferencesSchema = z.object({
   currency: z.string().min(1),
   accountSize: z.number().positive(),
@@ -11,6 +13,7 @@ export const preferencesSchema = z.object({
   maintenanceMarginPercent: z.number().min(0).max(100),
   defaultTimeRange: timeRangeSchema,
   feesInRisk: z.boolean().default(true),
+  language: languageSchema.nullable().default(null),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>
@@ -24,6 +27,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   maintenanceMarginPercent: 0.5,
   defaultTimeRange: '30d',
   feesInRisk: true,
+  language: null,
 }
 
 export interface SettingRow {

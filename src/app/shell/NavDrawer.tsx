@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { NavLink } from 'react-router'
 import { X } from 'lucide-react'
+import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { tabs } from '@/navigation/tabs'
 import { IconButton } from '@/ui/components/IconButton'
@@ -11,6 +12,8 @@ export interface NavDrawerProps {
 }
 
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
+  const { t } = useI18n()
+
   useEffect(() => {
     if (!open) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -25,7 +28,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
       <button
         type="button"
         tabIndex={-1}
-        aria-label="Close navigation"
+        aria-label={t('shell.closeNavigation')}
         onClick={onClose}
         className={cn(
           'absolute inset-0 bg-scrim/50 transition-opacity duration-200',
@@ -33,15 +36,15 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         )}
       />
       <nav
-        aria-label="Main navigation"
+        aria-label={t('shell.mainNavigation')}
         className={cn(
-          'absolute inset-y-0 left-0 flex w-72 flex-col border-r border-outline-variant/60 bg-surface-container-low shadow-2xl transition-transform duration-200',
-          open ? 'translate-x-0' : '-translate-x-full',
+          'absolute inset-y-0 start-0 flex w-72 flex-col border-s border-outline-variant/60 bg-surface-container-low shadow-2xl transition-transform duration-200',
+          open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         )}
       >
         <div className="flex h-topbar shrink-0 items-center justify-between border-b border-outline-variant/50 px-4">
           <span className="text-base font-semibold">ClyTrade</span>
-          <IconButton label="Close navigation" onClick={onClose}>
+          <IconButton label={t('shell.closeNavigation')} onClick={onClose}>
             <X />
           </IconButton>
         </div>
@@ -61,14 +64,12 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                 }
               >
                 <tab.icon className="size-5 shrink-0" />
-                {tab.label}
+                {t(tab.labelKey)}
               </NavLink>
             </li>
           ))}
         </ul>
-        <p className="mt-auto p-4 text-xs text-on-surface-variant">
-          Local-first trading tools. No account, no server.
-        </p>
+        <p className="mt-auto p-4 text-xs text-on-surface-variant">{t('shell.tagline')}</p>
       </nav>
     </div>
   )
