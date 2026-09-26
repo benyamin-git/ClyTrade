@@ -78,6 +78,7 @@ Requires **Node 22+** and npm.
 ```bash
 npm install
 npm run dev        # dev server on http://localhost:5173
+npm run dev:lan    # dev server on http://0.0.0.0:3000 for phones and other devices
 npm run build      # typecheck + production build + service worker
 npm run preview    # serve the production build
 npm test           # run the test suite

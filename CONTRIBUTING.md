@@ -47,6 +47,7 @@ Requirements: Node 22+ and npm.
 ```bash
 npm install
 npm run dev        # dev server
+npm run dev:lan    # dev server reachable on the local network (0.0.0.0:3000)
 npm test           # test suite
 npm run typecheck  # tsc -b
 npm run lint       # eslint

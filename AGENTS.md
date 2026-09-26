@@ -14,6 +14,7 @@ export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 | Command                            | Purpose                                                             |
 | ---------------------------------- | ------------------------------------------------------------------- |
 | `npm run dev`                      | Vite dev server                                                     |
+| `npm run dev:lan`                  | Vite dev server on `0.0.0.0:3000` (strict) for LAN/phone testing    |
 | `npm run build`                    | Typecheck + production build + PWA service worker                   |
 | `npm run preview`                  | Serve the production build                                          |
 | `npm run typecheck`                | `tsc -b` across app and node configs                                |

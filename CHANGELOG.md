@@ -8,6 +8,8 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ### Added
 
+- `npm run dev:lan` serves the dev build on `0.0.0.0:3000` so it can be opened
+  from a phone or another device on the same network.
 - `npm run screenshots` captures the journal, portfolio, Position Size and theme
   pages with the sample data, and the README shows the results.
 - **Localization** — English and Persian (فارسی) with a language selector in
