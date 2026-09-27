@@ -29,6 +29,11 @@ All notable changes to ClyTrade are documented here. The format follows
   literal dictionary translations, and names that clashed were disambiguated
   (ژورنال، سبد سرمایه، تنظیمات شخصی، بازیابی / پشتیبان‌گیری).
 
+### Fixed
+
+- Changing one preference (for example the currency) no longer reverts the
+  interface language to the value that was stored when Preferences was opened.
+
 ## [0.1.0] - 2026-09-23
 
 First tagged release. Windows and Android builds are unsigned test builds; the

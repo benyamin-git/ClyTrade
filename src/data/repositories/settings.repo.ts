@@ -26,6 +26,13 @@ export async function setPreferences(preferences: Preferences): Promise<void> {
   await setSetting(PREFERENCES_KEY, preferences)
 }
 
+export async function updatePreferences(patch: Partial<Preferences>): Promise<void> {
+  await db.transaction('rw', db.settings, async () => {
+    const current = await getPreferences()
+    await setPreferences({ ...current, ...patch })
+  })
+}
+
 export async function listSettings(): Promise<SettingRow[]> {
   return db.settings.toArray()
 }

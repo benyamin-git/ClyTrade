@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react'
-import type { Preferences } from '@/data/models/settings'
+import { useMemo } from 'react'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { useI18n } from '@/i18n/I18nContext'
@@ -15,24 +14,17 @@ import { SelectField } from '@/ui/components/SelectField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 
 function PreferencesForm() {
-  const { preferences, setPreferences } = usePreferences()
+  const { preferences, updatePreferences } = usePreferences()
   const { t, locale, setLocale } = useI18n()
-  const [draft, setDraft] = useState<Preferences>(preferences)
-
-  function update<K extends keyof Preferences>(key: K, value: Preferences[K]) {
-    const next = { ...draft, [key]: value }
-    setDraft(next)
-    setPreferences(next)
-  }
 
   const currencyOptions = useMemo(() => {
     const options = CURRENCIES.map((currency) => ({
       value: currency.code,
       label: `${currency.code} · ${currency.symbol}`,
     }))
-    if (CURRENCIES.some((currency) => currency.code === draft.currency)) return options
-    return [{ value: draft.currency, label: draft.currency }, ...options]
-  }, [draft.currency])
+    if (CURRENCIES.some((currency) => currency.code === preferences.currency)) return options
+    return [{ value: preferences.currency, label: preferences.currency }, ...options]
+  }, [preferences.currency])
 
   const platform = isPlatformId(APP_PLATFORM) ? t(`platform.${APP_PLATFORM}`) : APP_PLATFORM
 
@@ -43,26 +35,26 @@ function PreferencesForm() {
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             <SelectField
               label={t('preferences.currency')}
-              value={draft.currency}
+              value={preferences.currency}
               options={currencyOptions}
-              onChange={(value) => update('currency', value)}
+              onChange={(value) => updatePreferences({ currency: value })}
               hint={t('preferences.currencyHint')}
             />
             <NumberField
               label={t('fields.accountSize')}
-              unit={currencySymbol(draft.currency)}
-              value={draft.accountSize}
+              unit={currencySymbol(preferences.currency)}
+              value={preferences.accountSize}
               onChange={(value) => {
-                if (value !== null) update('accountSize', value)
+                if (value !== null) updatePreferences({ accountSize: value })
               }}
               min={0}
             />
             <NumberField
               label={t('preferences.riskPerTrade')}
               unit="%"
-              value={draft.riskPercent}
+              value={preferences.riskPercent}
               onChange={(value) => {
-                if (value !== null) update('riskPercent', value)
+                if (value !== null) updatePreferences({ riskPercent: value })
               }}
               min={0}
               max={100}
@@ -70,46 +62,46 @@ function PreferencesForm() {
             <NumberField
               label={t('fields.leverage')}
               unit="×"
-              value={draft.leverage}
+              value={preferences.leverage}
               onChange={(value) => {
-                if (value !== null) update('leverage', value)
+                if (value !== null) updatePreferences({ leverage: value })
               }}
               min={1}
             />
             <NumberField
               label={t('fields.feePerSide')}
               unit="%"
-              value={draft.feePercent}
+              value={preferences.feePercent}
               onChange={(value) => {
-                if (value !== null) update('feePercent', value)
+                if (value !== null) updatePreferences({ feePercent: value })
               }}
               min={0}
             />
             <NumberField
               label={t('fields.maintenanceMargin')}
               unit="%"
-              value={draft.maintenanceMarginPercent}
+              value={preferences.maintenanceMarginPercent}
               onChange={(value) => {
-                if (value !== null) update('maintenanceMarginPercent', value)
+                if (value !== null) updatePreferences({ maintenanceMarginPercent: value })
               }}
               min={0}
             />
             <Field label={t('preferences.feesInRisk')} hint={t('preferences.feesInRiskHint')}>
               <SegmentedControl
-                value={draft.feesInRisk ? 'included' : 'excluded'}
+                value={preferences.feesInRisk ? 'included' : 'excluded'}
                 options={[
                   { value: 'included', label: t('preferences.included') },
                   { value: 'excluded', label: t('preferences.excluded') },
                 ]}
-                onChange={(value) => update('feesInRisk', value === 'included')}
+                onChange={(value) => updatePreferences({ feesInRisk: value === 'included' })}
                 ariaLabel={t('preferences.feesInRisk')}
               />
             </Field>
             <SelectField
               label={t('preferences.defaultStatsRange')}
-              value={draft.defaultTimeRange}
+              value={preferences.defaultTimeRange}
               options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
-              onChange={(value) => update('defaultTimeRange', value)}
+              onChange={(value) => updatePreferences({ defaultTimeRange: value })}
             />
           </div>
         </Card>
