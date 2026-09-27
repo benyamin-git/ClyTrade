@@ -79,6 +79,8 @@ Requires **Node 22+** and npm.
 npm install
 npm run dev        # dev server on http://localhost:5173
 npm run dev:lan    # dev server on http://0.0.0.0:7401 for phones and other devices (PORT overrides)
+./scripts/live.sh  # same, in the background: log /tmp/clytrade-liveserver.log, LIVE_SERVER_PORT overrides
+                   # stop with: kill $(cat /tmp/clytrade-liveserver.pid)
 npm run build      # typecheck + production build + service worker
 npm run preview    # serve the production build
 npm test           # run the test suite

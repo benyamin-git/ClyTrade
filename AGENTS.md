@@ -11,24 +11,25 @@ Node 22 is required (installed via nvm). Prefix commands in non-interactive shel
 export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 ```
 
-| Command                            | Purpose                                                             |
-| ---------------------------------- | ------------------------------------------------------------------- |
-| `npm run dev`                      | Vite dev server                                                     |
-| `npm run dev:lan`                  | Vite dev server on `0.0.0.0:7401` (strict) for LAN/phone testing    |
-| `npm run build`                    | Typecheck + production build + PWA service worker                   |
-| `npm run preview`                  | Serve the production build                                          |
-| `npm run typecheck`                | `tsc -b` across app and node configs                                |
-| `npm run lint`                     | ESLint (flat config)                                                |
-| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                  |
-| `npm run format`                   | Prettier write                                                      |
-| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                           |
-| `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`     |
-| `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`             |
-| `npm run screenshots`              | Capture desktop screenshots of the key pages into `screenshots/`    |
-| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs (first run only)          |
-| `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                        |
-| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK, Rust)           |
-| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `Cargo.toml` |
+| Command                            | Purpose                                                                                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                      | Vite dev server                                                                                                                                                           |
+| `npm run dev:lan`                  | Vite dev server on `0.0.0.0:7401` (strict) for LAN/phone testing                                                                                                          |
+| `./scripts/live.sh`                | Background live server on `0.0.0.0:7401` (strict); `LIVE_SERVER_PORT` overrides, log `/tmp/clytrade-liveserver.log`, stop with `kill $(cat /tmp/clytrade-liveserver.pid)` |
+| `npm run build`                    | Typecheck + production build + PWA service worker                                                                                                                         |
+| `npm run preview`                  | Serve the production build                                                                                                                                                |
+| `npm run typecheck`                | `tsc -b` across app and node configs                                                                                                                                      |
+| `npm run lint`                     | ESLint (flat config)                                                                                                                                                      |
+| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                                                                                                                        |
+| `npm run format`                   | Prettier write                                                                                                                                                            |
+| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                                                                                                                 |
+| `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`                                                                                                           |
+| `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`                                                                                                                   |
+| `npm run screenshots`              | Capture desktop screenshots of the key pages into `screenshots/`                                                                                                          |
+| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs (first run only)                                                                                                                |
+| `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                                                                                                                              |
+| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK, Rust)                                                                                                                 |
+| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `Cargo.toml`                                                                                                       |
 
 Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing work.
 
