@@ -27,7 +27,7 @@ describe('docs registry', () => {
 
   it('translates metadata but falls back to the english body', () => {
     const doc = getDoc('calculator-position-size', 'fa', createTranslator(fa))
-    expect(doc?.title).toBe('اندازهٔ موقعیت')
+    expect(doc?.title).toBe('سایز پوزیشن')
     expect(doc?.body).toBe(getDoc('calculator-position-size', 'en', t)?.body)
   })
 

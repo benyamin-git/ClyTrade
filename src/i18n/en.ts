@@ -301,6 +301,7 @@ export const en = {
       status: 'Status',
       symbol: 'Symbol',
     },
+    rValue: '{{value}}R',
     filters: {
       all: 'All',
       closed: 'Closed',

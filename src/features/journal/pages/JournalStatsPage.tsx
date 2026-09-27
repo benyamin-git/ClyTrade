@@ -124,7 +124,9 @@ export function JournalStatsPage() {
                 value={
                   stats.averageR === null
                     ? '—'
-                    : `${formatNumber(stats.averageR, { maximumFractionDigits: 2 })}R`
+                    : t('journal.rValue', {
+                        value: formatNumber(stats.averageR, { maximumFractionDigits: 2 }),
+                      })
                 }
                 tone={stats.averageR !== null && stats.averageR >= 0 ? 'profit' : 'loss'}
               />

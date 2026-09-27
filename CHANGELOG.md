@@ -19,6 +19,13 @@ All notable changes to ClyTrade are documented here. The format follows
   UI text lives in typed `src/i18n/` dictionaries, documentation in
   `src/docs/<locale>/` with an English fallback.
 
+### Changed
+
+- **Persian terminology** — financial labels now use the vocabulary traders say
+  (مارجین، استاپ/تارگت، سایز پوزیشن، ارزش پوزیشن، لیکویید شدن، RR) instead of
+  literal dictionary translations, and names that clashed were disambiguated
+  (ژورنال، سبد سرمایه، تنظیمات شخصی، بازیابی / پشتیبان‌گیری).
+
 ## [0.1.0] - 2026-09-23
 
 First tagged release. Windows and Android builds are unsigned test builds; the

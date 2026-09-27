@@ -61,8 +61,8 @@ describe('App', () => {
   it('renders persian when the stored preference is persian', async () => {
     await setPreferences({ ...DEFAULT_PREFERENCES, language: 'fa' })
     renderApp()
-    expect(await screen.findByRole('heading', { name: 'اندازهٔ موقعیت' })).toBeInTheDocument()
-    expect(await screen.findByText('دفتر معاملات')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'سایز پوزیشن' })).toBeInTheDocument()
+    expect(await screen.findByText('ژورنال')).toBeInTheDocument()
     expect(document.documentElement.dir).toBe('rtl')
   })
 })

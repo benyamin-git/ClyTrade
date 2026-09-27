@@ -140,7 +140,9 @@ export function JournalOverviewPage() {
               r === null ? 'text-on-surface-variant' : r >= 0 ? 'text-profit' : 'text-loss',
             )}
           >
-            {r === null ? '—' : `${formatNumber(r, { maximumFractionDigits: 2 })}R`}
+            {r === null
+              ? '—'
+              : t('journal.rValue', { value: formatNumber(r, { maximumFractionDigits: 2 }) })}
           </span>
         )
       },

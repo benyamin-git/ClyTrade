@@ -20,7 +20,7 @@ describe('I18nProvider', () => {
         <Probe />
       </I18nProvider>,
     )
-    expect(getByText('fa|rtl|دفتر معاملات')).toBeInTheDocument()
+    expect(getByText('fa|rtl|ژورنال')).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('fa')
     expect(document.documentElement.dir).toBe('rtl')
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('fa')
@@ -33,7 +33,7 @@ describe('I18nProvider', () => {
         <Probe />
       </I18nProvider>,
     )
-    expect(getByText('fa|rtl|دفتر معاملات')).toBeInTheDocument()
+    expect(getByText('fa|rtl|ژورنال')).toBeInTheDocument()
   })
 
   it('renders english by default', () => {
