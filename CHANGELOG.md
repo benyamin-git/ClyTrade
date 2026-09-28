@@ -28,6 +28,9 @@ All notable changes to ClyTrade are documented here. The format follows
   (مارجین، استاپ/تارگت، سایز پوزیشن، ارزش پوزیشن، لیکویید شدن، RR) instead of
   literal dictionary translations, and names that clashed were disambiguated
   (ژورنال، سبد سرمایه، تنظیمات شخصی، بازیابی / پشتیبان‌گیری).
+- **Persian themes page** — «تم» replaces «پوسته», «رنگ اصلی» replaces «رنگ تأکید»,
+  the descriptions keep the Latin Material Design 3 name instead of translating it,
+  and the black-night theme is called «متریال AMOLED».
 
 ### Fixed
 
