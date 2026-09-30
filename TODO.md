@@ -16,3 +16,8 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   `src/data/sampleData.ts` are English in both languages.
 - Remember the per-field unit choice (percent or currency) between visits. The
   toggles currently reset to percent whenever a calculator is reopened.
+- Android in-place updates fail: CI generates a fresh debug keystore on every
+  run, so each APK has a different signing certificate and Android rejects the
+  update ("App not installed"). Uninstalling first is the only workaround and it
+  wipes local data. Before v1.0.0, sign release builds with a stable release
+  keystore (kept in repository secrets) instead of the per-run debug key.
