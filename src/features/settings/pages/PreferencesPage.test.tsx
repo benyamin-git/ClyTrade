@@ -3,11 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import { DEFAULT_PREFERENCES } from '@/data/models/settings'
-import {
-  clearSettings,
-  getPreferences,
-  setPreferences,
-} from '@/data/repositories/settings.repo'
+import { clearSettings, getPreferences, setPreferences } from '@/data/repositories/settings.repo'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { PreferencesPage } from './PreferencesPage'
 
