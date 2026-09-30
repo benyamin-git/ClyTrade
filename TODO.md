@@ -16,6 +16,3 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   `src/data/sampleData.ts` are English in both languages.
 - Remember the per-field unit choice (percent or currency) between visits. The
   toggles currently reset to percent whenever a calculator is reopened.
-- Android: on some devices the app bleeds into the status bar at the top of the
-  screen (seen on a Galaxy S25 FE). Needs an edge-to-edge / safe-area fix in the
-  native shell.

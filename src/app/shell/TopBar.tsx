@@ -11,7 +11,7 @@ export interface TopBarProps {
 export function TopBar({ title, subtitle, onOpenNav }: TopBarProps) {
   const { t } = useI18n()
   return (
-    <header className="flex h-topbar shrink-0 items-center gap-3 border-b border-outline-variant/60 bg-surface px-3 sm:px-4">
+    <header className="flex h-topbar-safe shrink-0 items-center gap-3 border-b border-outline-variant/60 bg-surface px-3 pt-safe-top sm:px-4">
       <IconButton label={t('shell.openNavigation')} onClick={onOpenNav}>
         <Menu />
       </IconButton>

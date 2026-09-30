@@ -23,7 +23,7 @@ export function AppShell() {
         />
       ) : null}
       {tab ? <SubTabBar tab={tab} /> : null}
-      <main className="min-h-0 flex-1">
+      <main className="min-h-0 flex-1 pb-safe-bottom">
         <Suspense
           fallback={
             <div className="flex h-full items-center justify-center text-sm text-on-surface-variant">

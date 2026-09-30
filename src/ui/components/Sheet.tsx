@@ -42,7 +42,7 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
       />
       <div
         className={cn(
-          'relative flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-t-app-lg border border-outline-variant/60 bg-surface-container-high shadow-2xl sm:rounded-app-lg',
+          'relative flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-t-app-lg border border-outline-variant/60 bg-surface-container-high pb-safe-bottom shadow-2xl sm:rounded-app-lg',
           className,
         )}
       >

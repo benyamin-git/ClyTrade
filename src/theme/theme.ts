@@ -34,3 +34,11 @@ export function writeStoredTheme(theme: ThemeId): void {
     // storage unavailable
   }
 }
+
+export function isDarkTheme(theme: ThemeId): boolean {
+  return theme !== DEFAULT_LIGHT_THEME
+}
+
+export function syncNativeSystemBar(theme: ThemeId): void {
+  window.ClyTradeNative?.setDarkTheme(isDarkTheme(theme))
+}

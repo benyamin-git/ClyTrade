@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { readStoredAccent, THEME_NATIVE_ACCENT, writeStoredAccent, type AccentId } from './accents'
 import { ThemeContext, type ThemeContextValue } from './ThemeContext'
-import { readStoredTheme, writeStoredTheme, type ThemeId } from './theme'
+import { readStoredTheme, syncNativeSystemBar, writeStoredTheme, type ThemeId } from './theme'
 
 function applyTheme(theme: ThemeId, accent: AccentId): void {
   const root = document.documentElement
@@ -11,6 +11,7 @@ function applyTheme(theme: ThemeId, accent: AccentId): void {
   } else {
     root.dataset.accent = accent
   }
+  syncNativeSystemBar(theme)
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) {
     const surface = getComputedStyle(root).getPropertyValue('--md-sys-color-surface').trim()

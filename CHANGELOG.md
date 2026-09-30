@@ -34,6 +34,10 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ### Fixed
 
+- Android: the app no longer bleeds into the status and navigation bars. The
+  shell consumes the system safe-area insets (top bar and drawer headers clear
+  the status bar, page content and sheets clear the gesture bar) and the status
+  bar icon colors follow the in-app theme instead of the system theme.
 - Changing one preference (for example the currency) no longer reverts the
   interface language to the value that was stored when Preferences was opened.
 

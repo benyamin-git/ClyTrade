@@ -26,6 +26,9 @@
               ? 'md3-light'
               : 'md3-dark'
           document.documentElement.dataset.theme = theme
+          if (window.ClyTradeNative) {
+            window.ClyTradeNative.setDarkTheme(theme !== 'md3-light')
+          }
           var accent = localStorage.getItem('clytrade.accent')
           var accents = ['blue', 'teal', 'green', 'lime', 'amber', 'orange', 'rose', 'violet']
           if (accent !== 'purple') {

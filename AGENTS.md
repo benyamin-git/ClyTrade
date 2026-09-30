@@ -64,6 +64,12 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   listed in its own `.gitignore`. `gen/android` is a committed Tauri project and
   may be customized — the release build type intentionally signs with the debug
   keystore for test builds — so keep such edits minimal and documented here.
+  Current customizations: `MainActivity.kt` keeps `enableEdgeToEdge()` and adds
+  the `ClyTradeNative.setDarkTheme` JS bridge that syncs the Android status and
+  navigation bar icon colors with the in-app theme (see `syncNativeSystemBar` in
+  `src/theme/theme.ts`); `app/proguard-rules.pro` keeps
+  `@android.webkit.JavascriptInterface` methods so the bridge survives release
+  minification.
 - Releases: the version lives in `package.json`; `src-tauri/tauri.conf.json`
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag

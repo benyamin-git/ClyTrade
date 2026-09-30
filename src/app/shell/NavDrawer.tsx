@@ -38,11 +38,11 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
       <nav
         aria-label={t('shell.mainNavigation')}
         className={cn(
-          'absolute inset-y-0 start-0 flex w-72 flex-col border-s border-outline-variant/60 bg-surface-container-low shadow-2xl transition-transform duration-200',
+          'absolute inset-y-0 start-0 flex w-72 flex-col border-s border-outline-variant/60 bg-surface-container-low pb-safe-bottom shadow-2xl transition-transform duration-200',
           open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
         )}
       >
-        <div className="flex h-topbar shrink-0 items-center justify-between border-b border-outline-variant/50 px-4">
+        <div className="flex h-topbar-safe shrink-0 items-center justify-between border-b border-outline-variant/50 px-4 pt-safe-top">
           <span className="text-base font-semibold">ClyTrade</span>
           <IconButton label={t('shell.closeNavigation')} onClick={onClose}>
             <X />
