@@ -16,6 +16,10 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   `src/data/sampleData.ts` are English in both languages.
 - Remember the per-field unit choice (percent or currency) between visits. The
   toggles currently reset to percent whenever a calculator is reopened.
+- Disable in-app zoom. Pinch and double-tap zoom work in the Android wrapper
+  and likely in the iOS PWA; zooming has no use in this interface and an
+  accidental zoom during a trade is an annoyance. Lock the viewport scale and
+  block gesture zooming without breaking normal scrolling.
 - Native iOS support: Tauri can target iOS, but building requires macOS + Xcode
   and installing on someone else's iPhone requires an eligible Apple Developer
   Program account ($99/yr) for TestFlight or ad-hoc distribution. The PWA is the
@@ -30,3 +34,7 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   update ("App not installed"). Uninstalling first is the only workaround and it
   wipes local data. Before v1.0.0, sign release builds with a stable release
   keystore (kept in repository secrets) instead of the per-run debug key.
+- GitHub Actions still warn that `actions/checkout`, `setup-node`,
+  `configure-pages`, `upload-artifact` and `deploy-pages` target Node 20 and are
+  forced onto Node 24. Harmless today; bump the action majors in both workflows
+  when convenient.
