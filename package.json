@@ -1,7 +1,7 @@
 {
   "name": "clytrade",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Fast, local-first trading journal, portfolio tracker and calculator suite (PWA).",
   "license": "GPL-3.0-only",
   "author": "benyamin-git",

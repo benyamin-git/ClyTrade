@@ -6,6 +6,8 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-30
+
 ### Added
 
 - `npm run dev:lan` serves the dev build on `0.0.0.0:7401` so it can be opened
@@ -62,5 +64,6 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.1.0
