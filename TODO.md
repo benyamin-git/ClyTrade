@@ -16,6 +16,15 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   `src/data/sampleData.ts` are English in both languages.
 - Remember the per-field unit choice (percent or currency) between visits. The
   toggles currently reset to percent whenever a calculator is reopened.
+- Native iOS support: Tauri can target iOS, but building requires macOS + Xcode
+  and installing on someone else's iPhone requires an eligible Apple Developer
+  Program account ($99/yr) for TestFlight or ad-hoc distribution. The PWA is the
+  supported iOS path for now — see the README.
+- Generate Apple touch splash screens (`apple-touch-startup-image` per device
+  size) for the installed iOS PWA.
+- Request persistent storage (`navigator.storage.persist()`) where supported.
+  Installed iOS web apps are exempt from Safari's 7-day storage eviction, but
+  data can still be evicted under disk pressure.
 - Android in-place updates fail: CI generates a fresh debug keystore on every
   run, so each APK has a different signing certificate and Android rejects the
   update ("App not installed"). Uninstalling first is the only workaround and it

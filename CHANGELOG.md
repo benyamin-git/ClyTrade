@@ -6,6 +6,21 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Install on iPhone** — the PWA is deployed to GitHub Pages on every `v*`
+  tag, so it can be installed from Safari with Add to Home Screen. The Data
+  Controls page explains the Safari-only flow, and backup export opens the iOS
+  share sheet so the file can be saved to Files.
+- `VITE_BASE` lets the production build run under the `/ClyTrade/` Pages path;
+  local and Tauri builds keep the root base.
+
+### Fixed
+
+- iOS: the status bar style follows the theme (`default` for the light theme,
+  translucent dark for the dark themes) instead of staying translucent and
+  turning white-on-white in the light theme.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

@@ -29,6 +29,15 @@
           if (window.ClyTradeNative) {
             window.ClyTradeNative.setDarkTheme(theme !== 'md3-light')
           }
+          var statusBar = document.querySelector(
+            'meta[name="apple-mobile-web-app-status-bar-style"]',
+          )
+          if (statusBar) {
+            statusBar.setAttribute(
+              'content',
+              theme === 'md3-light' ? 'default' : 'black-translucent',
+            )
+          }
           var accent = localStorage.getItem('clytrade.accent')
           var accents = ['blue', 'teal', 'green', 'lime', 'amber', 'orange', 'rose', 'violet']
           if (accent !== 'purple') {

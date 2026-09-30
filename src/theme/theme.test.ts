@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isDarkTheme, syncNativeSystemBar } from './theme'
+import { isDarkTheme, syncIosStatusBar, syncNativeSystemBar } from './theme'
 
 describe('native system bar bridge', () => {
   afterEach(() => {
@@ -27,5 +27,32 @@ describe('native system bar bridge', () => {
 
   it('does nothing when the native bridge is absent', () => {
     expect(() => syncNativeSystemBar('md3-dark')).not.toThrow()
+  })
+})
+
+describe('ios status bar', () => {
+  function statusBarMeta(): HTMLMetaElement {
+    const meta = document.createElement('meta')
+    meta.setAttribute('name', 'apple-mobile-web-app-status-bar-style')
+    document.head.appendChild(meta)
+    return meta
+  }
+
+  afterEach(() => {
+    document.head.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.remove()
+  })
+
+  it.each([
+    ['md3-light', 'default'],
+    ['md3-dark', 'black-translucent'],
+    ['black-night', 'black-translucent'],
+  ] as const)('sets the %s theme to %s', (theme, expected) => {
+    const meta = statusBarMeta()
+    syncIosStatusBar(theme)
+    expect(meta.getAttribute('content')).toBe(expected)
+  })
+
+  it('does nothing when the meta tag is absent', () => {
+    expect(() => syncIosStatusBar('md3-light')).not.toThrow()
   })
 })

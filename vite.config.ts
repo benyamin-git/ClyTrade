@@ -14,6 +14,7 @@ const tauriPlatform = process.env.TAURI_ENV_PLATFORM
 const isNativeBuild = Boolean(tauriPlatform)
 
 export default defineConfig({
+  base: process.env.VITE_BASE ?? '/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __APP_PLATFORM__: JSON.stringify(tauriPlatform ?? 'web'),

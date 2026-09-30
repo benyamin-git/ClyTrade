@@ -42,3 +42,8 @@ export function isDarkTheme(theme: ThemeId): boolean {
 export function syncNativeSystemBar(theme: ThemeId): void {
   window.ClyTradeNative?.setDarkTheme(isDarkTheme(theme))
 }
+
+export function syncIosStatusBar(theme: ThemeId): void {
+  const meta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')
+  if (meta) meta.setAttribute('content', isDarkTheme(theme) ? 'black-translucent' : 'default')
+}

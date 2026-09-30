@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isIos } from '@/lib/platform'
 import { assetSchema } from './models/asset'
 import { settingRowSchema } from './models/backup-schemas'
 import { tradeSchema } from './models/trade'
@@ -38,16 +39,36 @@ export function backupFilename(now = new Date()): string {
   return `clytrade-backup-${stamp}.json`
 }
 
-export function downloadBackup(backup: BackupFile): void {
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+export type BackupExportResult = 'shared' | 'downloaded' | 'cancelled'
+
+export async function downloadBackup(backup: BackupFile): Promise<BackupExportResult> {
+  const json = JSON.stringify(backup, null, 2)
+  const filename = backupFilename()
+  if (
+    isIos() &&
+    typeof navigator.share === 'function' &&
+    typeof navigator.canShare === 'function'
+  ) {
+    const file = new File([json], filename, { type: 'application/json' })
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] })
+        return 'shared'
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
+      }
+    }
+  }
+  const blob = new Blob([json], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = backupFilename()
+  link.download = filename
   document.body.appendChild(link)
   link.click()
   link.remove()
   URL.revokeObjectURL(url)
+  return 'downloaded'
 }
 
 export type BackupErrorCode = 'invalid-json' | 'invalid-backup' | 'future-version'

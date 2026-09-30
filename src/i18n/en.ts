@@ -31,6 +31,7 @@ export const en = {
       description: 'Download a single JSON file with all trades, assets and settings.',
       button: 'Export backup',
       downloaded: 'Backup downloaded.',
+      shared: 'Backup shared.',
       failed: 'Export failed.',
     },
     import: {
@@ -48,6 +49,7 @@ export const en = {
       installed: 'ClyTrade is installed on this device and works offline.',
       description:
         'Install ClyTrade as a standalone app. It keeps working without a network connection.',
+      ios: 'On iPhone and iPad, open ClyTrade in Safari, tap the Share button, then choose “Add to Home Screen”.',
       button: 'Install app',
     },
     reset: {

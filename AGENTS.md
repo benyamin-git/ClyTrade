@@ -74,7 +74,9 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag
   `v<version>`. Artifact names are produced by `scripts/collect-artifacts.mjs`
-  in `.github/workflows/release.yml`; do not rename builds by hand.
+  in `.github/workflows/release.yml`; do not rename builds by hand. Tag pushes
+  also deploy the PWA to GitHub Pages via `.github/workflows/pages.yml` (base
+  `/ClyTrade/`); that base belongs in the workflow, never in `vite.config.ts`.
 
 ## Architecture
 

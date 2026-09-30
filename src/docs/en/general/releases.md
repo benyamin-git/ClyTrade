@@ -32,8 +32,9 @@ version appears in the Windows file properties and in the Android app info, so
 
 ## Where builds come from
 
-The PWA needs no download: it updates itself in the background. Windows and
-Android builds are attached to
+The PWA needs no download: it updates itself in the background. It is served
+from <https://benyamin-git.github.io/ClyTrade/> and redeployed whenever a
+version tag is pushed. Windows and Android builds are attached to
 [GitHub Releases](https://github.com/benyamin-git/ClyTrade/releases) as:
 
 - `ClyTrade-<version>-windows-x64.exe` — portable, no installation
@@ -43,6 +44,13 @@ Android builds are attached to
 These are test builds and are not code-signed. Windows SmartScreen warns about
 the unknown publisher the first time (choose **More info → Run anyway**), and
 Android asks you to allow installing apps from your browser or file manager.
+
+### Install on iPhone or iPad
+
+There is no APK-style install on iOS. The PWA is the supported way: open
+<https://benyamin-git.github.io/ClyTrade/> in **Safari** — Home Screen installs
+are Safari-only — tap **Share**, then **Add to Home Screen**. The icon runs
+standalone and offline like a native app.
 
 ## Data is per install
 

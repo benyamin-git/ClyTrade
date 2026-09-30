@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { isIos, isStandalone } from '@/lib/platform'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -8,12 +9,14 @@ interface BeforeInstallPromptEvent extends Event {
 export interface InstallPromptState {
   canInstall: boolean
   installed: boolean
+  isIos: boolean
   promptInstall: () => Promise<void>
 }
 
 export function useInstallPrompt(): InstallPromptState {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null)
-  const [installed, setInstalled] = useState(false)
+  const [installed, setInstalled] = useState(() => isStandalone())
+  const [isIosDevice] = useState(() => isIos())
 
   useEffect(() => {
     const onBeforeInstall = (event: Event) => {
@@ -39,5 +42,5 @@ export function useInstallPrompt(): InstallPromptState {
     if (choice.outcome === 'accepted') setPromptEvent(null)
   }, [promptEvent])
 
-  return { canInstall: promptEvent !== null, installed, promptInstall }
+  return { canInstall: promptEvent !== null, installed, isIos: isIosDevice, promptInstall }
 }

@@ -113,6 +113,31 @@ workflow from the Actions tab to download test builds, or push a `v*` tag to get
 a draft GitHub Release. See the in-app **Platforms & Releases** documentation
 for what each build is and how to move data between installs.
 
+### Install on iPhone
+
+The PWA is deployed to GitHub Pages by
+[`.github/workflows/pages.yml`](./.github/workflows/pages.yml) on every `v*` tag
+(or manually from the Actions tab). One-time setup is **Settings → Pages →
+Source: GitHub Actions**. To verify the Pages base locally:
+
+```bash
+VITE_BASE=/ClyTrade/ npm run build
+VITE_BASE=/ClyTrade/ npm run preview
+```
+
+To install on iPhone or iPad, open
+<https://benyamin-git.github.io/ClyTrade/> in **Safari** (Home Screen installs
+are Safari-only), tap **Share**, then **Add to Home Screen**. The installed app
+runs standalone and offline and picks up a new deployment the next time it
+opens online. Tester checklist:
+
+- Install from Safari and confirm it launches without browser UI.
+- In Airplane Mode, relaunch and add a trade — offline must work.
+- Export a backup: the iOS share sheet should appear; save it to Files.
+- Import that file back and confirm the trade count.
+- Switch light/dark themes, then relaunch: the status bar text must stay
+  readable in both.
+
 ## Project layout
 
 | Path                | Contents                                                                              |

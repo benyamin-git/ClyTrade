@@ -7,7 +7,10 @@ Nothing is sent anywhere.
 
 ## Export
 
-Settings → Data Controls → **Export backup** downloads a single JSON file:
+Settings → Data Controls → **Export backup** produces a single JSON file. On
+iPhone and iPad it opens the iOS share sheet so you can save it to Files, send
+it to yourself or copy it somewhere else; on other platforms it downloads
+directly:
 
 ```json
 {

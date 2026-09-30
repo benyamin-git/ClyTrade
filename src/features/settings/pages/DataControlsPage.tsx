@@ -28,14 +28,21 @@ export function DataControlsPage() {
   const [busy, setBusy] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const [confirmSample, setConfirmSample] = useState(false)
-  const { canInstall, installed, promptInstall } = useInstallPrompt()
+  const { canInstall, installed, isIos, promptInstall } = useInstallPrompt()
 
   async function handleExport() {
     setBusy(true)
     try {
       const backup = await exportBackup()
-      downloadBackup(backup)
-      setMessage({ tone: 'ok', text: t('data.export.downloaded') })
+      const result = await downloadBackup(backup)
+      if (result === 'cancelled') {
+        setMessage(null)
+      } else {
+        setMessage({
+          tone: 'ok',
+          text: result === 'shared' ? t('data.export.shared') : t('data.export.downloaded'),
+        })
+      }
     } catch {
       setMessage({ tone: 'error', text: t('data.export.failed') })
     } finally {
@@ -86,11 +93,15 @@ export function DataControlsPage() {
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <div className="flex w-full max-w-4xl flex-col gap-4">
-        {canInstall || installed ? (
+        {canInstall || installed || isIos ? (
           <Card title={t('data.install.title')}>
             <div className="flex flex-col gap-3 p-4">
               <p className="text-xs text-on-surface-variant">
-                {installed ? t('data.install.installed') : t('data.install.description')}
+                {installed
+                  ? t('data.install.installed')
+                  : canInstall
+                    ? t('data.install.description')
+                    : t('data.install.ios')}
               </p>
               {canInstall ? (
                 <div>
