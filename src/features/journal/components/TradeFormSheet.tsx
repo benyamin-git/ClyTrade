@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Direction } from '@/calculations/types'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import type { Trade, TradeDraft } from '@/data/models/trade'
 import { createTrade, updateTrade } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
@@ -9,6 +10,7 @@ import { Button } from '@/ui/components/Button'
 import { DateField } from '@/ui/components/DateField'
 import { NumberField } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
+import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { TextAreaField } from '@/ui/components/TextAreaField'
 import { TextField } from '@/ui/components/TextField'
@@ -26,6 +28,7 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [symbol, setSymbol] = useState(trade?.symbol ?? '')
+  const [market, setMarket] = useState<Market>(trade?.market ?? preferences.defaultMarket)
   const [direction, setDirection] = useState<Direction>(trade?.direction ?? 'long')
   const [entryPrice, setEntryPrice] = useState<number | null>(trade?.entryPrice ?? null)
   const [exitPrice, setExitPrice] = useState<number | null>(trade?.exitPrice ?? null)
@@ -61,6 +64,7 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
 
     const draft: TradeDraft = {
       symbol: trimmedSymbol,
+      market,
       direction,
       status: exitPrice === null ? 'open' : 'closed',
       entryPrice,
@@ -117,6 +121,12 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
           onChange={setSymbol}
           placeholder="BTCUSDT"
           className="col-span-2 sm:col-span-1"
+        />
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+          onChange={setMarket}
         />
         <div className="flex flex-col gap-1">
           <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">

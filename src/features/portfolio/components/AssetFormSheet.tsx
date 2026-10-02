@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { Asset, AssetDraft } from '@/data/models/asset'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import { createAsset, updateAsset } from '@/data/repositories/assets.repo'
+import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
 import { Button } from '@/ui/components/Button'
 import { NumberField } from '@/ui/components/NumberField'
+import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { TextAreaField } from '@/ui/components/TextAreaField'
 import { TextField } from '@/ui/components/TextField'
@@ -14,8 +17,10 @@ export interface AssetFormSheetProps {
 }
 
 export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
+  const { preferences } = usePreferences()
   const { t } = useI18n()
   const [symbol, setSymbol] = useState(asset?.symbol ?? '')
+  const [market, setMarket] = useState<Market>(asset?.market ?? preferences.defaultMarket)
   const [name, setName] = useState(asset?.name ?? '')
   const [quantity, setQuantity] = useState<number | null>(asset?.quantity ?? null)
   const [averageCost, setAverageCost] = useState<number | null>(asset?.averageCost ?? null)
@@ -33,6 +38,7 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
 
     const draft: AssetDraft = {
       symbol: trimmedSymbol,
+      market,
       name: name.trim() === '' ? null : name.trim(),
       quantity,
       averageCost,
@@ -76,6 +82,12 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
           value={symbol}
           onChange={setSymbol}
           placeholder="BTC"
+        />
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+          onChange={setMarket}
         />
         <TextField
           label={t('fields.name')}
