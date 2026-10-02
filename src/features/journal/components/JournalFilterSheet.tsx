@@ -4,7 +4,7 @@ import { FilterSheet, type FilterSectionSpec } from '@/features/filters/FilterSh
 import type { Range, TriState } from '@/features/filters/filterTypes'
 import { withRangeBound } from '@/features/filters/filterUtils'
 import { useI18n } from '@/i18n/I18nContext'
-import { fromDateInputValue, toDateInputValue } from '@/lib/dates'
+import { fromDateInputValue, TIME_RANGES, toDateInputValue, type TimeRange } from '@/lib/dates'
 import { formatNumber, formatPrice } from '@/lib/format'
 import { DateField } from '@/ui/components/DateField'
 import { MultiSelectField } from '@/ui/components/MultiSelectField'
@@ -27,6 +27,11 @@ export interface JournalFilterSheetProps {
   strategyOptions: readonly string[]
   bounds: TradeNumericBounds
   variant: 'overview' | 'stats'
+  timeRange?: {
+    value: TimeRange
+    isDefault: boolean
+    onChange: (value: TimeRange) => void
+  }
 }
 
 function dateValue(timestamp: number | null): string {
@@ -130,6 +135,7 @@ export function JournalFilterSheet({
   strategyOptions,
   bounds,
   variant,
+  timeRange,
 }: JournalFilterSheetProps) {
   const { t } = useI18n()
 
@@ -365,13 +371,30 @@ export function JournalFilterSheet({
   }
 
   const sections: FilterSectionSpec[] = TRADE_FILTER_GROUPS.filter(
-    (group) => !(variant === 'stats' && (group.id === 'status' || group.id === 'dates')),
+    (group) => !(variant === 'stats' && group.id === 'status'),
   ).map((group) => ({
     id: group.id,
     title: t(group.labelKey),
     count: sectionCount(group.id, filters),
     children: controlFor(group.id),
   }))
+
+  if (variant === 'stats' && timeRange) {
+    sections.unshift({
+      id: 'timeRange',
+      title: t('filters.sections.timeRange'),
+      count: timeRange.isDefault ? 0 : 1,
+      children: (
+        <SegmentedControl
+          value={timeRange.value}
+          options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
+          onChange={timeRange.onChange}
+          ariaLabel={t('filters.sections.timeRange')}
+          size="sm"
+        />
+      ),
+    })
+  }
 
   return <FilterSheet open={open} onClose={onClose} sections={sections} onClearAll={onReset} />
 }

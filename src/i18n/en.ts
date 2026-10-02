@@ -61,6 +61,7 @@ export const en = {
       strategies: 'Strategies',
       tags: 'Tags',
       text: 'Search',
+      timeRange: 'Time range',
     },
     title: 'Filters',
     triState: {

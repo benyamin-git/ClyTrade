@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
@@ -8,7 +8,7 @@ import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { JournalStatsPage } from './JournalStatsPage'
 
-function closedDraft(symbol: string, market: TradeDraft['market']): TradeDraft {
+function closedDraft(symbol: string, market: TradeDraft['market'], exitPrice = 110): TradeDraft {
   const openedAt = Date.now() - 86_400_000
   return {
     symbol,
@@ -16,7 +16,7 @@ function closedDraft(symbol: string, market: TradeDraft['market']): TradeDraft {
     direction: 'long',
     status: 'closed',
     entryPrice: 100,
-    exitPrice: 110,
+    exitPrice,
     size: 1,
     leverage: 10,
     stopPrice: 95,
@@ -42,7 +42,7 @@ function renderPage() {
   )
 }
 
-describe('JournalStatsPage market filter', () => {
+describe('JournalStatsPage filters', () => {
   beforeEach(async () => {
     await clearTrades()
   })
@@ -54,8 +54,57 @@ describe('JournalStatsPage market filter', () => {
     renderPage()
     expect(await screen.findByText(/2 closed/)).toBeInTheDocument()
 
-    await userEvent.selectOptions(screen.getByLabelText('Market'), 'stocks')
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
+  })
+
+  it('narrows the headline numbers with an outcome filter', async () => {
+    await createTrade(closedDraft('BTCUSDT', 'crypto', 110))
+    await createTrade(closedDraft('AAPL', 'stocks', 90))
+
+    renderPage()
+    expect(await screen.findByText(/2 closed/)).toBeInTheDocument()
+    expect(screen.getByText('1W / 1L')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Wins' }))
+
+    expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
+    expect(screen.getByText('1W / 0L')).toBeInTheDocument()
+  })
+
+  it('shows the filtered-empty state when a filter matches no trades', async () => {
+    await createTrade(closedDraft('BTCUSDT', 'crypto', 110))
+
+    renderPage()
+    expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Losses' }))
+
+    expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)
+  })
+
+  it('resets the time range to the preference default with Clear all', async () => {
+    await createTrade(closedDraft('BTCUSDT', 'crypto'))
+
+    renderPage()
+    expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
+
+    const timeRange = screen.getByRole('tablist', { name: 'Time range' })
+    await userEvent.click(within(timeRange).getByRole('tab', { name: '7D' }))
+    expect(within(timeRange).getByRole('tab', { name: '7D' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
+
+    expect(within(timeRange).getByRole('tab', { name: '30D' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
   })
 })

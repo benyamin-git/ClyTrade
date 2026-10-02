@@ -63,6 +63,7 @@ export const fa = {
       strategies: 'استراتژی‌ها',
       tags: 'برچسب‌ها',
       text: 'جستجو',
+      timeRange: 'بازه زمانی',
     },
     title: 'فیلترها',
     triState: {

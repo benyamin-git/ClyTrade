@@ -15,17 +15,30 @@ import {
 import { buildEquityCurve, calculateJournalStats } from '@/calculations/journalStats'
 import { MARKET_IDS, type Market } from '@/data/models/market'
 import { listTrades } from '@/data/repositories/trades.repo'
+import { FilterBar } from '@/features/filters/FilterBar'
+import { activeGroupCount } from '@/features/filters/filterUtils'
+import { useFilterState } from '@/features/filters/useFilterState'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
-import { isWithinRange, TIME_RANGES, type TimeRange } from '@/lib/dates'
-import { formatDate } from '@/lib/dates'
+import { formatDate, isWithinRange, TIME_RANGES, type TimeRange } from '@/lib/dates'
 import { formatCompact, formatCurrency, formatNumber } from '@/lib/format'
+import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { EmptyState } from '@/ui/components/EmptyState'
+import { MultiSelectField } from '@/ui/components/MultiSelectField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
-import { SelectField } from '@/ui/components/SelectField'
 import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
+import { JournalFilterSheet } from '../components/JournalFilterSheet'
+import {
+  buildTradeChips,
+  DEFAULT_TRADE_FILTERS,
+  filterTrades,
+  TRADE_FILTER_GROUPS,
+  tradeNumericBounds,
+  tradeStrategyOptions,
+  tradeTagOptions,
+} from '../logic/tradeFilters'
 import { toTradeRows } from '../logic/tradeRows'
 
 const tooltipStyle = {
@@ -40,18 +53,21 @@ export function JournalStatsPage() {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [range, setRange] = useState<TimeRange>(preferences.defaultTimeRange)
-  const [market, setMarket] = useState<Market | 'all'>('all')
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const { filters, patch, reset } = useFilterState(DEFAULT_TRADE_FILTERS)
   const trades = useLiveQuery(() => listTrades(), [], undefined)
 
+  const allRows = useMemo(
+    () => toTradeRows(trades ?? [], preferences.feesInRisk),
+    [trades, preferences.feesInRisk],
+  )
+
   const rows = useMemo(() => {
-    const all = toTradeRows(trades ?? [], preferences.feesInRisk)
-    return all.filter(
-      (row) =>
-        row.trade.closedAt !== null &&
-        isWithinRange(row.trade.closedAt, range) &&
-        (market === 'all' || row.trade.market === market),
+    const filtered = filterTrades(allRows, { ...filters, status: 'all' })
+    return filtered.filter(
+      (row) => row.trade.closedAt !== null && isWithinRange(row.trade.closedAt, range),
     )
-  }, [trades, range, preferences.feesInRisk, market])
+  }, [allRows, filters, range])
 
   const statsRows = useMemo(
     () =>
@@ -70,40 +86,74 @@ export function JournalStatsPage() {
     [curve],
   )
 
+  const chip = useMemo(() => buildTradeChips(filters, t), [filters, t])
+  const rangeIsDefault = range === preferences.defaultTimeRange
+  const activeCount = activeGroupCount(filters, TRADE_FILTER_GROUPS) + (rangeIsDefault ? 0 : 1)
+  const tagOptions = useMemo(() => tradeTagOptions(trades ?? []), [trades])
+  const strategyOptions = useMemo(() => tradeStrategyOptions(trades ?? []), [trades])
+  const bounds = useMemo(() => tradeNumericBounds(allRows), [allRows])
+
+  function handleReset() {
+    reset()
+    setRange(preferences.defaultTimeRange)
+  }
+
+  const filteredEmpty = allRows.length > 0 && activeCount > 0 && stats.closed === 0
+
   const currency = preferences.currency
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
-      <div className="flex shrink-0 flex-wrap items-center gap-3">
+      <FilterBar
+        chips={chip.map((item) => ({
+          id: item.id,
+          label: item.label,
+          onClear: () => patch(item.clear(filters)),
+        }))}
+        activeCount={activeCount}
+        onOpenFilters={() => setSheetOpen(true)}
+        onClearAll={handleReset}
+        trailing={
+          <span className="text-xs text-on-surface-variant">
+            {t('journal.stats.closedOpen', { closed: stats.closed, open: stats.open })}
+          </span>
+        }
+      >
         <SegmentedControl
           value={range}
           options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
           onChange={setRange}
+          ariaLabel={t('filters.sections.timeRange')}
           size="sm"
           className="no-scrollbar max-w-full overflow-x-auto"
         />
-        <span className="text-xs text-on-surface-variant">
-          {t('journal.stats.closedOpen', { closed: stats.closed, open: stats.open })}
-        </span>
-        <div className="flex-1" />
-        <SelectField
+        <MultiSelectField
           label={t('fields.market')}
-          value={market}
-          options={[
-            { value: 'all', label: t('markets.all') },
-            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
-          ]}
-          onChange={setMarket}
-          className="w-40"
+          value={filters.markets}
+          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+          onChange={(markets) => patch({ markets: markets as Market[] })}
+          className="w-56"
         />
-      </div>
+      </FilterBar>
 
       {stats.closed === 0 ? (
         <Card className="flex-1">
-          <EmptyState
-            title={t('journal.stats.emptyTitle')}
-            description={t('journal.stats.emptyDescription')}
-          />
+          {filteredEmpty ? (
+            <EmptyState
+              title={t('filters.noMatchTitle')}
+              description={t('filters.noMatchDescription')}
+              action={
+                <Button size="sm" variant="outlined" onClick={handleReset}>
+                  {t('filters.clearAll')}
+                </Button>
+              }
+            />
+          ) : (
+            <EmptyState
+              title={t('journal.stats.emptyTitle')}
+              description={t('journal.stats.emptyDescription')}
+            />
+          )}
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
@@ -261,6 +311,19 @@ export function JournalStatsPage() {
           </div>
         </div>
       )}
+
+      <JournalFilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        filters={filters}
+        onChange={patch}
+        onReset={handleReset}
+        tagOptions={tagOptions}
+        strategyOptions={strategyOptions}
+        bounds={bounds}
+        variant="stats"
+        timeRange={{ value: range, isDefault: rangeIsDefault, onChange: setRange }}
+      />
     </ViewportPage>
   )
 }

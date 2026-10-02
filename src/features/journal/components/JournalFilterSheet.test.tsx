@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/i18n/I18nProvider'
+import type { TimeRange } from '@/lib/dates'
 import {
   DEFAULT_TRADE_FILTERS,
   type TradeFilters,
@@ -27,6 +28,11 @@ function renderSheet(
     filters?: TradeFilters
     onChange?: (partial: Partial<TradeFilters>) => void
     variant?: 'overview' | 'stats'
+    timeRange?: {
+      value: TimeRange
+      isDefault: boolean
+      onChange: (value: TimeRange) => void
+    }
   } = {},
 ) {
   const onChange = overrides.onChange ?? vi.fn()
@@ -41,6 +47,7 @@ function renderSheet(
       strategyOptions={['Breakout']}
       bounds={bounds}
       variant={overrides.variant ?? 'overview'}
+      timeRange={overrides.timeRange}
     />,
     { wrapper: I18nProvider },
   )
@@ -87,18 +94,40 @@ describe('JournalFilterSheet', () => {
     expect(onChange).toHaveBeenLastCalledWith({ search: 'b' })
   })
 
-  it('shows the status and time-range sections in the overview variant', () => {
+  it('shows the status and dates sections in the overview variant', () => {
     renderSheet({ variant: 'overview' })
 
     expect(screen.getByRole('tablist', { name: 'Status' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Dates/ })).toBeInTheDocument()
   })
 
-  it('hides the status control and the time-range section in the stats variant', () => {
+  it('hides only the status section in the stats variant', () => {
     renderSheet({ variant: 'stats' })
 
     expect(screen.queryByRole('tablist', { name: 'Status' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Dates/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Dates/ })).toBeInTheDocument()
+  })
+
+  it('renders the time range section in the stats variant when provided', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    renderSheet({
+      variant: 'stats',
+      timeRange: { value: '30d', isDefault: true, onChange },
+    })
+
+    expect(screen.getByRole('button', { name: /Time range/ })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: '7D' }))
+
+    expect(onChange).toHaveBeenCalledWith('7d')
+  })
+
+  it('omits the time range section without the prop', () => {
+    renderSheet({ variant: 'stats' })
+
+    expect(screen.queryByRole('button', { name: /Time range/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist', { name: 'Time range' })).not.toBeInTheDocument()
   })
 })
