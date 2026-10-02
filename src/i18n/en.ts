@@ -9,6 +9,9 @@ export const en = {
     saveChanges: 'Save changes',
     unitAria: '{{label}} unit',
   },
+  filters: {
+    remove: 'Remove {{label}}',
+  },
   accent: {
     amber: 'Amber',
     blue: 'Blue',

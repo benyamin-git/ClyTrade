@@ -11,6 +11,9 @@ export const fa = {
     saveChanges: 'ذخیره تغییرات',
     unitAria: 'واحد {{label}}',
   },
+  filters: {
+    remove: 'حذف {{label}}',
+  },
   accent: {
     amber: 'کهربایی',
     blue: 'آبی',
