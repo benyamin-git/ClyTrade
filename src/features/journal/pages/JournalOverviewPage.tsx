@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Trade } from '@/data/models/trade'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import { deleteTrade, listTrades } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
@@ -14,6 +15,7 @@ import { DataTable, type Column } from '@/ui/components/DataTable'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { IconButton } from '@/ui/components/IconButton'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
+import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { TradeFormSheet } from '../components/TradeFormSheet'
@@ -30,17 +32,19 @@ export function JournalOverviewPage() {
     [trades, preferences.feesInRisk],
   )
   const [filter, setFilter] = useState<TradeFilter>('all')
+  const [market, setMarket] = useState<Market | 'all'>('all')
   const [form, setForm] = useState<{ trade: Trade | null } | null>(null)
   const [deleting, setDeleting] = useState<Trade | null>(null)
 
   const filtered = useMemo(
     () =>
       rows.filter((row) => {
+        if (market !== 'all' && row.trade.market !== market) return false
         if (filter === 'open') return row.trade.closedAt === null
         if (filter === 'closed') return row.trade.closedAt !== null
         return true
       }),
-    [rows, filter],
+    [rows, filter, market],
   )
 
   const columns: readonly Column<TradeRow>[] = [
@@ -56,6 +60,13 @@ export function JournalOverviewPage() {
             </span>
           ) : null}
         </span>
+      ),
+    },
+    {
+      key: 'market',
+      header: t('fields.market'),
+      render: (row) => (
+        <span className="text-on-surface-variant">{t(`markets.${row.trade.market}`)}</span>
       ),
     },
     {
@@ -198,6 +209,16 @@ export function JournalOverviewPage() {
           ]}
           onChange={setFilter}
           size="sm"
+        />
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={[
+            { value: 'all', label: t('markets.all') },
+            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
+          ]}
+          onChange={setMarket}
+          className="w-40"
         />
         <span className="text-xs text-on-surface-variant">
           {t('journal.tradeCount', { count: filtered.length })}
