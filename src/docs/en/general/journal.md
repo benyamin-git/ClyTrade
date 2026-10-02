@@ -19,6 +19,19 @@ Stats.
 - Headline numbers: net PnL, win rate, average R, profit factor, best/worst.
 - Equity curve and per-trade PnL charts.
 
+## Filtering
+
+- The overview and Stats both have a filter bar: search, markets, direction and
+  status, plus a **Filters** button for the advanced sheet.
+- The sheet adds dates, price & size, performance, outcome and presence
+  (has stop / target / notes / tags) conditions. Changes apply live.
+- Stats also filters by time range; **Clear all** restores the preference
+  default.
+- Filters are per page and are dropped when you leave the tab, so returning
+  always shows every trade. Totals, win rate and charts follow the filtered set.
+- See **Filtering** under Features for how conditions combine, the log vs linear
+  sliders and the filtered-empty state.
+
 ## Why it works this way
 
 - **Derived data stays out of the form.** You enter what happened; ClyTrade

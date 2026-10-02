@@ -20,6 +20,17 @@ worth now, and how the allocation is distributed.
 - Assets without a current price are valued at cost, so totals stay honest instead
   of guessing. Update prices in the overview to see unrealized PnL.
 
+## Filtering
+
+- The overview and Stats both have a filter bar: search, markets, plus a
+  **Filters** button for the advanced sheet.
+- The sheet adds quantity, average cost, current price, value, PnL, PnL %,
+  outcome and presence (has price / notes) conditions. Changes apply live.
+- Filters are per page and are dropped when you leave the tab. Totals and the
+  allocation and PnL charts follow the filtered set.
+- See **Filtering** under Features for how conditions combine, the log vs linear
+  sliders and the filtered-empty state.
+
 ## Why it works this way
 
 - **Manual prices keep V1 honest and offline.** A local-first app should not
