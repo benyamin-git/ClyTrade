@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { MARKET_IDS } from '@/data/models/market'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { useI18n } from '@/i18n/I18nContext'
@@ -39,6 +40,13 @@ function PreferencesForm() {
               options={currencyOptions}
               onChange={(value) => updatePreferences({ currency: value })}
               hint={t('preferences.currencyHint')}
+            />
+            <SelectField
+              label={t('preferences.defaultMarket')}
+              value={preferences.defaultMarket}
+              options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+              onChange={(value) => updatePreferences({ defaultMarket: value })}
+              hint={t('preferences.defaultMarketHint')}
             />
             <NumberField
               label={t('fields.accountSize')}

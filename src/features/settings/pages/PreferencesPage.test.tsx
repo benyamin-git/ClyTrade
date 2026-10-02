@@ -42,4 +42,16 @@ describe('PreferencesPage', () => {
       expect(stored.language).toBe('en')
     })
   })
+
+  it('persists the default market', async () => {
+    const user = userEvent.setup()
+    await setPreferences(DEFAULT_PREFERENCES)
+    renderPage()
+
+    await user.selectOptions(await screen.findByLabelText('Default market'), 'forex')
+
+    await waitFor(async () => {
+      expect((await getPreferences()).defaultMarket).toBe('forex')
+    })
+  })
 })
