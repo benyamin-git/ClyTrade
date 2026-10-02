@@ -111,7 +111,7 @@ function matchesTrade(row: TradeRow, filters: TradeFilters): boolean {
 
   if (isRangeActive(filters.opened) && !inRange(trade.openedAt, filters.opened)) return false
   if (isRangeActive(filters.closed)) {
-    if (trade.closedAt === null || metrics === null) return false
+    if (trade.closedAt === null) return false
     if (!inRange(trade.closedAt, filters.closed)) return false
   }
   if (isRangeActive(filters.entry) && !inRange(trade.entryPrice, filters.entry)) return false

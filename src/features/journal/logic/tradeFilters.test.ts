@@ -183,17 +183,27 @@ describe('filterTrades', () => {
     )
   })
 
-  it('excludes rows with null metrics or null closedAt from metric filters', () => {
+  it('excludes rows with null metrics from metric filters', () => {
     const open = makeRow({ id: 'open', status: 'open', exitPrice: null, closedAt: null })
     const nullMetrics: TradeRow = { trade: makeTrade({ id: 'null' }), metrics: null }
     const rows = [open, nullMetrics]
 
-    expect(ids(filterTrades(rows, withFilters({ closed: { min: 0, max: null } })))).toEqual([])
     expect(ids(filterTrades(rows, withFilters({ netPnl: { min: 0, max: null } })))).toEqual([])
     expect(ids(filterTrades(rows, withFilters({ rMultiple: { min: 0, max: null } })))).toEqual([])
     expect(ids(filterTrades(rows, withFilters({ duration: { min: 0, max: null } })))).toEqual([])
     expect(ids(filterTrades(rows, withFilters({ outcome: 'win' })))).toEqual([])
     expect(ids(filterTrades(rows, withFilters({ outcome: 'breakeven' })))).toEqual([])
+  })
+
+  it('matches the closed range on closedAt only, regardless of metrics', () => {
+    const open = makeRow({ id: 'open', status: 'open', exitPrice: null, closedAt: null })
+    const nullMetrics: TradeRow = { trade: makeTrade({ id: 'null' }), metrics: null }
+    const rows = [open, nullMetrics]
+
+    expect(ids(filterTrades(rows, withFilters({ closed: { min: 0, max: null } })))).toEqual([
+      'null',
+    ])
+    expect(ids(filterTrades(rows, withFilters({ closed: { min: 3_000, max: null } })))).toEqual([])
   })
 
   it('classifies outcome by net PnL sign', () => {
