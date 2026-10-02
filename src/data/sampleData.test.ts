@@ -52,6 +52,11 @@ describe('buildSampleData', () => {
     expect(assets.some((asset) => asset.currentPrice === null)).toBe(true)
     expect(assets.some((asset) => asset.currentPrice !== null)).toBe(true)
   })
+
+  it('spreads sample records across markets', () => {
+    expect(new Set(trades.map((trade) => trade.market)).size).toBeGreaterThanOrEqual(3)
+    expect(new Set(assets.map((asset) => asset.market)).size).toBeGreaterThanOrEqual(3)
+  })
 })
 
 describe('loadSampleData', () => {

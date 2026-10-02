@@ -1,4 +1,5 @@
 import type { Asset } from './models/asset'
+import type { Market } from './models/market'
 import type { Trade } from './models/trade'
 import { mergeAssets } from './repositories/assets.repo'
 import { mergeTrades } from './repositories/trades.repo'
@@ -8,6 +9,7 @@ const HOUR = 3_600_000
 
 interface SampleTradeSpec {
   symbol: string
+  market?: Market
   direction: Trade['direction']
   entryPrice: number
   exitPrice: number | null
@@ -26,6 +28,7 @@ interface SampleTradeSpec {
 const TRADE_SPECS: readonly SampleTradeSpec[] = [
   {
     symbol: 'BTCUSDT',
+    market: 'futures',
     direction: 'long',
     entryPrice: 61200,
     exitPrice: 63800,
@@ -170,6 +173,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
   },
   {
     symbol: 'LINKUSDT',
+    market: 'stocks',
     direction: 'long',
     entryPrice: 15.8,
     exitPrice: 18.4,
@@ -316,6 +320,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
 
 interface SampleAssetSpec {
   symbol: string
+  market?: Market
   name: string
   quantity: number
   averageCost: number
@@ -358,6 +363,7 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
   },
   {
     symbol: 'USDT',
+    market: 'forex',
     name: 'Tether',
     quantity: 500,
     averageCost: 1,
@@ -366,6 +372,7 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
   },
   {
     symbol: 'ARB',
+    market: 'stocks',
     name: 'Arbitrum',
     quantity: 800,
     averageCost: 1.2,
@@ -381,6 +388,7 @@ export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[]
     return {
       id: `sample-trade-${String(index + 1).padStart(2, '0')}`,
       symbol: spec.symbol,
+      market: spec.market ?? 'crypto',
       direction: spec.direction,
       status: spec.exitPrice === null ? 'open' : 'closed',
       entryPrice: spec.entryPrice,
@@ -405,6 +413,7 @@ export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[]
       ({
         id: `sample-asset-${String(index + 1).padStart(2, '0')}`,
         symbol: spec.symbol,
+        market: spec.market ?? 'crypto',
         name: spec.name,
         quantity: spec.quantity,
         averageCost: spec.averageCost,
