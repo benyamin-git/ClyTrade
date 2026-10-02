@@ -108,6 +108,10 @@ export const fa = {
         title: 'سبد سرمایه',
         summary: 'دارایی‌های اسپات، قیمت خرید و تخصیص را پیگیری کنید.',
       },
+      markets: {
+        title: 'بازارها',
+        summary: 'نحوهٔ دسته‌بندی معاملات و دارایی‌ها بر پایهٔ بازار.',
+      },
       'data-and-backups': {
         title: 'داده و پشتیبان‌گیری',
         summary:
@@ -275,6 +279,7 @@ export const fa = {
     funding: 'فاندینگ (مجموع)',
     leverage: 'اهرم',
     maintenanceMargin: 'مارجین نگهداری',
+    market: 'بازار',
     name: 'نام',
     notes: 'یادداشت‌ها',
     opened: 'تاریخ ورود',
@@ -434,6 +439,18 @@ export const fa = {
     long: 'لانگ',
     short: 'شورت',
   },
+  markets: {
+    unspecified: 'نامشخص',
+    crypto: 'کریپتو',
+    forex: 'فارکس',
+    stocks: 'سهام',
+    futures: 'فیوچرز',
+    commodities: 'کالا',
+    indices: 'شاخص‌ها',
+    bonds: 'اوراق قرضه',
+    options: 'آپشنز',
+    all: 'همه بازارها',
+  },
   status: {
     closed: 'بسته',
     open: 'باز',
@@ -456,6 +473,8 @@ export const fa = {
   preferences: {
     currency: 'ارز',
     currencyHint: 'فقط نمایشی — بدون تبدیل',
+    defaultMarket: 'بازار پیش‌فرض',
+    defaultMarketHint: 'معاملات و دارایی‌های جدید را پیش‌پر می‌کند',
     defaultStatsRange: 'بازهٔ پیش‌فرض آمار',
     defaults: 'پیش‌فرض‌ها',
     excluded: 'غیرفعال',

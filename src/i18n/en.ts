@@ -106,6 +106,10 @@ export const en = {
         title: 'Portfolio',
         summary: 'Track spot holdings, cost basis and allocation.',
       },
+      markets: {
+        title: 'Markets',
+        summary: 'How trades and holdings are grouped by market.',
+      },
       'data-and-backups': {
         title: 'Data & Backups',
         summary: 'Where data lives, how to export, import, reset and load sample data.',
@@ -272,6 +276,7 @@ export const en = {
     funding: 'Funding (total)',
     leverage: 'Leverage',
     maintenanceMargin: 'Maintenance margin',
+    market: 'Market',
     name: 'Name',
     notes: 'Notes',
     opened: 'Opened',
@@ -430,6 +435,18 @@ export const en = {
     long: 'Long',
     short: 'Short',
   },
+  markets: {
+    unspecified: 'Unspecified',
+    crypto: 'Crypto',
+    forex: 'Forex',
+    stocks: 'Stocks',
+    futures: 'Futures',
+    commodities: 'Commodities',
+    indices: 'Indices',
+    bonds: 'Bonds',
+    options: 'Options',
+    all: 'All markets',
+  },
   status: {
     closed: 'Closed',
     open: 'Open',
@@ -452,6 +469,8 @@ export const en = {
   preferences: {
     currency: 'Currency',
     currencyHint: 'Display only — no conversion',
+    defaultMarket: 'Default market',
+    defaultMarketHint: 'Pre-fills new journal and portfolio entries',
     defaultStatsRange: 'Default stats range',
     defaults: 'Defaults',
     excluded: 'Excluded',
