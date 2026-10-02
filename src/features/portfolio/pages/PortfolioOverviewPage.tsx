@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { calculateAssetMetrics, calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
+import { calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
 import { MARKET_IDS, type Market } from '@/data/models/market'
 import { deleteAsset, listAssets } from '@/data/repositories/assets.repo'
+import { FilterBar } from '@/features/filters/FilterBar'
+import { activeGroupCount } from '@/features/filters/filterUtils'
+import { useFilterState } from '@/features/filters/useFilterState'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
@@ -14,42 +17,38 @@ import { Card } from '@/ui/components/Card'
 import { DataTable, type Column } from '@/ui/components/DataTable'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { IconButton } from '@/ui/components/IconButton'
-import { SelectField } from '@/ui/components/SelectField'
+import { MultiSelectField } from '@/ui/components/MultiSelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { Stat } from '@/ui/components/Stat'
+import { TextField } from '@/ui/components/TextField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { AssetFormSheet } from '../components/AssetFormSheet'
-
-interface AssetRow {
-  asset: Asset
-  metrics: ReturnType<typeof calculateAssetMetrics>
-}
+import { PortfolioFilterSheet } from '../components/PortfolioFilterSheet'
+import {
+  ASSET_FILTER_GROUPS,
+  DEFAULT_ASSET_FILTERS,
+  assetNumericBounds,
+  buildAssetChips,
+  filterAssets,
+  toAssetRows,
+  type AssetRow,
+} from '../logic/assetFilters'
 
 export function PortfolioOverviewPage() {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const assets = useLiveQuery(() => listAssets(), [], undefined)
-  const rows = useMemo<AssetRow[]>(
-    () =>
-      (assets ?? []).map((asset) => ({
-        asset,
-        metrics: calculateAssetMetrics({
-          quantity: asset.quantity,
-          averageCost: asset.averageCost,
-          currentPrice: asset.currentPrice,
-        }),
-      })),
-    [assets],
-  )
+  const rows = useMemo<AssetRow[]>(() => toAssetRows(assets ?? []), [assets])
 
+  const { filters, patch, reset } = useFilterState(DEFAULT_ASSET_FILTERS)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<{ asset: Asset | null } | null>(null)
   const [deleting, setDeleting] = useState<Asset | null>(null)
-  const [market, setMarket] = useState<Market | 'all'>('all')
 
-  const filteredRows = useMemo(
-    () => rows.filter((row) => market === 'all' || row.asset.market === market),
-    [rows, market],
-  )
+  const filteredRows = useMemo(() => filterAssets(rows, filters), [rows, filters])
+  const chips = useMemo(() => buildAssetChips(filters, t), [filters, t])
+  const activeCount = activeGroupCount(filters, ASSET_FILTER_GROUPS)
+  const bounds = useMemo(() => assetNumericBounds(rows), [rows])
 
   const totals = useMemo(
     () =>
@@ -192,6 +191,37 @@ export function PortfolioOverviewPage() {
 
   return (
     <ViewportPage className="gap-3">
+      <FilterBar
+        chips={chips.map((chip) => ({
+          id: chip.id,
+          label: chip.label,
+          onClear: () => patch(chip.clear(filters)),
+        }))}
+        activeCount={activeCount}
+        onOpenFilters={() => setSheetOpen(true)}
+        onClearAll={reset}
+        trailing={
+          <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
+            {t('portfolio.addAsset')}
+          </Button>
+        }
+      >
+        <TextField
+          label={t('filters.sections.text')}
+          value={filters.search}
+          onChange={(search) => patch({ search })}
+          placeholder={t('filters.searchPlaceholder')}
+          className="w-56"
+        />
+        <MultiSelectField
+          label={t('fields.market')}
+          value={filters.markets}
+          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+          onChange={(markets) => patch({ markets: markets as Market[] })}
+          className="w-56"
+        />
+      </FilterBar>
+
       <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3">
         <Stat
           label={t('portfolio.stats.totalValue')}
@@ -203,20 +233,6 @@ export function PortfolioOverviewPage() {
           tone={totals.pnl >= 0 ? 'profit' : 'loss'}
           hint={totals.pnlPercent === null ? undefined : formatPercent(totals.pnlPercent)}
         />
-        <div className="flex-1" />
-        <SelectField
-          label={t('fields.market')}
-          value={market}
-          options={[
-            { value: 'all', label: t('markets.all') },
-            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
-          ]}
-          onChange={setMarket}
-          className="w-40"
-        />
-        <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
-          {t('portfolio.addAsset')}
-        </Button>
       </div>
 
       <Card className="flex-1">
@@ -226,20 +242,41 @@ export function PortfolioOverviewPage() {
           getRowKey={(row) => row.asset.id}
           onRowClick={(row) => setForm({ asset: row.asset })}
           empty={
-            <EmptyState
-              title={t('portfolio.emptyTitle')}
-              description={t('portfolio.emptyDescription')}
-              action={
-                <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
-                  {t('portfolio.addAsset')}
-                </Button>
-              }
-            />
+            rows.length === 0 ? (
+              <EmptyState
+                title={t('portfolio.emptyTitle')}
+                description={t('portfolio.emptyDescription')}
+                action={
+                  <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
+                    {t('portfolio.addAsset')}
+                  </Button>
+                }
+              />
+            ) : (
+              <EmptyState
+                title={t('filters.noMatchTitle')}
+                description={t('filters.noMatchDescription')}
+                action={
+                  <Button size="sm" variant="outlined" onClick={reset}>
+                    {t('filters.clearAll')}
+                  </Button>
+                }
+              />
+            )
           }
         />
       </Card>
 
       {form ? <AssetFormSheet asset={form.asset} onClose={() => setForm(null)} /> : null}
+
+      <PortfolioFilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        filters={filters}
+        onChange={patch}
+        onReset={reset}
+        bounds={bounds}
+      />
 
       <Sheet
         open={deleting !== null}

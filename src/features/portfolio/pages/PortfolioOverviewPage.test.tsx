@@ -32,12 +32,12 @@ function renderPage() {
   )
 }
 
-describe('PortfolioOverviewPage market filter', () => {
+describe('PortfolioOverviewPage filters', () => {
   beforeEach(async () => {
     await clearAssets()
   })
 
-  it('filters the table to the selected market', async () => {
+  it('filters the table to the selected markets', async () => {
     await createAsset(draft({ symbol: 'BTC', market: 'crypto' }))
     await createAsset(draft({ symbol: 'EURUSD', market: 'forex' }))
 
@@ -45,22 +45,65 @@ describe('PortfolioOverviewPage market filter', () => {
     expect(await screen.findByText('BTC')).toBeInTheDocument()
     expect(screen.getByText('EURUSD')).toBeInTheDocument()
 
-    await userEvent.selectOptions(screen.getByLabelText('Market'), 'forex')
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
 
     expect(screen.queryByText('BTC')).not.toBeInTheDocument()
     expect(screen.getByText('EURUSD')).toBeInTheDocument()
   })
 
-  it('scopes the headline totals to the selected market', async () => {
+  it('scopes the headline totals to the selected markets', async () => {
     await createAsset(draft({ symbol: 'BTC', market: 'crypto', quantity: 1, currentPrice: 100 }))
     await createAsset(draft({ symbol: 'EURUSD', market: 'forex', quantity: 2, currentPrice: 100 }))
 
     renderPage()
     expect(await screen.findByText('$300.00')).toBeInTheDocument()
 
-    await userEvent.selectOptions(screen.getByLabelText('Market'), 'forex')
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
 
     expect(await screen.findByText('EURUSD')).toBeInTheDocument()
     expect(screen.queryByText('$300.00')).not.toBeInTheDocument()
+  })
+
+  it('narrows the table and totals by outcome and restores them with Clear all', async () => {
+    await createAsset(
+      draft({ symbol: 'AAA', market: 'crypto', quantity: 3, currentPrice: 150 }),
+    )
+    await createAsset(draft({ symbol: 'BBB', market: 'stocks', quantity: 2, currentPrice: 200 }))
+    await createAsset(draft({ symbol: 'CCC', market: 'forex', quantity: 1, currentPrice: 50 }))
+
+    renderPage()
+    expect(await screen.findByText('AAA')).toBeInTheDocument()
+    expect(screen.getByText('$900.00')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Gains' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+
+    expect(screen.getByText('AAA')).toBeInTheDocument()
+    expect(screen.getByText('BBB')).toBeInTheDocument()
+    expect(screen.queryByText('CCC')).not.toBeInTheDocument()
+    expect(screen.getByText('$850.00')).toBeInTheDocument()
+    expect(screen.queryByText('$900.00')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
+
+    expect(screen.getByText('CCC')).toBeInTheDocument()
+    expect(screen.getByText('$900.00')).toBeInTheDocument()
+    expect(screen.queryByText('$850.00')).not.toBeInTheDocument()
+  })
+
+  it('shows the filtered-empty state when nothing matches', async () => {
+    await createAsset(draft({ symbol: 'BTC', market: 'crypto' }))
+
+    renderPage()
+    expect(await screen.findByText('BTC')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText('Search'), 'zzz')
+
+    expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Search: zzz' }))
+
+    expect(screen.getByText('BTC')).toBeInTheDocument()
   })
 })
