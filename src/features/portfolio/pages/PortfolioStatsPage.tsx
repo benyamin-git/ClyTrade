@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   Bar,
@@ -18,11 +18,13 @@ import {
   calculatePortfolioTotals,
 } from '@/calculations/portfolioMetrics'
 import { listAssets } from '@/data/repositories/assets.repo'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
 import { formatCompact, formatCurrency, formatNumber, formatPercent } from '@/lib/format'
 import { Card } from '@/ui/components/Card'
 import { EmptyState } from '@/ui/components/EmptyState'
+import { SelectField } from '@/ui/components/SelectField'
 import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 
@@ -54,16 +56,19 @@ export function PortfolioStatsPage() {
   const { t } = useI18n()
   const assets = useLiveQuery(() => listAssets(), [], undefined)
   const currency = preferences.currency
+  const [market, setMarket] = useState<Market | 'all'>('all')
 
   const inputs = useMemo(
     () =>
-      (assets ?? []).map((asset) => ({
-        symbol: asset.symbol,
-        quantity: asset.quantity,
-        averageCost: asset.averageCost,
-        currentPrice: asset.currentPrice,
-      })),
-    [assets],
+      (assets ?? [])
+        .filter((asset) => market === 'all' || asset.market === market)
+        .map((asset) => ({
+          symbol: asset.symbol,
+          quantity: asset.quantity,
+          averageCost: asset.averageCost,
+          currentPrice: asset.currentPrice,
+        })),
+    [assets, market],
   )
 
   const totals = useMemo(() => calculatePortfolioTotals(inputs), [inputs])
@@ -103,6 +108,18 @@ export function PortfolioStatsPage() {
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
+      <div className="flex shrink-0 justify-end">
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={[
+            { value: 'all', label: t('markets.all') },
+            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
+          ]}
+          onChange={setMarket}
+          className="w-40"
+        />
+      </div>
       <Card title={t('portfolio.stats.portfolio')}>
         <div className="grid grid-cols-2 gap-x-6 gap-y-5 p-4 sm:grid-cols-4">
           <Stat
