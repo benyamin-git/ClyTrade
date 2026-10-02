@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DEFAULT_MARKET, marketSchema } from './market'
 
 export const directionSchema = z.enum(['long', 'short'])
 export type Direction = z.infer<typeof directionSchema>
@@ -9,6 +10,7 @@ export type TradeStatus = z.infer<typeof tradeStatusSchema>
 export const tradeSchema = z.object({
   id: z.string(),
   symbol: z.string().min(1),
+  market: marketSchema.default(DEFAULT_MARKET),
   direction: directionSchema,
   status: tradeStatusSchema,
   entryPrice: z.number().positive(),

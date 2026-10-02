@@ -7,7 +7,7 @@ describe('parsePreferences', () => {
     expect(parsePreferences({ currency: '' })).toEqual(DEFAULT_PREFERENCES)
   })
 
-  it('defaults feesInRisk and language for stored preferences without them', () => {
+  it('defaults feesInRisk, language and defaultMarket for stored preferences without them', () => {
     const legacy = {
       currency: 'EUR',
       accountSize: 5000,
@@ -17,7 +17,18 @@ describe('parsePreferences', () => {
       maintenanceMarginPercent: 0.4,
       defaultTimeRange: '90d',
     }
-    expect(parsePreferences(legacy)).toEqual({ ...legacy, feesInRisk: true, language: null })
+    expect(parsePreferences(legacy)).toEqual({
+      ...legacy,
+      feesInRisk: true,
+      language: null,
+      defaultMarket: 'unspecified',
+    })
+  })
+
+  it('keeps an explicit default market', () => {
+    expect(parsePreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'forex' }).defaultMarket).toBe(
+      'forex',
+    )
   })
 
   it('keeps an explicit feesInRisk choice', () => {

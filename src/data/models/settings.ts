@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DEFAULT_MARKET, marketSchema } from './market'
 
 export const timeRangeSchema = z.enum(['7d', '30d', '90d', 'ytd', 'all'])
 
@@ -6,6 +7,7 @@ export const languageSchema = z.enum(['en', 'fa'])
 
 export const preferencesSchema = z.object({
   currency: z.string().min(1),
+  defaultMarket: marketSchema.default(DEFAULT_MARKET),
   accountSize: z.number().positive(),
   riskPercent: z.number().min(0).max(100),
   leverage: z.number().min(1),
@@ -20,6 +22,7 @@ export type Preferences = z.infer<typeof preferencesSchema>
 
 export const DEFAULT_PREFERENCES: Preferences = {
   currency: 'USD',
+  defaultMarket: 'unspecified',
   accountSize: 1000,
   riskPercent: 1,
   leverage: 10,

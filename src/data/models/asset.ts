@@ -1,8 +1,10 @@
 import { z } from 'zod'
+import { DEFAULT_MARKET, marketSchema } from './market'
 
 export const assetSchema = z.object({
   id: z.string(),
   symbol: z.string().min(1),
+  market: marketSchema.default(DEFAULT_MARKET),
   name: z.string().nullable(),
   quantity: z.number(),
   averageCost: z.number().min(0),
