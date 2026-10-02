@@ -10,6 +10,9 @@ export const en = {
     unitAria: '{{label}} unit',
   },
   filters: {
+    degenerateRange: 'No range available',
+    max: 'Max',
+    min: 'Min',
     noOptions: 'No options',
     remove: 'Remove {{label}}',
   },

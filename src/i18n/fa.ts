@@ -12,6 +12,9 @@ export const fa = {
     unitAria: 'واحد {{label}}',
   },
   filters: {
+    degenerateRange: 'بازه‌ای برای نمایش وجود ندارد',
+    max: 'حداکثر',
+    min: 'حداقل',
     noOptions: 'گزینه‌ای نیست',
     remove: 'حذف {{label}}',
   },
