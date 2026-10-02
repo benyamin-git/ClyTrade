@@ -12,11 +12,19 @@ export const fa = {
     unitAria: 'واحد {{label}}',
   },
   filters: {
+    activeCount: {
+      one: '{{count}} فعال',
+      other: '{{count}} فعال',
+    },
+    clearAll: 'پاک کردن همه',
     degenerateRange: 'بازه‌ای برای نمایش وجود ندارد',
+    done: 'تمام',
     max: 'حداکثر',
     min: 'حداقل',
     noOptions: 'گزینه‌ای نیست',
+    open: 'فیلترها',
     remove: 'حذف {{label}}',
+    title: 'فیلترها',
   },
   accent: {
     amber: 'کهربایی',

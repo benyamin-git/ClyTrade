@@ -10,11 +10,19 @@ export const en = {
     unitAria: '{{label}} unit',
   },
   filters: {
+    activeCount: {
+      one: '{{count}} active',
+      other: '{{count}} active',
+    },
+    clearAll: 'Clear all',
     degenerateRange: 'No range available',
+    done: 'Done',
     max: 'Max',
     min: 'Min',
     noOptions: 'No options',
+    open: 'Filters',
     remove: 'Remove {{label}}',
+    title: 'Filters',
   },
   accent: {
     amber: 'Amber',
