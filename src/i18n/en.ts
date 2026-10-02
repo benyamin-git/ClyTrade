@@ -10,6 +10,7 @@ export const en = {
     unitAria: '{{label}} unit',
   },
   filters: {
+    noOptions: 'No options',
     remove: 'Remove {{label}}',
   },
   accent: {

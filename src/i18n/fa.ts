@@ -12,6 +12,7 @@ export const fa = {
     unitAria: 'واحد {{label}}',
   },
   filters: {
+    noOptions: 'گزینه‌ای نیست',
     remove: 'حذف {{label}}',
   },
   accent: {
