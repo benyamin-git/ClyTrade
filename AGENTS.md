@@ -120,6 +120,12 @@ depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
   transforms; never physical `left`/`right`. Charts are wrapped in `dir="ltr"`.
 - Data changes go through `src/data/repositories/*`; components read with
   `useLiveQuery`.
+- Journal and Portfolio filtering lives in `src/features/*/logic/*Filters.ts`
+  (`tradeFilters.ts`, `assetFilters.ts`), with shared primitives in
+  `src/features/filters/`. Filter state is page-local: it is not persisted to the
+  URL or `localStorage` and resets when the page unmounts. The Journal Stats
+  sheet offers every filter group except status and always analyzes closed
+  trades.
 - `__APP_VERSION__` and `__APP_PLATFORM__` are injected by `vite.config.ts` from
   `package.json` and `TAURI_ENV_PLATFORM`. Read them through `src/lib/version.ts`;
   never touch `process.env` from app code.
