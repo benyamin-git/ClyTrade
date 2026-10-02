@@ -90,6 +90,12 @@ export const DOCS: readonly DocMeta[] = [
     summaryKey: 'docs.items.portfolio.summary',
   },
   {
+    slug: 'markets',
+    groupKey: 'docs.groups.features',
+    titleKey: 'docs.items.markets.title',
+    summaryKey: 'docs.items.markets.summary',
+  },
+  {
     slug: 'data-and-backups',
     groupKey: 'docs.groups.features',
     titleKey: 'docs.items.data-and-backups.title',

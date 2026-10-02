@@ -21,8 +21,8 @@ database.
 
 | Area             | What it does                                                                                                                                                                      |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.                                                      |
-| **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                                                                 |
+| **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filterable by market, with an equity curve and PnL charts.                                                    |
+| **Portfolio**    | Track holdings with blended cost basis, manual prices, unrealized PnL and allocation charts. Filterable by market.                                                                |
 | **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                           |
 | **Settings**     | Default inputs, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation. |
 

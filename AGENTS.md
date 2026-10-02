@@ -85,7 +85,7 @@ Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing w
 | App shell     | `src/app/`          | Router (hash), providers, top bar, drawer, subtab bar                               |
 | Features      | `src/features/`     | UI + application logic per tab (`journal`, `portfolio`, `calculations`, `settings`) |
 | Calculations  | `src/calculations/` | Pure, protected math layer                                                          |
-| Data          | `src/data/`         | Dexie schema, models (zod), repositories, backup                                    |
+| Data          | `src/data/`         | Dexie schema (v2), zod models incl. `market.ts`, repositories, backup               |
 | Design system | `src/ui/`           | Primitives and layout components                                                    |
 | Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes              |
 | Localization  | `src/i18n/`         | Typed `en`/`fa` dictionaries, locale detection, formatting context and provider     |
