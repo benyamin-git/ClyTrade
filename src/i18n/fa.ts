@@ -48,6 +48,7 @@ export const fa = {
     quantity: 'مقدار',
     remove: 'حذف {{label}}',
     rMultiple: 'مضرب R',
+    searchPlaceholder: 'جستجوی معاملات',
     sections: {
       dates: 'تاریخ‌ها',
       direction: 'جهت',
@@ -62,6 +63,11 @@ export const fa = {
       text: 'جستجو',
     },
     title: 'فیلترها',
+    triState: {
+      any: 'هیچ‌کدام',
+      has: 'دارد',
+      missing: 'ندارد',
+    },
     value: 'ارزش',
   },
   accent: {

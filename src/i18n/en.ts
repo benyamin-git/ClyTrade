@@ -46,6 +46,7 @@ export const en = {
     quantity: 'Quantity',
     remove: 'Remove {{label}}',
     rMultiple: 'R multiple',
+    searchPlaceholder: 'Search trades',
     sections: {
       dates: 'Dates',
       direction: 'Direction',
@@ -60,6 +61,11 @@ export const en = {
       text: 'Search',
     },
     title: 'Filters',
+    triState: {
+      any: 'Any',
+      has: 'Has',
+      missing: 'Missing',
+    },
     value: 'Value',
   },
   accent: {
