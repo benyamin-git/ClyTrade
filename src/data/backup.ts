@@ -8,7 +8,7 @@ import { listSettings, mergeSettings, replaceAllSettings } from './repositories/
 import { listTrades, mergeTrades, replaceAllTrades } from './repositories/trades.repo'
 
 export const BACKUP_APP_ID = 'clytrade'
-export const BACKUP_SCHEMA_VERSION = 1
+export const BACKUP_SCHEMA_VERSION = 2
 
 export const backupSchema = z.object({
   app: z.literal(BACKUP_APP_ID),

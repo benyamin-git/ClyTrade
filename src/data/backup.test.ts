@@ -30,6 +30,42 @@ describe('parseBackup', () => {
     expect(parseBackup(JSON.stringify(validBackup)).app).toBe(BACKUP_APP_ID)
   })
 
+  it('accepts schema version 2 and imports a v1 trade with a default market', () => {
+    expect(BACKUP_SCHEMA_VERSION).toBe(2)
+
+    const v2 = parseBackup(JSON.stringify({ ...validBackup, schemaVersion: 2 }))
+    expect(v2.schemaVersion).toBe(2)
+
+    const legacyTrade = {
+      id: 'legacy',
+      symbol: 'BTCUSDT',
+      direction: 'long',
+      status: 'closed',
+      entryPrice: 61200,
+      exitPrice: 63800,
+      size: 0.08,
+      leverage: 10,
+      stopPrice: 60200,
+      targetPrice: 64500,
+      fees: 4.9,
+      openedAt: 1,
+      closedAt: 2,
+      strategy: null,
+      notes: null,
+      tags: [],
+      createdAt: 1,
+      updatedAt: 2,
+    }
+    const legacy = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        schemaVersion: 1,
+        data: { ...validBackup.data, trades: [legacyTrade] },
+      }),
+    )
+    expect(legacy.data.trades[0]?.market).toBe('unspecified')
+  })
+
   it.each([
     ['not json', 'invalid-json'],
     [JSON.stringify({ hello: 'world' }), 'invalid-backup'],
