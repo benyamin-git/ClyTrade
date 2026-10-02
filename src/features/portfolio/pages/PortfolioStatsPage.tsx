@@ -93,9 +93,25 @@ export function PortfolioStatsPage() {
     [inputs],
   )
 
+  const marketFilter = (
+    <div className="flex shrink-0 justify-end">
+      <SelectField
+        label={t('fields.market')}
+        value={market}
+        options={[
+          { value: 'all', label: t('markets.all') },
+          ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
+        ]}
+        onChange={setMarket}
+        className="w-40"
+      />
+    </div>
+  )
+
   if (inputs.length === 0) {
     return (
-      <ViewportPage>
+      <ViewportPage className="gap-4">
+        {marketFilter}
         <Card className="flex-1">
           <EmptyState
             title={t('portfolio.stats.nothingToAnalyzeTitle')}
@@ -108,18 +124,7 @@ export function PortfolioStatsPage() {
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
-      <div className="flex shrink-0 justify-end">
-        <SelectField
-          label={t('fields.market')}
-          value={market}
-          options={[
-            { value: 'all', label: t('markets.all') },
-            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
-          ]}
-          onChange={setMarket}
-          className="w-40"
-        />
-      </div>
+      {marketFilter}
       <Card title={t('portfolio.stats.portfolio')}>
         <div className="grid grid-cols-2 gap-x-6 gap-y-5 p-4 sm:grid-cols-4">
           <Stat

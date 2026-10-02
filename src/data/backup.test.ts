@@ -66,6 +66,39 @@ describe('parseBackup', () => {
     expect(legacy.data.trades[0]?.market).toBe('unspecified')
   })
 
+  it('reports a future version as future-version even when its data is unreadable', () => {
+    const futureTrade = {
+      id: 'future',
+      symbol: 'SPY',
+      market: 'etfs',
+      direction: 'long',
+      status: 'closed',
+      entryPrice: 1,
+      exitPrice: 2,
+      size: 1,
+      leverage: 1,
+      stopPrice: null,
+      targetPrice: null,
+      fees: 0,
+      openedAt: 1,
+      closedAt: 2,
+      strategy: null,
+      notes: null,
+      tags: [],
+      createdAt: 1,
+      updatedAt: 2,
+    }
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          schemaVersion: BACKUP_SCHEMA_VERSION + 1,
+          data: { ...validBackup.data, trades: [futureTrade] },
+        }),
+      ),
+    ).toBe('future-version')
+  })
+
   it.each([
     ['not json', 'invalid-json'],
     [JSON.stringify({ hello: 'world' }), 'invalid-backup'],

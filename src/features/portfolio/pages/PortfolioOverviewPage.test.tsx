@@ -50,4 +50,17 @@ describe('PortfolioOverviewPage market filter', () => {
     expect(screen.queryByText('BTC')).not.toBeInTheDocument()
     expect(screen.getByText('EURUSD')).toBeInTheDocument()
   })
+
+  it('scopes the headline totals to the selected market', async () => {
+    await createAsset(draft({ symbol: 'BTC', market: 'crypto', quantity: 1, currentPrice: 100 }))
+    await createAsset(draft({ symbol: 'EURUSD', market: 'forex', quantity: 2, currentPrice: 100 }))
+
+    renderPage()
+    expect(await screen.findByText('$300.00')).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Market'), 'forex')
+
+    expect(await screen.findByText('EURUSD')).toBeInTheDocument()
+    expect(screen.queryByText('$300.00')).not.toBeInTheDocument()
+  })
 })

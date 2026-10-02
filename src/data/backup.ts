@@ -10,9 +10,12 @@ import { listTrades, mergeTrades, replaceAllTrades } from './repositories/trades
 export const BACKUP_APP_ID = 'clytrade'
 export const BACKUP_SCHEMA_VERSION = 2
 
-export const backupSchema = z.object({
+export const backupEnvelopeSchema = z.object({
   app: z.literal(BACKUP_APP_ID),
   schemaVersion: z.number().int().positive(),
+})
+
+export const backupSchema = backupEnvelopeSchema.extend({
   exportedAt: z.string(),
   data: z.object({
     trades: z.array(tradeSchema),
@@ -90,12 +93,16 @@ export function parseBackup(text: string): BackupFile {
   } catch {
     throw new BackupError('invalid-json')
   }
+  const envelope = backupEnvelopeSchema.safeParse(json)
+  if (!envelope.success) {
+    throw new BackupError('invalid-backup')
+  }
+  if (envelope.data.schemaVersion > BACKUP_SCHEMA_VERSION) {
+    throw new BackupError('future-version')
+  }
   const result = backupSchema.safeParse(json)
   if (!result.success) {
     throw new BackupError('invalid-backup')
-  }
-  if (result.data.schemaVersion > BACKUP_SCHEMA_VERSION) {
-    throw new BackupError('future-version')
   }
   return result.data
 }

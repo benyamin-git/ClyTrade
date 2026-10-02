@@ -48,4 +48,17 @@ describe('PortfolioStatsPage market filter', () => {
 
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
   })
+
+  it('keeps the market filter available when a market is empty', async () => {
+    await createAsset(draft('BTC', 'crypto'))
+
+    renderPage()
+    expect(await screen.findByText('1 asset')).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Market'), 'forex')
+    expect(await screen.findByText('Nothing to analyze yet')).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Market'), 'all')
+    expect(await screen.findByText('1 asset')).toBeInTheDocument()
+  })
 })

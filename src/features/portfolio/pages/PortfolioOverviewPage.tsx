@@ -42,18 +42,6 @@ export function PortfolioOverviewPage() {
     [assets],
   )
 
-  const totals = useMemo(
-    () =>
-      calculatePortfolioTotals(
-        (assets ?? []).map((asset) => ({
-          quantity: asset.quantity,
-          averageCost: asset.averageCost,
-          currentPrice: asset.currentPrice,
-        })),
-      ),
-    [assets],
-  )
-
   const [form, setForm] = useState<{ asset: Asset | null } | null>(null)
   const [deleting, setDeleting] = useState<Asset | null>(null)
   const [market, setMarket] = useState<Market | 'all'>('all')
@@ -61,6 +49,18 @@ export function PortfolioOverviewPage() {
   const filteredRows = useMemo(
     () => rows.filter((row) => market === 'all' || row.asset.market === market),
     [rows, market],
+  )
+
+  const totals = useMemo(
+    () =>
+      calculatePortfolioTotals(
+        filteredRows.map((row) => ({
+          quantity: row.asset.quantity,
+          averageCost: row.asset.averageCost,
+          currentPrice: row.asset.currentPrice,
+        })),
+      ),
+    [filteredRows],
   )
 
   const columns: readonly Column<AssetRow>[] = [
