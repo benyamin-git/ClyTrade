@@ -210,7 +210,7 @@ export function PortfolioOverviewPage() {
           label={t('filters.sections.text')}
           value={filters.search}
           onChange={(search) => patch({ search })}
-          placeholder={t('filters.searchPlaceholder')}
+          placeholder={t('filters.assetSearchPlaceholder')}
           className="w-56"
         />
         <MultiSelectField
@@ -254,8 +254,8 @@ export function PortfolioOverviewPage() {
               />
             ) : (
               <EmptyState
-                title={t('filters.noMatchTitle')}
-                description={t('filters.noMatchDescription')}
+                title={t('filters.assetNoMatchTitle')}
+                description={t('filters.assetNoMatchDescription')}
                 action={
                   <Button size="sm" variant="outlined" onClick={reset}>
                     {t('filters.clearAll')}

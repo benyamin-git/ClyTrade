@@ -102,6 +102,7 @@ export function PortfolioFilterSheet({
             label={t('filters.sections.text')}
             value={filters.search}
             onChange={(search) => onChange({ search })}
+            placeholder={t('filters.assetSearchPlaceholder')}
           />
         )
       case 'market':

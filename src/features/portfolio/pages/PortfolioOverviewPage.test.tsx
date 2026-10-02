@@ -100,7 +100,7 @@ describe('PortfolioOverviewPage filters', () => {
 
     await userEvent.type(screen.getByLabelText('Search'), 'zzz')
 
-    expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
+    expect(await screen.findByText('No assets match your filters')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Remove Search: zzz' }))
 
