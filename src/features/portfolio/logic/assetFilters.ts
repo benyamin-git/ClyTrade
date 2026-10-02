@@ -239,12 +239,13 @@ function clearPresence(filters: AssetFilters, key: PresenceKey): AssetFilters {
 
 function presenceChip(
   key: PresenceKey,
+  state: TriState,
   labelKey: TranslationKey,
   t: Translator,
 ): FilterChipDescriptor<AssetFilters> {
   return {
     id: key,
-    label: t(labelKey),
+    label: `${t(labelKey)}: ${t(`filters.triState.${state}`)}`,
     clear: (filters) => clearPresence(filters, key),
   }
 }
@@ -327,10 +328,10 @@ export function buildAssetChips(
   }))
 
   if (filters.hasPrice !== 'any') {
-    chips.push(presenceChip('hasPrice', 'filters.hasPrice', t))
+    chips.push(presenceChip('hasPrice', filters.hasPrice, 'filters.hasPrice', t))
   }
   if (filters.hasNotes !== 'any') {
-    chips.push(presenceChip('hasNotes', 'filters.hasNotes', t))
+    chips.push(presenceChip('hasNotes', filters.hasNotes, 'filters.hasNotes', t))
   }
 
   return chips

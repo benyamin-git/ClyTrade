@@ -387,9 +387,9 @@ describe('buildTradeChips', () => {
     ])
   })
 
-  it('labels presence filters with their has key', () => {
+  it('labels presence filters with their has key and state', () => {
     const chips = buildTradeChips(withFilters({ hasStop: 'has', hasNotes: 'missing' }), t)
-    expect(chips.map((chip) => chip.label)).toEqual(['Has stop', 'Has notes'])
+    expect(chips.map((chip) => chip.label)).toEqual(['Has stop: Has', 'Has notes: Missing'])
   })
 
   it('clears only the targeted value', () => {

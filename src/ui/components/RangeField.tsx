@@ -86,18 +86,21 @@ export function RangeField({
 
   function slideMin(position: number) {
     const next = snap(positionToValue(position, bounds.min, bounds.max, scale))
-    onChange({ min: upper === null ? next : Math.min(next, upper), max: upper })
+    const bounded = upper === null ? next : Math.min(next, upper)
+    onChange({ min: next <= bounds.min ? null : bounded, max: upper })
   }
 
   function slideMax(position: number) {
     const next = snap(positionToValue(position, bounds.min, bounds.max, scale))
-    onChange({ min: lower, max: lower === null ? next : Math.max(next, lower) })
+    const bounded = lower === null ? next : Math.max(next, lower)
+    onChange({ min: lower, max: next >= bounds.max ? null : bounded })
   }
 
   const formatValue = (bound: number) => (format ? format(bound) : String(bound))
+  const hintText = hint ?? (degenerate ? t('filters.degenerateRange') : undefined)
 
   return (
-    <Field label={label} hint={hint} className={className}>
+    <Field label={label} hint={hintText} className={className}>
       <div className={cn('flex flex-col gap-2', isDisabled && 'opacity-50')}>
         <div dir="ltr" className="flex flex-col gap-1">
           <div className="relative flex h-control items-center">

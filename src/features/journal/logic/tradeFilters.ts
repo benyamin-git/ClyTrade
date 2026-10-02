@@ -350,12 +350,13 @@ function clearPresence(filters: TradeFilters, key: PresenceKey): TradeFilters {
 
 function presenceChip(
   key: PresenceKey,
+  state: TriState,
   labelKey: TranslationKey,
   t: Translator,
 ): FilterChipDescriptor<TradeFilters> {
   return {
     id: key,
-    label: t(labelKey),
+    label: `${t(labelKey)}: ${t(`filters.triState.${state}`)}`,
     clear: (filters) => clearPresence(filters, key),
   }
 }
@@ -486,16 +487,16 @@ export function buildTradeChips(
   )
 
   if (filters.hasStop !== 'any') {
-    chips.push(presenceChip('hasStop', 'filters.hasStop', t))
+    chips.push(presenceChip('hasStop', filters.hasStop, 'filters.hasStop', t))
   }
   if (filters.hasTarget !== 'any') {
-    chips.push(presenceChip('hasTarget', 'filters.hasTarget', t))
+    chips.push(presenceChip('hasTarget', filters.hasTarget, 'filters.hasTarget', t))
   }
   if (filters.hasNotes !== 'any') {
-    chips.push(presenceChip('hasNotes', 'filters.hasNotes', t))
+    chips.push(presenceChip('hasNotes', filters.hasNotes, 'filters.hasNotes', t))
   }
   if (filters.hasTags !== 'any') {
-    chips.push(presenceChip('hasTags', 'filters.hasTags', t))
+    chips.push(presenceChip('hasTags', filters.hasTags, 'filters.hasTags', t))
   }
 
   return chips

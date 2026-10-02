@@ -92,4 +92,42 @@ describe('RangeField', () => {
     expect(screen.getByRole('textbox', { name: 'Max' })).toBeDisabled()
     expect(screen.getByText('Range unavailable')).toBeInTheDocument()
   })
+
+  it('shows the default note for a degenerate domain without a hint', () => {
+    renderField({ ...base, min: 5, max: 5 })
+
+    expect(screen.getByText('No range available')).toBeInTheDocument()
+  })
+
+  it('emits an unbounded minimum when a log slider is dragged fully left', () => {
+    const onChange = vi.fn()
+    renderField({
+      ...base,
+      min: -5,
+      max: 100,
+      scale: 'log',
+      value: { min: 10, max: null },
+      onChange,
+    })
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Min' }), { target: { value: '0' } })
+
+    expect(onChange).toHaveBeenLastCalledWith({ min: null, max: null })
+  })
+
+  it('emits an unbounded maximum when a log slider is dragged fully right', () => {
+    const onChange = vi.fn()
+    renderField({
+      ...base,
+      min: -5,
+      max: 100,
+      scale: 'log',
+      value: { min: null, max: 10 },
+      onChange,
+    })
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Max' }), { target: { value: '1' } })
+
+    expect(onChange).toHaveBeenLastCalledWith({ min: null, max: null })
+  })
 })
