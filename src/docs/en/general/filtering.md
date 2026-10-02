@@ -10,11 +10,15 @@ holds the rest.
 ## The quick bar
 
 - The bar sits above the table or the charts and never scrolls away.
-- It carries a free-text search, the market picker and the two most-used
-  segmented controls (direction and status for trades; the same search and
-  market picker for assets).
-- Every active filter appears as a removable chip below the bar, so you can see
-  at a glance why the list is short and undo one condition at a time.
+- On the list views it carries a free-text search and the market picker, plus
+  the two most-used segmented controls on the Journal (direction and status).
+  The stats views keep a smaller bar — time range and markets for the Journal,
+  search and markets for the Portfolio — because analysis is scoped by period
+  and market more than by individual rows. Everything else lives in the sheet.
+- Active filters generally appear as a removable chip below the bar, so you can
+  see why the list is short and undo one condition at a time. The stats time
+  range is the exception: it counts toward the active badge but has no chip of
+  its own; reset it from the sheet or with **Clear all**.
 - The **Filters** button opens the advanced sheet; when filters are active it
   shows a count of how many groups are set. **Clear all** empties everything,
   from either the bar or the sheet.

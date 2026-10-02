@@ -23,9 +23,11 @@ is the one filter axis the Journal and Portfolio share.
 
 ## Why it works this way
 
-- **One axis, two tabs.** A book that mixes crypto, forex and stocks is common,
-  but per-market analysis is what makes the mix useful. A single shared label
-  keeps the Journal and the Portfolio comparable.
+- **One shared axis across tabs.** A book that mixes crypto, forex and stocks
+  is common, but per-market analysis is what makes the mix useful. Using market
+  as a common filter on top of the other conditions — dates, performance,
+  outcome and the rest — keeps the Journal and the Portfolio comparable without
+  making market the only way to narrow them.
 - **Unspecified beats a guess.** Backfilling old data with a plausible market
   would corrupt every per-market statistic after it. Unspecified keeps the data
   honest, and you can reclassify a record by editing it.

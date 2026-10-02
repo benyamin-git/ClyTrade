@@ -21,10 +21,13 @@ Stats.
 
 ## Filtering
 
-- The overview and Stats both have a filter bar: search, markets, direction and
-  status, plus a **Filters** button for the advanced sheet.
-- The sheet adds dates, price & size, performance, outcome and presence
-  (has stop / target / notes / tags) conditions. Changes apply live.
+- The overview quick bar carries search, markets, direction and status. The
+  Stats quick bar is deliberately smaller — time range and markets — because a
+  stats view is usually scoped by period, not by individual trades. The rest of
+  the controls live in the sheet.
+- The sheet adds dates, price & size, performance, outcome, tags, strategies and
+  presence (has stop / target / notes / tags) conditions, and so on. Changes
+  apply live.
 - Stats also filters by time range; **Clear all** restores the preference
   default.
 - Filters are per page and are dropped when you leave the tab, so returning
