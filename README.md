@@ -1,142 +1,135 @@
 # ClyTrade
 
-A fast, opinionated, local-first trading PWA: a trade journal, a spot portfolio
-tracker and a growing set of calculators that open in one tap and compute as you
-type.
+ClyTrade is a local-first trading app: a trade journal, a spot portfolio tracker
+and a set of calculators. It ships as an installable PWA and as Windows and
+Android wrappers built with Tauri v2. Everything runs on the device, with no
+account, server or subscription.
 
-No account. No server. No subscription. Your data stays on your device.
+> **Status:** early development. V1 covers the offline core and is usable for
+> personal record-keeping, but expect rough edges and breaking changes before
+> `1.0.0`.
 
-> **Status:** early development. V1 is feature-complete for personal use, but
-> expect rough edges and breaking changes before a stable release.
+## Why it exists
+
+Small trading tools are scattered across paid apps, browser tabs and
+spreadsheets, and several of the paid ones are simple calculators. ClyTrade puts
+the journal, the portfolio and the calculators in one app that opens on the
+calculator you need and computes as you type, and keeps the data in one local
+database.
+
+## What is in V1
+
+| Area             | What it does                                                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.                                                      |
+| **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                                                                 |
+| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                           |
+| **Settings**     | Default inputs, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation. |
 
 ## Screenshots
 
-Captured in the desktop layout with the sample data and the Material Dark theme.
+Captured in the desktop layout with the sample data and the Material Dark theme,
+at 1440×900.
 
 | Journal stats                                                                            | Portfolio stats                                                                             |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | ![Journal stats — equity curve and PnL per trade](screenshots/desktop/journal-stats.png) | ![Portfolio stats — allocation and unrealized PnL](screenshots/desktop/portfolio-stats.png) |
-| **Journal** — equity curve, win rate, profit factor and PnL per trade                    | **Portfolio** — allocation and unrealized PnL by asset                                      |
 
 | Journal overview                                                                                         | Position Size calculator                                                                |
 | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | ![Journal overview — trade table with net PnL and R multiples](screenshots/desktop/journal-overview.png) | ![Position Size calculator — inputs and results](screenshots/desktop/position-size.png) |
-| **Journal** — every trade with net PnL and R multiples                                                   | **Calculations** — risk-first position sizing                                           |
 
-![Settings — three themes and eight accent colors](screenshots/desktop/settings-themes.png)
+![Settings — three themes and accent palettes](screenshots/desktop/settings-themes.png)
 
-Regenerate them with `npm run screenshots`; the first run needs
-`npm run screenshots:install` once to fetch Chromium. The script starts the dev
-server, loads the sample data and captures each page at 1440×900.
+Regenerate them with `npm run screenshots`; run `npm run screenshots:install`
+once first to fetch the Chromium build Playwright uses. The script starts Vite on
+`127.0.0.1:5199` (`SCREENSHOTS_PORT` overrides), loads the sample data and
+captures each page into `screenshots/desktop/`.
 
----
-
-## Why ClyTrade exists
-
-Trading tools are scattered across paid apps, browser tabs and spreadsheets.
-Most of them are simple calculators charging rent, and most of them are slow
-exactly when you need speed — in the seconds before a trade.
-
-ClyTrade is an opinionated answer to that:
-
-- **Calculations first.** The app opens on the calculator you need, not a
-  dashboard. Results update as you type; there is no Calculate button.
-- **Fast and honest.** Costs are shown next to profits, ROI on margin next to
-  account return, liquidation distance next to liquidation price.
-- **Local-first.** Everything runs and persists on your device using IndexedDB.
-  It works offline, with no account and no backend.
-- **Documented reasoning.** Every feature ships with in-app documentation that
-  explains the _why_ behind the design, not just the how.
-- **Compact by design.** 40px controls, 36px table rows and dense data tables —
-  built for a trading session, not a marketing page.
-
-## What is in V1
-
-| Area             | What it does                                                                                                                                                                           |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Journal**      | Track futures and perp trades with derived net PnL, R multiples and per-trade stats. Filterable equity curve and PnL charts.                                                           |
-| **Portfolio**    | Track spot holdings with blended cost basis, manual prices, unrealized PnL and allocation charts.                                                                                      |
-| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                |
-| **Settings**     | Default inputs, English and Persian interfaces (Persian runs right-to-left), three themes with preset accent colors, data export/import/reset, sample data and the full documentation. |
-
-## Tech
-
-- **React 19 + TypeScript + Vite**, installable PWA via `vite-plugin-pwa`
-- **Tailwind CSS v4** with Material Design 3 color roles exposed as CSS variables
-- **Dexie / IndexedDB** for local persistence, with versioned schema and JSON
-  export/import
-- **react-router** (hash routing), **Recharts** for charts, **zod** for validation
-- **Tauri v2** wrappers for the Windows (`.exe`) and Android (`.apk`) builds;
-  the PWA stays the reference platform
-- Pure, dependency-free calculation modules in `src/calculations/`, each with a
-  table-driven test suite
+The images were not regenerated for this revision of the README.
 
 ## Getting started
 
-Requires **Node 22+** and npm.
+Requires Node 22.12 or newer and npm.
 
 ```bash
 npm install
-npm run dev        # dev server on http://localhost:5173
-npm run dev:lan    # dev server on http://0.0.0.0:7401 for phones and other devices (PORT overrides)
-./scripts/live.sh  # same, in the background: log /tmp/clytrade-liveserver.log, LIVE_SERVER_PORT overrides
-                   # stop with: kill $(cat /tmp/clytrade-liveserver.pid)
-npm run build      # typecheck + production build + service worker
-npm run preview    # serve the production build
-npm test           # run the test suite
-npm run lint       # eslint
-npm run typecheck  # tsc -b
-npm run icons      # regenerate PWA icons
-npm run accents    # regenerate accent color palettes
-npm run screenshots # capture desktop screenshots of the key pages
+npm run dev        # Vite dev server on http://localhost:5173
+npm run dev:lan    # dev server on http://0.0.0.0:7401 (strict; PORT overrides)
+./scripts/live.sh  # same server in the background (LIVE_SERVER_PORT overrides)
 ```
 
-To test installability and offline mode, use `npm run build && npm run preview`.
+`npm run dev:lan` and `./scripts/live.sh` bind `0.0.0.0:7401` so the app can be
+opened from a phone or another device on the same network. `live.sh` writes its
+output to `/tmp/clytrade-liveserver.log` and its pid to
+`/tmp/clytrade-liveserver.pid`; stop it with
+`kill $(cat /tmp/clytrade-liveserver.pid)`.
+
+To test installability and offline mode, run `npm run build && npm run preview`.
 The service worker is disabled in the dev server.
 
-### Native builds
+Other commands:
 
-The Windows and Android wrappers are [Tauri v2](https://v2.tauri.app) projects
-in `src-tauri/` and reuse the same frontend build. `npm run build` always
-produces the PWA; when Tauri runs the build it sets `TAURI_ENV_PLATFORM`, which
-disables the service worker for the native bundle.
+| Command                            | Purpose                                                                       |
+| ---------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run build`                    | Typecheck, production build and PWA service worker                            |
+| `npm run preview`                  | Serve the production build                                                    |
+| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                            |
+| `npm run typecheck`                | `tsc -b` across the app and node configs                                      |
+| `npm run lint`                     | ESLint (flat config)                                                          |
+| `npm run format`                   | Prettier write                                                                |
+| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                     |
+| `npm run icons:native`             | Regenerate Tauri and Android icons from `public/icons/icon-512.png`           |
+| `npm run accents`                  | Regenerate the accent palettes into `src/theme/accents.css`                   |
+| `npm run screenshots`              | Capture desktop screenshots into `screenshots/desktop/`                       |
+| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs                                     |
+| `npm run tauri:build`              | Windows desktop build (needs Windows and Rust)                                |
+| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK and Rust)                  |
+| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `src-tauri/Cargo.toml` |
 
-```bash
-npm run tauri:build     # Windows .exe + NSIS installer (needs Windows + Rust)
-npm run android:apk     # Android APK (needs JDK 17, Android SDK/NDK and Rust)
-npm run icons:native    # regenerate native icons from public/icons/icon-512.png
-```
+### Platforms and native builds
 
-Release artifacts for both platforms are produced by
-[`.github/workflows/release.yml`](./.github/workflows/release.yml): run the
-workflow from the Actions tab to download test builds, or push a `v*` tag to get
-a draft GitHub Release. See the in-app **Platforms & Releases** documentation
-for what each build is and how to move data between installs.
+The Windows and Android wrappers are Tauri v2 projects in `src-tauri/` and reuse
+the same frontend build. `npm run build` always produces the PWA; when Tauri runs
+the build it sets `TAURI_ENV_PLATFORM`, which disables the service worker for the
+native bundle. The PWA remains the reference platform.
 
-### Install on iPhone
+`.github/workflows/release.yml` produces the artifacts for both platforms. Run
+the workflow from the Actions tab to download test builds, or push a `v*` tag to
+get a draft GitHub Release. The builds are not code-signed. Artifact names are:
 
-The PWA is deployed to GitHub Pages by
-[`.github/workflows/pages.yml`](./.github/workflows/pages.yml) on every `v*` tag
-(or manually from the Actions tab). One-time setup is **Settings → Pages →
-Source: GitHub Actions**. To verify the Pages base locally:
+| Platform            | Artifact                                   |
+| ------------------- | ------------------------------------------ |
+| Windows (portable)  | `ClyTrade-<version>-windows-x64.exe`       |
+| Windows (installer) | `ClyTrade-<version>-windows-x64-setup.exe` |
+| Android             | `ClyTrade-<version>-android-universal.apk` |
+
+### Install on iPhone and iPad
+
+The PWA is deployed to GitHub Pages by `.github/workflows/pages.yml` on every
+`v*` tag, or manually from the Actions tab. One-time setup is **Settings → Pages
+→ Source: GitHub Actions**. To verify the Pages base locally:
 
 ```bash
 VITE_BASE=/ClyTrade/ npm run build
 VITE_BASE=/ClyTrade/ npm run preview
 ```
 
-To install on iPhone or iPad, open
-<https://benyamin-git.github.io/ClyTrade/> in **Safari** (Home Screen installs
-are Safari-only), tap **Share**, then **Add to Home Screen**. The installed app
-runs standalone and offline and picks up a new deployment the next time it
-opens online. Tester checklist:
+To install on iPhone or iPad, open <https://benyamin-git.github.io/ClyTrade/> in
+Safari (Home Screen installs are Safari-only), tap **Share**, then **Add to Home
+Screen**. The installed app runs standalone and offline and picks up a new
+deployment the next time it opens online.
 
-- Install from Safari and confirm it launches without browser UI.
-- In Airplane Mode, relaunch and add a trade — offline must work.
-- Export a backup: the iOS share sheet should appear; save it to Files.
-- Import that file back and confirm the trade count.
-- Switch light/dark themes, then relaunch: the status bar text must stay
-  readable in both.
+## Data and storage
+
+All data is stored in IndexedDB, in a database named `clytrade`, through Dexie.
+Nothing is sent anywhere. The interface language, theme and accent are kept in
+`localStorage` and applied before the first paint.
+
+Settings → Data Controls **Export backup** writes a single JSON file containing
+the journal, portfolio and settings (including the interface language). **Import**
+offers a merge or a replace, and validates the file before writing. The theme and
+accent are not part of the backup.
 
 ## Project layout
 
@@ -145,110 +138,70 @@ opens online. Tester checklist:
 | `src/app/`          | App shell: router, providers, top bar, navigation drawer, subtab bar                  |
 | `src/features/`     | Feature UI and application logic (`journal`, `portfolio`, `calculations`, `settings`) |
 | `src/calculations/` | Pure, tested math layer — the protected core of the app                               |
-| `src/data/`         | Dexie schema, zod models, repositories, backup/restore                                |
+| `src/data/`         | Dexie schema, zod models, repositories, backup and restore                            |
 | `src/ui/`           | Design-system primitives and layout components                                        |
 | `src/theme/`        | MD3 design tokens and the three themes                                                |
-| `src/i18n/`         | Typed English/Persian dictionaries, locale detection and the locale provider          |
+| `src/i18n/`         | Typed English and Persian dictionaries, locale detection and the locale provider      |
 | `src/docs/`         | Markdown documentation rendered inside the app                                        |
-| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust + generated Android project)  |
+| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust and the Android project)      |
 | `masterplan.md`     | Product direction and design decisions                                                |
 
 ## Documentation
 
-The full user documentation lives inside the app under **Settings →
-Documentation**, and its source is `src/docs/**`. Product direction, scope and
-the reasoning behind major decisions live in [`masterplan.md`](./masterplan.md).
+The full user documentation is inside the app under **Settings →
+Documentation**, with its source in `src/docs/**`. Product direction, scope and
+the reasoning behind the major decisions live in [`masterplan.md`](./masterplan.md).
+User-facing text is in typed dictionaries in `src/i18n/`, in English and Persian
+(Persian runs right-to-left).
 
-## Releases & versioning
+## Releases and versioning
 
 ClyTrade follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
-Until `1.0.0`, breaking changes may land in minor releases. Release artifacts
-are named
+Until `1.0.0`, breaking changes may land in minor releases, and every `0.x` tag
+is published as a GitHub pre-release. Changelog entries live in
+[`CHANGELOG.md`](./CHANGELOG.md).
 
-| Platform            | Artifact                                   |
-| ------------------- | ------------------------------------------ |
-| Windows (portable)  | `ClyTrade-<version>-windows-x64.exe`       |
-| Windows (installer) | `ClyTrade-<version>-windows-x64-setup.exe` |
-| Android             | `ClyTrade-<version>-android-universal.apk` |
-
-`npm run version:set -- <version>` updates the version everywhere it lives
-(`package.json`, the lockfiles, `src-tauri/Cargo.toml`). Pushing a `v<version>`
-tag builds both platforms and opens a draft GitHub Release; `0.x` tags are
-marked as pre-releases. Changelog entries live in [`CHANGELOG.md`](./CHANGELOG.md).
+`npm run version:set -- <version>` updates the version in `package.json`, both
+lockfiles and `src-tauri/Cargo.toml`. Pushing a `v<version>` tag builds both
+platforms, opens a draft GitHub Release and deploys the PWA to GitHub Pages.
 
 ## Roadmap
 
-V1 covers the offline core. Planned next:
+V1 covers the offline core. Planned work:
 
-- Optional live market data integrations (explicitly opt-in)
-- Optional sync between devices
-- More languages and translations (see below)
-- More calculators, more stats, import from exchange CSVs
+- Optional live market data integrations (opt-in)
+- Optional synchronization between devices
+- More languages and translations
+- More calculators and statistics, and import from exchange CSV files
 
 Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
 
-## Contributing
+## Limitations and non-goals
 
-### Forks: yes, please
-
-ClyTrade is licensed under the GPL-3.0, so you are free to fork it, rename it
-and build your own thing with it — as long as your fork stays under the same
-license. If you outgrow this project's opinions, fork it and make it yours.
-
-### Translations: yes, please
-
-ClyTrade ships in English and Persian (فارسی), and more languages are genuinely
-wanted. If you want to translate ClyTrade into your language, open a GitHub
-Issue or Discussion with the language you have in mind. The approach is
-described in [CONTRIBUTING.md](./CONTRIBUTING.md): typed dictionaries in
-`src/i18n/` and per-locale documentation under `src/docs/<locale>/` with an
-English fallback.
-
-### Code contributions: no, thank you
-
-Honest reason: I am a bit of a control freak about this codebase. It is my
-project, I want to keep it coherent, and reviewing and merging someone else's
-architecture decisions is not something I enjoy. So I am not accepting pull
-requests — please do not take it personally.
-
-That said, everything else is welcome:
-
-- **Bug reports** — open an issue with steps to reproduce.
-- **Feature ideas** — open a Discussion; I read all of them.
-- **Forks** — genuinely encouraged, and the GPL-3.0 makes it official.
+- Not financial advice. ClyTrade is a calculator and record-keeping tool; it does
+  not execute trades, connect to an exchange, or recommend what to buy or sell.
+- Calculations are estimates based on the inputs and the assumptions documented
+  in the in-app documentation. Exchange formulas, fees and funding rates can
+  differ, so verify numbers against your exchange before acting on them.
+- The native builds are unsigned test builds. Windows SmartScreen warns about the
+  unknown publisher on first run.
+- Android in-place updates fail because each CI build is signed with a fresh
+  keystore. Uninstalling first is the only workaround, and it wipes the local
+  data, so export a backup before updating.
+- Each install has its own storage sandbox, so the browser PWA, the Windows build
+  and the Android build do not share data. Move data with export and import.
+- There is no cloud sync or account in V1.
 
 ## AI-assisted development
 
-ClyTrade is written almost entirely by AI. The maintainer directs the work,
-makes the product decisions, reviews every change and runs the tests — but the
-code and documentation are AI-generated. If AI-written software is a dealbreaker
-for you, this project is probably not for you, and that is completely fine.
-
-The same statement, with more detail, is included in the app under **Settings →
-Documentation → AI Usage**.
-
-## Disclaimer
-
-**Not financial advice.** ClyTrade is a calculator and record-keeping tool. It
-does not execute trades, connect to your exchange, or tell you what to buy or
-sell.
-
-Trading involves substantial risk, including the loss of your entire account.
-All calculations are estimates based on the inputs and assumptions documented in
-the in-app documentation; exchange formulas, fees and funding rates can differ.
-Always verify numbers against your exchange before acting on them.
-
-The software is provided "as is", without warranty of any kind, as stated in the
-license below.
+ClyTrade is written almost entirely by AI. The maintainer directs the work, makes
+the product decisions, reviews every change and runs the tests; the code and
+documentation are AI-generated. The same statement, with more detail, is
+included in the app under **Settings → Documentation → AI Usage**.
 
 ## License
 
-Copyright (C) 2026 benyamin-git
-
-ClyTrade is free software: you can redistribute it and/or modify it under the
-terms of the **GNU General Public License v3.0** as published by the Free
-Software Foundation. See [`LICENSE`](./LICENSE) for the full text.
-
-ClyTrade is distributed in the hope that it will be useful, but **without any
-warranty**; without even the implied warranty of merchantability or fitness for
-a particular purpose.
+Copyright (C) 2026 benyamin-git. ClyTrade is free software, licensed under the
+**GNU General Public License v3.0**; see [`LICENSE`](./LICENSE) for the full
+text. It is distributed without any warranty, without even the implied warranty
+of merchantability or fitness for a particular purpose.
