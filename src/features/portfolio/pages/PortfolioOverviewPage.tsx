@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { calculateAssetMetrics, calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import { deleteAsset, listAssets } from '@/data/repositories/assets.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
@@ -13,6 +14,7 @@ import { Card } from '@/ui/components/Card'
 import { DataTable, type Column } from '@/ui/components/DataTable'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { IconButton } from '@/ui/components/IconButton'
+import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
@@ -54,6 +56,12 @@ export function PortfolioOverviewPage() {
 
   const [form, setForm] = useState<{ asset: Asset | null } | null>(null)
   const [deleting, setDeleting] = useState<Asset | null>(null)
+  const [market, setMarket] = useState<Market | 'all'>('all')
+
+  const filteredRows = useMemo(
+    () => rows.filter((row) => market === 'all' || row.asset.market === market),
+    [rows, market],
+  )
 
   const columns: readonly Column<AssetRow>[] = [
     {
@@ -66,6 +74,13 @@ export function PortfolioOverviewPage() {
             <span className="ms-1.5 text-2xs text-on-surface-variant">{row.asset.name}</span>
           ) : null}
         </span>
+      ),
+    },
+    {
+      key: 'market',
+      header: t('fields.market'),
+      render: (row) => (
+        <span className="text-on-surface-variant">{t(`markets.${row.asset.market}`)}</span>
       ),
     },
     {
@@ -189,6 +204,16 @@ export function PortfolioOverviewPage() {
           hint={totals.pnlPercent === null ? undefined : formatPercent(totals.pnlPercent)}
         />
         <div className="flex-1" />
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={[
+            { value: 'all', label: t('markets.all') },
+            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
+          ]}
+          onChange={setMarket}
+          className="w-40"
+        />
         <Button size="sm" icon={<Plus />} onClick={() => setForm({ asset: null })}>
           {t('portfolio.addAsset')}
         </Button>
@@ -197,7 +222,7 @@ export function PortfolioOverviewPage() {
       <Card className="flex-1">
         <DataTable
           columns={columns}
-          rows={rows}
+          rows={filteredRows}
           getRowKey={(row) => row.asset.id}
           onRowClick={(row) => setForm({ asset: row.asset })}
           empty={
