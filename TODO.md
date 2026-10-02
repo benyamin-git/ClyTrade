@@ -38,3 +38,11 @@ use GitHub Issues or Discussions instead — see [CONTRIBUTING.md](./CONTRIBUTIN
   `configure-pages`, `upload-artifact` and `deploy-pages` target Node 20 and are
   forced onto Node 24. Harmless today; bump the action majors in both workflows
   when convenient.
+- Backfill the stored preferences row during the Dexie v2 migration. It is
+  currently only defaulted at read time, so a `schemaVersion: 2` backup can omit
+  `defaultMarket` in its settings. Also add a migration test that a pre-existing
+  `market` value is preserved, and an import-through-Dexie backup test.
+- Route `updateTrade`/`updateAsset` partial patches through the draft schema.
+  They accept `Partial<...Draft>` and write without parsing, so a future
+  `updateTrade(id, { market: undefined })` would persist `undefined` and bypass
+  the default.

@@ -24,7 +24,7 @@ database.
 | **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filterable by market, with an equity curve and PnL charts.                                                    |
 | **Portfolio**    | Track holdings with blended cost basis, manual prices, unrealized PnL and allocation charts. Filterable by market.                                                                |
 | **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                           |
-| **Settings**     | Default inputs, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation. |
+| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation. |
 
 ## Screenshots
 
@@ -45,8 +45,6 @@ Regenerate them with `npm run screenshots`; run `npm run screenshots:install`
 once first to fetch the Chromium build Playwright uses. The script starts Vite on
 `127.0.0.1:5199` (`SCREENSHOTS_PORT` overrides), loads the sample data and
 captures each page into `screenshots/desktop/`.
-
-The images were not regenerated for this revision of the README.
 
 ## Getting started
 
@@ -127,9 +125,15 @@ Nothing is sent anywhere. The interface language, theme and accent are kept in
 `localStorage` and applied before the first paint.
 
 Settings → Data Controls **Export backup** writes a single JSON file containing
-the journal, portfolio and settings (including the interface language). **Import**
-offers a merge or a replace, and validates the file before writing. The theme and
-accent are not part of the backup.
+the journal, portfolio and settings (including the interface language and default
+market). **Import** offers a merge or a replace, and validates the file before
+writing. The theme and accent are not part of the backup.
+
+Trades and holdings each carry a market (Crypto, Forex, Stocks, Futures,
+Commodities, Indices, Bonds, Options or Unspecified). The Journal and Portfolio
+filter by market in Overview and Stats, and new entries start on the default
+market from Preferences. Records made before markets existed are Unspecified.
+Backups are schema version 2; version 1 files still import.
 
 ## Project layout
 
