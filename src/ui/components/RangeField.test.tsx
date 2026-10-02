@@ -71,6 +71,18 @@ describe('RangeField', () => {
     expect(onChange).toHaveBeenLastCalledWith({ min: 20, max: 20 })
   })
 
+  it('reflects an external value change in the typed inputs', () => {
+    const { rerender } = renderField(base)
+
+    rerender(<RangeField {...base} value={{ min: 25, max: 80 }} />)
+    expect(screen.getByRole('textbox', { name: 'Min' })).toHaveValue('25')
+    expect(screen.getByRole('textbox', { name: 'Max' })).toHaveValue('80')
+
+    rerender(<RangeField {...base} value={{ min: null, max: null }} />)
+    expect(screen.getByRole('textbox', { name: 'Min' })).toHaveValue('')
+    expect(screen.getByRole('textbox', { name: 'Max' })).toHaveValue('')
+  })
+
   it('disables the field and shows the hint for a degenerate domain', () => {
     renderField({ ...base, min: 5, max: 5, hint: 'Range unavailable' })
 

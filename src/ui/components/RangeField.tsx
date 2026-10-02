@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { effectiveBounds, positionToValue, valueToPosition, type RangeScale } from '@/lib/range'
@@ -49,6 +49,22 @@ export function RangeField({
   const upper = value.max
   const [minKey, setMinKey] = useState(0)
   const [maxKey, setMaxKey] = useState(0)
+  const emittedMin = useRef(lower)
+  const emittedMax = useRef(upper)
+
+  useEffect(() => {
+    if (lower !== emittedMin.current) {
+      emittedMin.current = lower
+      setMinKey((current) => current + 1)
+    }
+  }, [lower])
+
+  useEffect(() => {
+    if (upper !== emittedMax.current) {
+      emittedMax.current = upper
+      setMaxKey((current) => current + 1)
+    }
+  }, [upper])
 
   const minPosition = valueToPosition(lower ?? bounds.min, bounds.min, bounds.max, scale)
   const maxPosition = valueToPosition(upper ?? bounds.max, bounds.min, bounds.max, scale)
@@ -59,22 +75,22 @@ export function RangeField({
   }
 
   function changeMin(next: number | null) {
+    emittedMin.current = next
     onChange({ min: next, max: upper })
   }
 
   function changeMax(next: number | null) {
+    emittedMax.current = next
     onChange({ min: lower, max: next })
   }
 
   function slideMin(position: number) {
     const next = snap(positionToValue(position, bounds.min, bounds.max, scale))
-    setMinKey((current) => current + 1)
     onChange({ min: upper === null ? next : Math.min(next, upper), max: upper })
   }
 
   function slideMax(position: number) {
     const next = snap(positionToValue(position, bounds.min, bounds.max, scale))
-    setMaxKey((current) => current + 1)
     onChange({ min: lower, max: lower === null ? next : Math.max(next, lower) })
   }
 
@@ -123,7 +139,7 @@ export function RangeField({
         </div>
         <div className="flex gap-2">
           <NumberField
-            key={minKey}
+            key={`min-${minKey}`}
             label={t('filters.min')}
             value={lower}
             onChange={changeMin}
@@ -131,7 +147,7 @@ export function RangeField({
             className="flex-1"
           />
           <NumberField
-            key={maxKey}
+            key={`max-${maxKey}`}
             label={t('filters.max')}
             value={upper}
             onChange={changeMax}
