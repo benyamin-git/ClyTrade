@@ -13,6 +13,7 @@ import {
   YAxis,
 } from 'recharts'
 import { buildEquityCurve, calculateJournalStats } from '@/calculations/journalStats'
+import { MARKET_IDS, type Market } from '@/data/models/market'
 import { listTrades } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
@@ -22,6 +23,7 @@ import { formatCompact, formatCurrency, formatNumber } from '@/lib/format'
 import { Card } from '@/ui/components/Card'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
+import { SelectField } from '@/ui/components/SelectField'
 import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { toTradeRows } from '../logic/tradeRows'
@@ -38,14 +40,18 @@ export function JournalStatsPage() {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [range, setRange] = useState<TimeRange>(preferences.defaultTimeRange)
+  const [market, setMarket] = useState<Market | 'all'>('all')
   const trades = useLiveQuery(() => listTrades(), [], undefined)
 
   const rows = useMemo(() => {
     const all = toTradeRows(trades ?? [], preferences.feesInRisk)
     return all.filter(
-      (row) => row.trade.closedAt !== null && isWithinRange(row.trade.closedAt, range),
+      (row) =>
+        row.trade.closedAt !== null &&
+        isWithinRange(row.trade.closedAt, range) &&
+        (market === 'all' || row.trade.market === market),
     )
-  }, [trades, range, preferences.feesInRisk])
+  }, [trades, range, preferences.feesInRisk, market])
 
   const statsRows = useMemo(
     () =>
@@ -79,6 +85,17 @@ export function JournalStatsPage() {
         <span className="text-xs text-on-surface-variant">
           {t('journal.stats.closedOpen', { closed: stats.closed, open: stats.open })}
         </span>
+        <div className="flex-1" />
+        <SelectField
+          label={t('fields.market')}
+          value={market}
+          options={[
+            { value: 'all', label: t('markets.all') },
+            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
+          ]}
+          onChange={setMarket}
+          className="w-40"
+        />
       </div>
 
       {stats.closed === 0 ? (
