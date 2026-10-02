@@ -33,6 +33,8 @@ export const en = {
     hasTarget: 'Has target',
     max: 'Max',
     min: 'Min',
+    noMatchDescription: 'Try removing some filters to see more trades.',
+    noMatchTitle: 'No trades match your filters',
     noOptions: 'No options',
     open: 'Filters',
     outcome: {

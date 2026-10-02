@@ -54,9 +54,28 @@ describe('JournalOverviewPage market filter', () => {
     expect(await screen.findByText('BTCUSDT')).toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()
 
-    await userEvent.selectOptions(screen.getByLabelText('Market'), 'stocks')
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
 
     expect(screen.queryByText('BTCUSDT')).not.toBeInTheDocument()
+    expect(screen.getByText('AAPL')).toBeInTheDocument()
+  })
+
+  it('narrows the table with the search field and restores it with Clear all', async () => {
+    await createTrade(draft({ symbol: 'BTCUSDT', market: 'crypto' }))
+    await createTrade(draft({ symbol: 'AAPL', market: 'stocks' }))
+
+    renderPage()
+    expect(await screen.findByText('BTCUSDT')).toBeInTheDocument()
+    expect(screen.getByText('AAPL')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText('Search'), 'BTC')
+
+    expect(screen.getByText('BTCUSDT')).toBeInTheDocument()
+    expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
+
+    expect(screen.getByText('BTCUSDT')).toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()
   })
 })

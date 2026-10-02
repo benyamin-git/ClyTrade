@@ -4,6 +4,9 @@ import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Trade } from '@/data/models/trade'
 import { MARKET_IDS, type Market } from '@/data/models/market'
 import { deleteTrade, listTrades } from '@/data/repositories/trades.repo'
+import { FilterBar } from '@/features/filters/FilterBar'
+import { activeGroupCount } from '@/features/filters/filterUtils'
+import { useFilterState } from '@/features/filters/useFilterState'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
 import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
@@ -14,14 +17,23 @@ import { Card } from '@/ui/components/Card'
 import { DataTable, type Column } from '@/ui/components/DataTable'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { IconButton } from '@/ui/components/IconButton'
+import { MultiSelectField } from '@/ui/components/MultiSelectField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
-import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
+import { TextField } from '@/ui/components/TextField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
+import { JournalFilterSheet } from '../components/JournalFilterSheet'
 import { TradeFormSheet } from '../components/TradeFormSheet'
+import {
+  DEFAULT_TRADE_FILTERS,
+  TRADE_FILTER_GROUPS,
+  buildTradeChips,
+  filterTrades,
+  tradeNumericBounds,
+  tradeStrategyOptions,
+  tradeTagOptions,
+} from '../logic/tradeFilters'
 import { toTradeRows, type TradeRow } from '../logic/tradeRows'
-
-type TradeFilter = 'all' | 'open' | 'closed'
 
 export function JournalOverviewPage() {
   const { preferences } = usePreferences()
@@ -31,21 +43,17 @@ export function JournalOverviewPage() {
     () => toTradeRows(trades ?? [], preferences.feesInRisk),
     [trades, preferences.feesInRisk],
   )
-  const [filter, setFilter] = useState<TradeFilter>('all')
-  const [market, setMarket] = useState<Market | 'all'>('all')
+  const { filters, patch, reset } = useFilterState(DEFAULT_TRADE_FILTERS)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [form, setForm] = useState<{ trade: Trade | null } | null>(null)
   const [deleting, setDeleting] = useState<Trade | null>(null)
 
-  const filtered = useMemo(
-    () =>
-      rows.filter((row) => {
-        if (market !== 'all' && row.trade.market !== market) return false
-        if (filter === 'open') return row.trade.closedAt === null
-        if (filter === 'closed') return row.trade.closedAt !== null
-        return true
-      }),
-    [rows, filter, market],
-  )
+  const filtered = useMemo(() => filterTrades(rows, filters), [rows, filters])
+  const chips = useMemo(() => buildTradeChips(filters, t), [filters, t])
+  const activeCount = activeGroupCount(filters, TRADE_FILTER_GROUPS)
+  const tagOptions = useMemo(() => tradeTagOptions(trades ?? []), [trades])
+  const strategyOptions = useMemo(() => tradeStrategyOptions(trades ?? []), [trades])
+  const bounds = useMemo(() => tradeNumericBounds(rows), [rows])
 
   const columns: readonly Column<TradeRow>[] = [
     {
@@ -199,35 +207,63 @@ export function JournalOverviewPage() {
 
   return (
     <ViewportPage className="gap-3">
-      <div className="flex shrink-0 flex-wrap items-center gap-3">
+      <FilterBar
+        chips={chips.map((chip) => ({
+          id: chip.id,
+          label: chip.label,
+          onClear: () => patch(chip.clear(filters)),
+        }))}
+        activeCount={activeCount}
+        onOpenFilters={() => setSheetOpen(true)}
+        onClearAll={reset}
+        trailing={
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-on-surface-variant">
+              {t('journal.tradeCount', { count: filtered.length })}
+            </span>
+            <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
+              {t('journal.addTrade')}
+            </Button>
+          </div>
+        }
+      >
+        <TextField
+          label={t('filters.sections.text')}
+          value={filters.search}
+          onChange={(search) => patch({ search })}
+          placeholder={t('filters.searchPlaceholder')}
+          className="w-56"
+        />
+        <MultiSelectField
+          label={t('fields.market')}
+          value={filters.markets}
+          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
+          onChange={(markets) => patch({ markets: markets as Market[] })}
+          className="w-56"
+        />
         <SegmentedControl
-          value={filter}
+          value={filters.direction}
+          options={[
+            { value: 'all', label: t('journal.filters.all') },
+            { value: 'long', label: t('direction.long') },
+            { value: 'short', label: t('direction.short') },
+          ]}
+          onChange={(direction) => patch({ direction })}
+          ariaLabel={t('filters.sections.direction')}
+          size="sm"
+        />
+        <SegmentedControl
+          value={filters.status}
           options={[
             { value: 'all', label: t('journal.filters.all') },
             { value: 'open', label: t('journal.filters.open') },
             { value: 'closed', label: t('journal.filters.closed') },
           ]}
-          onChange={setFilter}
+          onChange={(status) => patch({ status })}
+          ariaLabel={t('filters.sections.status')}
           size="sm"
         />
-        <SelectField
-          label={t('fields.market')}
-          value={market}
-          options={[
-            { value: 'all', label: t('markets.all') },
-            ...MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) })),
-          ]}
-          onChange={setMarket}
-          className="w-40"
-        />
-        <span className="text-xs text-on-surface-variant">
-          {t('journal.tradeCount', { count: filtered.length })}
-        </span>
-        <div className="flex-1" />
-        <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
-          {t('journal.addTrade')}
-        </Button>
-      </div>
+      </FilterBar>
 
       <Card className="flex-1">
         <DataTable
@@ -236,20 +272,44 @@ export function JournalOverviewPage() {
           getRowKey={(row) => row.trade.id}
           onRowClick={(row) => setForm({ trade: row.trade })}
           empty={
-            <EmptyState
-              title={t('journal.emptyTitle')}
-              description={t('journal.emptyDescription')}
-              action={
-                <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
-                  {t('journal.addTrade')}
-                </Button>
-              }
-            />
+            rows.length === 0 ? (
+              <EmptyState
+                title={t('journal.emptyTitle')}
+                description={t('journal.emptyDescription')}
+                action={
+                  <Button size="sm" icon={<Plus />} onClick={() => setForm({ trade: null })}>
+                    {t('journal.addTrade')}
+                  </Button>
+                }
+              />
+            ) : (
+              <EmptyState
+                title={t('filters.noMatchTitle')}
+                description={t('filters.noMatchDescription')}
+                action={
+                  <Button size="sm" variant="outlined" onClick={reset}>
+                    {t('filters.clearAll')}
+                  </Button>
+                }
+              />
+            )
           }
         />
       </Card>
 
       {form ? <TradeFormSheet trade={form.trade} onClose={() => setForm(null)} /> : null}
+
+      <JournalFilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        filters={filters}
+        onChange={patch}
+        onReset={reset}
+        tagOptions={tagOptions}
+        strategyOptions={strategyOptions}
+        bounds={bounds}
+        variant="overview"
+      />
 
       <Sheet
         open={deleting !== null}

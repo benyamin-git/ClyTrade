@@ -35,6 +35,8 @@ export const fa = {
     hasTarget: 'حد سود دارد',
     max: 'حداکثر',
     min: 'حداقل',
+    noMatchDescription: 'برای دیدن معاملات بیشتر، برخی فیلترها را حذف کنید.',
+    noMatchTitle: 'هیچ معامله‌ای با فیلترهای شما مطابقت ندارد',
     noOptions: 'گزینه‌ای نیست',
     open: 'فیلترها',
     outcome: {
