@@ -18,7 +18,6 @@ import {
   calculatePortfolioTotals,
 } from '@/calculations/portfolioMetrics'
 import { listAssets } from '@/data/repositories/assets.repo'
-import { MARKET_IDS, type Market } from '@/data/models/market'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
 import { useFilterState } from '@/features/filters/useFilterState'
@@ -28,16 +27,13 @@ import { formatCompact, formatCurrency, formatNumber, formatPercent } from '@/li
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { EmptyState } from '@/ui/components/EmptyState'
-import { MultiSelectField } from '@/ui/components/MultiSelectField'
 import { Stat } from '@/ui/components/Stat'
-import { TextField } from '@/ui/components/TextField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { PortfolioFilterSheet } from '../components/PortfolioFilterSheet'
 import {
   ASSET_FILTER_GROUPS,
   DEFAULT_ASSET_FILTERS,
   assetNumericBounds,
-  buildAssetChips,
   filterAssets,
   toAssetRows,
   type AssetRow,
@@ -77,7 +73,6 @@ export function PortfolioStatsPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const filteredRows = useMemo(() => filterAssets(rows, filters), [rows, filters])
-  const chips = useMemo(() => buildAssetChips(filters, t), [filters, t])
   const activeCount = activeGroupCount(filters, ASSET_FILTER_GROUPS)
   const bounds = useMemo(() => assetNumericBounds(rows), [rows])
 
@@ -115,31 +110,7 @@ export function PortfolioStatsPage() {
   )
 
   const filterBar = (
-    <FilterBar
-      chips={chips.map((chip) => ({
-        id: chip.id,
-        label: chip.label,
-        onClear: () => patch(chip.clear(filters)),
-      }))}
-      activeCount={activeCount}
-      onOpenFilters={() => setSheetOpen(true)}
-      onClearAll={reset}
-    >
-      <TextField
-        label={t('filters.sections.text')}
-        value={filters.search}
-        onChange={(search) => patch({ search })}
-        placeholder={t('filters.assetSearchPlaceholder')}
-        className="w-56"
-      />
-      <MultiSelectField
-        label={t('fields.market')}
-        value={filters.markets}
-        options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
-        onChange={(markets) => patch({ markets: markets as Market[] })}
-        className="w-56"
-      />
-    </FilterBar>
+    <FilterBar activeCount={activeCount} onOpenFilters={() => setSheetOpen(true)} />
   )
 
   return (

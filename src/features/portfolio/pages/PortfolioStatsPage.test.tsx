@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
@@ -44,6 +44,8 @@ describe('PortfolioStatsPage filters', () => {
     renderPage()
     expect(await screen.findByText('2 assets')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Market/ }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
 
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
@@ -58,13 +60,15 @@ describe('PortfolioStatsPage filters', () => {
     expect(await screen.findByText('$900.00')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
     await userEvent.click(screen.getByRole('tab', { name: 'Gains' }))
     await userEvent.click(screen.getByRole('button', { name: 'Done' }))
 
     expect(await screen.findByText('$850.00')).toBeInTheDocument()
     expect(screen.queryByText('$900.00')).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Filters: 1 active' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
 
     expect(await screen.findByText('$900.00')).toBeInTheDocument()
     expect(screen.queryByText('$850.00')).not.toBeInTheDocument()
@@ -83,12 +87,14 @@ describe('PortfolioStatsPage filters', () => {
     renderPage()
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
     await userEvent.type(screen.getByLabelText('Search'), 'zzz')
 
     expect(await screen.findByText('No assets match your filters')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Remove Search: zzz' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
 
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
   })
