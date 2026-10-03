@@ -167,6 +167,7 @@ export function JournalFilterSheet({
             value={filters.direction}
             onChange={(direction) => onChange({ direction })}
             ariaLabel={t('filters.sections.direction')}
+            fullWidth
             options={[
               { value: 'all', label: t('timeRange.all') },
               { value: 'long', label: t('direction.long') },
@@ -180,6 +181,7 @@ export function JournalFilterSheet({
             value={filters.status}
             onChange={(status) => onChange({ status })}
             ariaLabel={t('filters.sections.status')}
+            fullWidth
             options={[
               { value: 'all', label: t('timeRange.all') },
               { value: 'open', label: t('status.open') },
@@ -255,7 +257,6 @@ export function JournalFilterSheet({
               onChange={(entry) => onChange({ entry })}
               min={bounds.entry.min}
               max={bounds.entry.max}
-              scale="log"
               format={formatPrice}
             />
             <RangeField
@@ -264,7 +265,6 @@ export function JournalFilterSheet({
               onChange={(exit) => onChange({ exit })}
               min={bounds.exit.min}
               max={bounds.exit.max}
-              scale="log"
               format={formatPrice}
             />
             <RangeField
@@ -273,7 +273,6 @@ export function JournalFilterSheet({
               onChange={(size) => onChange({ size })}
               min={bounds.size.min}
               max={bounds.size.max}
-              scale="log"
               format={formatNumber}
             />
             <RangeField
@@ -282,7 +281,6 @@ export function JournalFilterSheet({
               onChange={(leverage) => onChange({ leverage })}
               min={bounds.leverage.min}
               max={bounds.leverage.max}
-              scale="log"
               format={formatNumber}
             />
           </div>
@@ -296,7 +294,6 @@ export function JournalFilterSheet({
               onChange={(fees) => onChange({ fees })}
               min={bounds.fees.min}
               max={bounds.fees.max}
-              scale="log"
               format={formatNumber}
             />
             <RangeField
@@ -321,7 +318,6 @@ export function JournalFilterSheet({
               onChange={(duration) => onChange({ duration })}
               min={bounds.duration.min}
               max={bounds.duration.max}
-              scale="log"
               format={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
             />
           </div>
@@ -332,6 +328,7 @@ export function JournalFilterSheet({
             value={filters.outcome}
             onChange={(outcome) => onChange({ outcome })}
             ariaLabel={t('filters.sections.outcome')}
+            fullWidth
             options={[
               { value: 'all', label: t('filters.outcome.all') },
               { value: 'win', label: t('filters.outcome.win') },
@@ -391,6 +388,7 @@ export function JournalFilterSheet({
           onChange={timeRange.onChange}
           ariaLabel={t('filters.sections.timeRange')}
           size="sm"
+          fullWidth
         />
       ),
     })

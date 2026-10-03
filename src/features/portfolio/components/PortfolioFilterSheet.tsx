@@ -123,7 +123,6 @@ export function PortfolioFilterSheet({
               onChange={(quantity) => onChange({ quantity })}
               min={bounds.quantity.min}
               max={bounds.quantity.max}
-              scale="log"
               format={formatNumber}
             />
             <RangeField
@@ -132,7 +131,6 @@ export function PortfolioFilterSheet({
               onChange={(avgCost) => onChange({ avgCost })}
               min={bounds.avgCost.min}
               max={bounds.avgCost.max}
-              scale="log"
               format={formatPrice}
             />
             <RangeField
@@ -141,7 +139,6 @@ export function PortfolioFilterSheet({
               onChange={(currentPrice) => onChange({ currentPrice })}
               min={bounds.currentPrice.min}
               max={bounds.currentPrice.max}
-              scale="log"
               format={formatPrice}
             />
           </div>
@@ -155,7 +152,6 @@ export function PortfolioFilterSheet({
               onChange={(value) => onChange({ value })}
               min={bounds.value.min}
               max={bounds.value.max}
-              scale="log"
               format={formatNumber}
             />
             <RangeField
@@ -182,6 +178,7 @@ export function PortfolioFilterSheet({
             value={filters.outcome}
             onChange={(outcome) => onChange({ outcome })}
             ariaLabel={t('filters.sections.outcome')}
+            fullWidth
             options={[
               { value: 'all', label: t('filters.assetOutcome.all') },
               { value: 'gain', label: t('filters.assetOutcome.gain') },

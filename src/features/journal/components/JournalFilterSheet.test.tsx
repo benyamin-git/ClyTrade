@@ -55,7 +55,7 @@ function renderSheet(
 }
 
 describe('JournalFilterSheet', () => {
-  it('renders every filter section', () => {
+  it('renders every filter section header', () => {
     renderSheet()
 
     for (const name of [
@@ -75,10 +75,31 @@ describe('JournalFilterSheet', () => {
     }
   })
 
+  it('starts every section collapsed when nothing is active', () => {
+    renderSheet()
+
+    expect(screen.getByRole('button', { name: /Price & size/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    expect(screen.queryByText('Entry price')).not.toBeInTheDocument()
+  })
+
+  it('starts an active section open', () => {
+    renderSheet({ filters: { ...DEFAULT_TRADE_FILTERS, entry: { min: 25, max: null } } })
+
+    expect(screen.getByRole('button', { name: /Price & size/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.getByText('Entry price')).toBeInTheDocument()
+  })
+
   it('reports a typed range bound through onChange', async () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Price & size/ }))
     const entry = screen.getByText('Entry price').closest('div') as HTMLElement
     await user.type(within(entry).getByRole('textbox', { name: 'Min' }), '25')
 
@@ -89,22 +110,31 @@ describe('JournalFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Search/ }))
     await user.type(screen.getByLabelText('Search'), 'b')
 
     expect(onChange).toHaveBeenLastCalledWith({ search: 'b' })
   })
 
+  it('makes the outcome control full width', async () => {
+    const user = userEvent.setup()
+    renderSheet()
+
+    await user.click(screen.getByRole('button', { name: /Outcome/ }))
+
+    expect(screen.getByRole('tablist', { name: 'Outcome' })).toHaveClass('w-full')
+  })
+
   it('shows the status and dates sections in the overview variant', () => {
     renderSheet({ variant: 'overview' })
 
-    expect(screen.getByRole('tablist', { name: 'Status' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Status/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Dates/ })).toBeInTheDocument()
   })
 
   it('hides only the status section in the stats variant', () => {
     renderSheet({ variant: 'stats' })
 
-    expect(screen.queryByRole('tablist', { name: 'Status' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Status/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Dates/ })).toBeInTheDocument()
   })
@@ -117,8 +147,7 @@ describe('JournalFilterSheet', () => {
       timeRange: { value: '30d', isDefault: true, onChange },
     })
 
-    expect(screen.getByRole('button', { name: /Time range/ })).toBeInTheDocument()
-
+    await user.click(screen.getByRole('button', { name: /Time range/ }))
     await user.click(screen.getByRole('tab', { name: '7D' }))
 
     expect(onChange).toHaveBeenCalledWith('7d')

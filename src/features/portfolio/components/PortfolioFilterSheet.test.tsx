@@ -41,7 +41,7 @@ function renderSheet(
 }
 
 describe('PortfolioFilterSheet', () => {
-  it('renders every filter section', () => {
+  it('renders every filter section header', () => {
     renderSheet()
 
     for (const name of ['Search', 'Market', 'Price & size', 'Performance', 'Outcome', 'Presence']) {
@@ -49,10 +49,31 @@ describe('PortfolioFilterSheet', () => {
     }
   })
 
+  it('starts every section collapsed when nothing is active', () => {
+    renderSheet()
+
+    expect(screen.getByRole('button', { name: /Price & size/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    expect(screen.queryByText('Quantity')).not.toBeInTheDocument()
+  })
+
+  it('starts an active section open', () => {
+    renderSheet({ filters: { ...DEFAULT_ASSET_FILTERS, quantity: { min: 25, max: null } } })
+
+    expect(screen.getByRole('button', { name: /Price & size/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.getByText('Quantity')).toBeInTheDocument()
+  })
+
   it('reports the live search text through onChange', async () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Search/ }))
     await user.type(screen.getByLabelText('Search'), 'b')
 
     expect(onChange).toHaveBeenLastCalledWith({ search: 'b' })
@@ -62,16 +83,27 @@ describe('PortfolioFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Price & size/ }))
     const quantity = screen.getByText('Quantity').closest('div') as HTMLElement
     await user.type(within(quantity).getByRole('textbox', { name: 'Min' }), '25')
 
     expect(onChange).toHaveBeenLastCalledWith({ quantity: { min: 25, max: null } })
   })
 
+  it('makes the outcome control full width', async () => {
+    const user = userEvent.setup()
+    renderSheet()
+
+    await user.click(screen.getByRole('button', { name: /Outcome/ }))
+
+    expect(screen.getByRole('tablist', { name: 'Outcome' })).toHaveClass('w-full')
+  })
+
   it('reports the outcome selection through onChange', async () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Outcome/ }))
     await user.click(screen.getByRole('tab', { name: 'Gains' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'gain' })
@@ -81,6 +113,7 @@ describe('PortfolioFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Presence/ }))
     const control = screen.getByRole('tablist', { name: 'Has price' })
     await user.click(within(control).getByRole('tab', { name: 'Has' }))
 
@@ -91,6 +124,7 @@ describe('PortfolioFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet()
 
+    await user.click(screen.getByRole('button', { name: /Presence/ }))
     const control = screen.getByRole('tablist', { name: 'Has notes' })
     await user.click(within(control).getByRole('tab', { name: 'Missing' }))
 
