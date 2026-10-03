@@ -36,14 +36,6 @@ export function withRangeBound(range: Range, bound: 'min' | 'max', value: number
   return { ...range, [bound]: value }
 }
 
-export function describeRange(range: Range, format: (value: number) => string): string | null {
-  const { min, max } = range
-  if (min !== null && max !== null) return `${format(min)} – ${format(max)}`
-  if (min !== null) return `≥ ${format(min)}`
-  if (max !== null) return `≤ ${format(max)}`
-  return null
-}
-
 export function activeGroupCount<F>(
   filters: F,
   groups: readonly FilterGroupDescriptor<F>[],

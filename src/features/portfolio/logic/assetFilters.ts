@@ -1,23 +1,14 @@
 import { calculateAssetMetrics } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
 import type { Market } from '@/data/models/market'
-import type {
-  FilterChipDescriptor,
-  FilterGroupDescriptor,
-  Range,
-  TriState,
-} from '@/features/filters/filterTypes'
+import type { FilterGroupDescriptor, Range, TriState } from '@/features/filters/filterTypes'
 import {
   EMPTY_RANGE,
-  describeRange,
   inRange,
   isRangeActive,
   matchesText,
   matchesTriState,
 } from '@/features/filters/filterUtils'
-import type { TranslationKey } from '@/i18n/types'
-import type { Translator } from '@/i18n/translate'
-import { formatNumber, formatPercent, formatPrice } from '@/lib/format'
 
 export type AssetOutcomeFilter = 'all' | 'gain' | 'loss' | 'breakeven'
 
@@ -48,8 +39,6 @@ export interface AssetNumericBounds {
   pnl: { min: number; max: number }
   pnlPercent: { min: number; max: number }
 }
-
-type PresenceKey = 'hasPrice' | 'hasNotes'
 
 export const DEFAULT_ASSET_FILTERS: AssetFilters = {
   search: '',
@@ -227,112 +216,3 @@ export const ASSET_FILTER_GROUPS: readonly FilterGroupDescriptor<AssetFilters>[]
     clear: (filters) => ({ ...filters, hasPrice: 'any', hasNotes: 'any' }),
   },
 ]
-
-function clearPresence(filters: AssetFilters, key: PresenceKey): AssetFilters {
-  switch (key) {
-    case 'hasPrice':
-      return { ...filters, hasPrice: 'any' }
-    case 'hasNotes':
-      return { ...filters, hasNotes: 'any' }
-  }
-}
-
-function presenceChip(
-  key: PresenceKey,
-  state: TriState,
-  labelKey: TranslationKey,
-  t: Translator,
-): FilterChipDescriptor<AssetFilters> {
-  return {
-    id: key,
-    label: `${t(labelKey)}: ${t(`filters.triState.${state}`)}`,
-    clear: (filters) => clearPresence(filters, key),
-  }
-}
-
-export function buildAssetChips(
-  filters: AssetFilters,
-  t: Translator,
-): FilterChipDescriptor<AssetFilters>[] {
-  const chips: FilterChipDescriptor<AssetFilters>[] = []
-
-  if (filters.search.trim() !== '') {
-    chips.push({
-      id: 'search',
-      label: `${t('filters.sections.text')}: ${filters.search.trim()}`,
-      clear: (current) => ({ ...current, search: '' }),
-    })
-  }
-
-  for (const market of filters.markets) {
-    chips.push({
-      id: `market:${market}`,
-      label: t(`markets.${market}`),
-      clear: (current) => ({
-        ...current,
-        markets: current.markets.filter((item) => item !== market),
-      }),
-    })
-  }
-
-  if (filters.outcome !== 'all') {
-    chips.push({
-      id: 'outcome',
-      label: t(`filters.assetOutcome.${filters.outcome}`),
-      clear: (current) => ({ ...current, outcome: 'all' }),
-    })
-  }
-
-  const pushRange = (
-    id: string,
-    labelKey: TranslationKey,
-    range: Range,
-    format: (value: number) => string,
-    clear: (current: AssetFilters) => AssetFilters,
-  ) => {
-    const description = describeRange(range, format)
-    if (description !== null) {
-      chips.push({ id, label: `${t(labelKey)}: ${description}`, clear })
-    }
-  }
-
-  pushRange('quantity', 'filters.quantity', filters.quantity, formatNumber, (current) => ({
-    ...current,
-    quantity: { ...EMPTY_RANGE },
-  }))
-  pushRange('avgCost', 'filters.avgCost', filters.avgCost, formatPrice, (current) => ({
-    ...current,
-    avgCost: { ...EMPTY_RANGE },
-  }))
-  pushRange(
-    'currentPrice',
-    'filters.currentPrice',
-    filters.currentPrice,
-    formatPrice,
-    (current) => ({
-      ...current,
-      currentPrice: { ...EMPTY_RANGE },
-    }),
-  )
-  pushRange('value', 'filters.value', filters.value, formatNumber, (current) => ({
-    ...current,
-    value: { ...EMPTY_RANGE },
-  }))
-  pushRange('pnl', 'filters.pnl', filters.pnl, formatNumber, (current) => ({
-    ...current,
-    pnl: { ...EMPTY_RANGE },
-  }))
-  pushRange('pnlPercent', 'filters.pnlPercent', filters.pnlPercent, formatPercent, (current) => ({
-    ...current,
-    pnlPercent: { ...EMPTY_RANGE },
-  }))
-
-  if (filters.hasPrice !== 'any') {
-    chips.push(presenceChip('hasPrice', filters.hasPrice, 'filters.hasPrice', t))
-  }
-  if (filters.hasNotes !== 'any') {
-    chips.push(presenceChip('hasNotes', filters.hasNotes, 'filters.hasNotes', t))
-  }
-
-  return chips
-}

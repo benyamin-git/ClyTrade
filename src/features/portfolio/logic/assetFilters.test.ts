@@ -2,20 +2,15 @@ import { describe, expect, it } from 'vitest'
 import type { AssetMetrics } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
 import { EMPTY_RANGE, activeGroupCount } from '@/features/filters/filterUtils'
-import { en } from '@/i18n/en'
-import { createTranslator } from '@/i18n/translate'
 import {
   ASSET_FILTER_GROUPS,
   DEFAULT_ASSET_FILTERS,
   assetNumericBounds,
-  buildAssetChips,
   filterAssets,
   toAssetRows,
   type AssetFilters,
   type AssetRow,
 } from './assetFilters'
-
-const t = createTranslator(en)
 
 function makeAsset(overrides: Partial<Asset> = {}): Asset {
   return {
@@ -296,76 +291,6 @@ describe('ASSET_FILTER_GROUPS', () => {
     expect(cleared.value).not.toBe(EMPTY_RANGE)
     expect(cleared.pnl).not.toBe(EMPTY_RANGE)
     expect(cleared.pnlPercent).not.toBe(EMPTY_RANGE)
-  })
-})
-
-describe('buildAssetChips', () => {
-  it('returns no chips for defaults', () => {
-    expect(buildAssetChips(DEFAULT_ASSET_FILTERS, t)).toEqual([])
-  })
-
-  it('labels search, markets and outcome', () => {
-    const chips = buildAssetChips(
-      withFilters({ search: 'btc', markets: ['crypto'], outcome: 'gain' }),
-      t,
-    )
-    expect(chips.map((chip) => chip.label)).toEqual(['Search: btc', 'Crypto', 'Gains'])
-  })
-
-  it('labels a range with describeRange', () => {
-    const chips = buildAssetChips(withFilters({ avgCost: { min: 100, max: 200 } }), t)
-    expect(chips).toHaveLength(1)
-    expect(chips[0]?.label).toBe('Avg cost: 100 – 200')
-  })
-
-  it('emits one chip per active range with the right ids', () => {
-    const chips = buildAssetChips(
-      withFilters({
-        quantity: { min: 1, max: null },
-        avgCost: { min: 2, max: null },
-        currentPrice: { min: 3, max: null },
-        value: { min: 4, max: null },
-        pnl: { min: 5, max: null },
-        pnlPercent: { min: 6, max: null },
-      }),
-      t,
-    )
-    expect(chips.map((chip) => chip.id)).toEqual([
-      'quantity',
-      'avgCost',
-      'currentPrice',
-      'value',
-      'pnl',
-      'pnlPercent',
-    ])
-  })
-
-  it('labels presence filters with their has key and state', () => {
-    const chips = buildAssetChips(withFilters({ hasPrice: 'has', hasNotes: 'missing' }), t)
-    expect(chips.map((chip) => chip.label)).toEqual(['Has price: Has', 'Has notes: Missing'])
-  })
-
-  it('clears only the targeted value', () => {
-    const filters = withFilters({ markets: ['crypto', 'stocks'] })
-    const chips = buildAssetChips(filters, t)
-    const marketChip = chips.find((chip) => chip.id === 'market:crypto')
-
-    expect(marketChip?.clear(filters)).toEqual(withFilters({ markets: ['stocks'] }))
-  })
-
-  it('clears range chips to fresh empty ranges', () => {
-    const filters = withFilters({
-      quantity: { min: 1, max: null },
-      pnl: { min: null, max: 2 },
-    })
-    const chips = buildAssetChips(filters, t)
-    for (const id of ['quantity', 'pnl'] as const) {
-      const chip = chips.find((item) => item.id === id)
-      if (!chip) throw new Error(`missing chip ${id}`)
-      const cleared = chip.clear(filters)
-      expect(cleared[id]).toEqual(EMPTY_RANGE)
-      expect(cleared[id]).not.toBe(EMPTY_RANGE)
-    }
   })
 })
 

@@ -2,21 +2,16 @@ import { describe, expect, it } from 'vitest'
 import type { TradeMetricsResult } from '@/calculations/tradeMetrics'
 import type { Trade } from '@/data/models/trade'
 import { EMPTY_RANGE, activeGroupCount } from '@/features/filters/filterUtils'
-import { en } from '@/i18n/en'
-import { createTranslator } from '@/i18n/translate'
 import { toTradeRows, type TradeRow } from './tradeRows'
 import {
   DEFAULT_TRADE_FILTERS,
   TRADE_FILTER_GROUPS,
-  buildTradeChips,
   filterTrades,
   tradeNumericBounds,
   tradeStrategyOptions,
   tradeTagOptions,
   type TradeFilters,
 } from './tradeFilters'
-
-const t = createTranslator(en)
 
 function makeTrade(overrides: Partial<Trade> = {}): Trade {
   return {
@@ -325,97 +320,6 @@ describe('TRADE_FILTER_GROUPS', () => {
     expect(cleared.netPnl).not.toBe(EMPTY_RANGE)
     expect(cleared.rMultiple).not.toBe(EMPTY_RANGE)
     expect(cleared.duration).not.toBe(EMPTY_RANGE)
-  })
-})
-
-describe('buildTradeChips', () => {
-  it('returns no chips for defaults', () => {
-    expect(buildTradeChips(DEFAULT_TRADE_FILTERS, t)).toEqual([])
-  })
-
-  it('labels search, markets, direction, status and outcome', () => {
-    const chips = buildTradeChips(
-      withFilters({
-        search: 'btc',
-        markets: ['crypto'],
-        direction: 'long',
-        status: 'open',
-        outcome: 'win',
-      }),
-      t,
-    )
-    expect(chips.map((chip) => chip.label)).toEqual([
-      'Search: btc',
-      'Crypto',
-      'Long',
-      'Open',
-      'Wins',
-    ])
-  })
-
-  it('labels a range with describeRange', () => {
-    const chips = buildTradeChips(withFilters({ entry: { min: 100, max: 200 } }), t)
-    expect(chips).toHaveLength(1)
-    expect(chips[0]?.label).toBe('Entry price: 100 – 200')
-  })
-
-  it('emits one chip per active range with the right ids', () => {
-    const chips = buildTradeChips(
-      withFilters({
-        opened: { min: 1, max: null },
-        closed: { min: null, max: 2 },
-        exit: { min: 3, max: null },
-        size: { min: 4, max: null },
-        leverage: { min: 5, max: null },
-        fees: { min: 6, max: null },
-        netPnl: { min: 7, max: null },
-        rMultiple: { min: 8, max: null },
-        duration: { min: 9, max: null },
-      }),
-      t,
-    )
-    expect(chips.map((chip) => chip.id)).toEqual([
-      'opened',
-      'closed',
-      'exit',
-      'size',
-      'leverage',
-      'fees',
-      'netPnl',
-      'rMultiple',
-      'duration',
-    ])
-  })
-
-  it('labels presence filters with their has key and state', () => {
-    const chips = buildTradeChips(withFilters({ hasStop: 'has', hasNotes: 'missing' }), t)
-    expect(chips.map((chip) => chip.label)).toEqual(['Has stop: Has', 'Has notes: Missing'])
-  })
-
-  it('clears only the targeted value', () => {
-    const filters = withFilters({ markets: ['crypto', 'stocks'], tags: ['a', 'b'] })
-    const chips = buildTradeChips(filters, t)
-    const marketChip = chips.find((chip) => chip.id === 'market:crypto')
-    const tagChip = chips.find((chip) => chip.id === 'tag:a')
-
-    expect(marketChip?.clear(filters)).toEqual(
-      withFilters({ markets: ['stocks'], tags: ['a', 'b'] }),
-    )
-    expect(tagChip?.clear(filters)).toEqual(
-      withFilters({ markets: ['crypto', 'stocks'], tags: ['b'] }),
-    )
-  })
-
-  it('clears range chips to fresh empty ranges', () => {
-    const filters = withFilters({ opened: { min: 1, max: null }, closed: { min: null, max: 2 } })
-    const chips = buildTradeChips(filters, t)
-    for (const id of ['opened', 'closed'] as const) {
-      const chip = chips.find((item) => item.id === id)
-      if (!chip) throw new Error(`missing chip ${id}`)
-      const cleared = chip.clear(filters)
-      expect(cleared[id]).toEqual(EMPTY_RANGE)
-      expect(cleared[id]).not.toBe(EMPTY_RANGE)
-    }
   })
 })
 

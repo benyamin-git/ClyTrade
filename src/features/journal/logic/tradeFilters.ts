@@ -1,23 +1,13 @@
 import type { Market } from '@/data/models/market'
 import type { Direction, Trade } from '@/data/models/trade'
-import type {
-  FilterChipDescriptor,
-  FilterGroupDescriptor,
-  Range,
-  TriState,
-} from '@/features/filters/filterTypes'
+import type { FilterGroupDescriptor, Range, TriState } from '@/features/filters/filterTypes'
 import {
   EMPTY_RANGE,
-  describeRange,
   inRange,
   isRangeActive,
   matchesText,
   matchesTriState,
 } from '@/features/filters/filterUtils'
-import type { TranslationKey } from '@/i18n/types'
-import type { Translator } from '@/i18n/translate'
-import { formatDate } from '@/lib/dates'
-import { formatNumber, formatPrice } from '@/lib/format'
 import type { TradeRow } from './tradeRows'
 
 export type TradeOutcomeFilter = 'all' | 'win' | 'loss' | 'breakeven'
@@ -60,8 +50,6 @@ export interface TradeNumericBounds {
   rMultiple: { min: number; max: number }
   duration: { min: number; max: number }
 }
-
-type PresenceKey = 'hasStop' | 'hasTarget' | 'hasNotes' | 'hasTags'
 
 export const DEFAULT_TRADE_FILTERS: TradeFilters = {
   search: '',
@@ -334,170 +322,3 @@ export const TRADE_FILTER_GROUPS: readonly FilterGroupDescriptor<TradeFilters>[]
     }),
   },
 ]
-
-function clearPresence(filters: TradeFilters, key: PresenceKey): TradeFilters {
-  switch (key) {
-    case 'hasStop':
-      return { ...filters, hasStop: 'any' }
-    case 'hasTarget':
-      return { ...filters, hasTarget: 'any' }
-    case 'hasNotes':
-      return { ...filters, hasNotes: 'any' }
-    case 'hasTags':
-      return { ...filters, hasTags: 'any' }
-  }
-}
-
-function presenceChip(
-  key: PresenceKey,
-  state: TriState,
-  labelKey: TranslationKey,
-  t: Translator,
-): FilterChipDescriptor<TradeFilters> {
-  return {
-    id: key,
-    label: `${t(labelKey)}: ${t(`filters.triState.${state}`)}`,
-    clear: (filters) => clearPresence(filters, key),
-  }
-}
-
-export function buildTradeChips(
-  filters: TradeFilters,
-  t: Translator,
-): FilterChipDescriptor<TradeFilters>[] {
-  const chips: FilterChipDescriptor<TradeFilters>[] = []
-
-  if (filters.search.trim() !== '') {
-    chips.push({
-      id: 'search',
-      label: `${t('filters.sections.text')}: ${filters.search.trim()}`,
-      clear: (current) => ({ ...current, search: '' }),
-    })
-  }
-
-  for (const market of filters.markets) {
-    chips.push({
-      id: `market:${market}`,
-      label: t(`markets.${market}`),
-      clear: (current) => ({
-        ...current,
-        markets: current.markets.filter((item) => item !== market),
-      }),
-    })
-  }
-
-  if (filters.direction !== 'all') {
-    chips.push({
-      id: 'direction',
-      label: t(`direction.${filters.direction}`),
-      clear: (current) => ({ ...current, direction: 'all' }),
-    })
-  }
-
-  if (filters.status !== 'all') {
-    chips.push({
-      id: 'status',
-      label: t(`status.${filters.status}`),
-      clear: (current) => ({ ...current, status: 'all' }),
-    })
-  }
-
-  for (const tag of filters.tags) {
-    chips.push({
-      id: `tag:${tag}`,
-      label: tag,
-      clear: (current) => ({ ...current, tags: current.tags.filter((item) => item !== tag) }),
-    })
-  }
-
-  for (const strategy of filters.strategies) {
-    chips.push({
-      id: `strategy:${strategy}`,
-      label: strategy,
-      clear: (current) => ({
-        ...current,
-        strategies: current.strategies.filter((item) => item !== strategy),
-      }),
-    })
-  }
-
-  if (filters.outcome !== 'all') {
-    chips.push({
-      id: 'outcome',
-      label: t(`filters.outcome.${filters.outcome}`),
-      clear: (current) => ({ ...current, outcome: 'all' }),
-    })
-  }
-
-  const pushRange = (
-    id: string,
-    labelKey: TranslationKey,
-    range: Range,
-    format: (value: number) => string,
-    clear: (current: TradeFilters) => TradeFilters,
-  ) => {
-    const description = describeRange(range, format)
-    if (description !== null) {
-      chips.push({ id, label: `${t(labelKey)}: ${description}`, clear })
-    }
-  }
-
-  pushRange('opened', 'fields.opened', filters.opened, formatDate, (current) => ({
-    ...current,
-    opened: { ...EMPTY_RANGE },
-  }))
-  pushRange('closed', 'fields.closed', filters.closed, formatDate, (current) => ({
-    ...current,
-    closed: { ...EMPTY_RANGE },
-  }))
-  pushRange('entry', 'fields.entryPrice', filters.entry, formatPrice, (current) => ({
-    ...current,
-    entry: { ...EMPTY_RANGE },
-  }))
-  pushRange('exit', 'fields.exitPrice', filters.exit, formatPrice, (current) => ({
-    ...current,
-    exit: { ...EMPTY_RANGE },
-  }))
-  pushRange('size', 'fields.size', filters.size, formatNumber, (current) => ({
-    ...current,
-    size: { ...EMPTY_RANGE },
-  }))
-  pushRange('leverage', 'fields.leverage', filters.leverage, formatNumber, (current) => ({
-    ...current,
-    leverage: { ...EMPTY_RANGE },
-  }))
-  pushRange('fees', 'fields.feesTotal', filters.fees, formatNumber, (current) => ({
-    ...current,
-    fees: { ...EMPTY_RANGE },
-  }))
-  pushRange('netPnl', 'journal.columns.netPnl', filters.netPnl, formatNumber, (current) => ({
-    ...current,
-    netPnl: { ...EMPTY_RANGE },
-  }))
-  pushRange('rMultiple', 'filters.rMultiple', filters.rMultiple, formatNumber, (current) => ({
-    ...current,
-    rMultiple: { ...EMPTY_RANGE },
-  }))
-  pushRange(
-    'duration',
-    'filters.duration',
-    filters.duration,
-    (value) => formatNumber(value, { maximumFractionDigits: 0 }),
-    (current) => ({ ...current, duration: { ...EMPTY_RANGE } }),
-  )
-
-  if (filters.hasStop !== 'any') {
-    chips.push(presenceChip('hasStop', filters.hasStop, 'filters.hasStop', t))
-  }
-  if (filters.hasTarget !== 'any') {
-    chips.push(presenceChip('hasTarget', filters.hasTarget, 'filters.hasTarget', t))
-  }
-  if (filters.hasNotes !== 'any') {
-    chips.push(presenceChip('hasNotes', filters.hasNotes, 'filters.hasNotes', t))
-  }
-  if (filters.hasTags !== 'any') {
-    chips.push(presenceChip('hasTags', filters.hasTags, 'filters.hasTags', t))
-  }
-
-  return chips
-}

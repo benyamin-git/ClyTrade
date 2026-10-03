@@ -3,7 +3,6 @@ import type { FilterGroupDescriptor, Range } from './filterTypes'
 import {
   EMPTY_RANGE,
   activeGroupCount,
-  describeRange,
   inRange,
   isRangeActive,
   matchesText,
@@ -121,30 +120,6 @@ describe('withRangeBound', () => {
     const range: Range = { min: 1, max: 2 }
     withRangeBound(range, 'min', 5)
     expect(range).toEqual({ min: 1, max: 2 })
-  })
-})
-
-describe('describeRange', () => {
-  const format = (value: number) => `#${value}`
-
-  it('returns null when inactive', () => {
-    expect(describeRange(EMPTY_RANGE, format)).toBeNull()
-  })
-
-  it('describes both bounds', () => {
-    expect(describeRange({ min: 5, max: 10 }, format)).toBe('#5 – #10')
-  })
-
-  it('describes a minimum-only bound', () => {
-    expect(describeRange({ min: 5, max: null }, format)).toBe('≥ #5')
-  })
-
-  it('describes a maximum-only bound', () => {
-    expect(describeRange({ min: null, max: 10 }, format)).toBe('≤ #10')
-  })
-
-  it('applies the formatter to each bound', () => {
-    expect(describeRange({ min: 1000, max: 2000 }, (value) => `${value / 1000}k`)).toBe('1k – 2k')
   })
 })
 

@@ -13,9 +13,3 @@ export interface FilterGroupDescriptor<F> {
   isActive: (filters: F) => boolean
   clear: (filters: F) => F
 }
-
-export interface FilterChipDescriptor<F> {
-  id: string
-  label: string
-  clear: (filters: F) => F
-}
