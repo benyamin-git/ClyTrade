@@ -22,14 +22,17 @@ worth now, and how the allocation is distributed.
 
 ## Filtering
 
-- The overview and Stats both have a filter bar: search, markets, plus a
-  **Filters** button for the advanced sheet.
-- The sheet adds quantity, average cost, current price, value, PnL, PnL %,
-  outcome and presence (has price / notes) conditions. Changes apply live.
+- A **Filters** button above the table (or the charts on Stats) opens the sheet,
+  which holds search, markets, quantity, average cost, current price, value,
+  PnL, PnL %, outcome and presence (has price / notes) conditions. Changes apply
+  live.
+- The button shows a badge with the number of active groups; the sheet's section
+  headers show where those groups are. Sections start collapsed and a section
+  with an active filter opens on first view.
 - Filters are per page and are dropped when you leave the tab. Totals and the
   allocation and PnL charts follow the filtered set.
-- See **Filtering** under Features for how conditions combine, the log vs linear
-  sliders and the filtered-empty state.
+- See **Filtering** under Features for how conditions combine, the Min/Max number
+  ranges and the filtered-empty state.
 
 ## Why it works this way
 

@@ -11,10 +11,11 @@ is the one filter axis the Journal and Portfolio share.
 - **New entries are prefilled.** The form opens on your default market from
   Settings → Preferences, so the common case needs no extra tap.
 - **Market is one filter among many.** The Journal and Portfolio overviews and
-  stats views all have a full filter bar, and market is the shared axis: it
-  starts on **All markets** and is not remembered between visits. Market is far
-  from the only thing you can filter by — dates, prices, performance, outcome
-  and presence are all available. See **Filtering** under Features.
+  stats views all open their filters from a **Filters** button, and market is the
+  shared axis: it starts on **All markets** and is not remembered between visits.
+  Market is far from the only thing you can filter by — dates, prices,
+  performance, outcome and presence are all available. See **Filtering** under
+  Features.
 - **Unspecified is a real choice.** Records made before markets existed are
   marked Unspecified, and it is the default for a fresh install. It means "no
   market recorded", not "unknown asset".

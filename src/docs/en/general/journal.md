@@ -21,19 +21,20 @@ Stats.
 
 ## Filtering
 
-- The overview quick bar carries search, markets, direction and status. The
-  Stats quick bar is deliberately smaller — time range and markets — because a
-  stats view is usually scoped by period, not by individual trades. The rest of
-  the controls live in the sheet.
-- The sheet adds dates, price & size, performance, outcome, tags, strategies and
-  presence (has stop / target / notes / tags) conditions, and so on. Changes
-  apply live.
-- Stats also filters by time range; **Clear all** restores the preference
-  default.
+- A **Filters** button above the table opens the sheet, which holds search,
+  markets, direction, status, tags, strategies, dates, price & size,
+  performance, outcome and presence (has stop / target / notes / tags)
+  conditions. Changes apply live.
+- On the list the button shows a badge with the number of active groups; the
+  sheet's section headers show where those groups are. Sections start collapsed
+  and a section with an active filter opens on first view.
+- Stats keeps its time-range control (7D / 30D / 90D / YTD / All) inline next to
+  the Filters button; the same control also appears in the Stats sheet.
+  **Clear all** restores it to the preference default.
 - Filters are per page and are dropped when you leave the tab, so returning
   always shows every trade. Totals, win rate and charts follow the filtered set.
-- See **Filtering** under Features for how conditions combine, the log vs linear
-  sliders and the filtered-empty state.
+- See **Filtering** under Features for how conditions combine, the Min/Max number
+  ranges and the filtered-empty state.
 
 ## Why it works this way
 
