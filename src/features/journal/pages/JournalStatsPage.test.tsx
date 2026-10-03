@@ -54,6 +54,8 @@ describe('JournalStatsPage filters', () => {
     renderPage()
     expect(await screen.findByText(/2 closed/)).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Market/ }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
@@ -68,6 +70,7 @@ describe('JournalStatsPage filters', () => {
     expect(screen.getByText('1W / 1L')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
     await userEvent.click(screen.getByRole('tab', { name: 'Wins' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
@@ -81,6 +84,7 @@ describe('JournalStatsPage filters', () => {
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
     await userEvent.click(screen.getByRole('tab', { name: 'Losses' }))
 
     expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
@@ -100,6 +104,7 @@ describe('JournalStatsPage filters', () => {
       'true',
     )
 
+    await userEvent.click(screen.getByRole('button', { name: /Filters/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
 
     expect(within(timeRange).getByRole('tab', { name: '30D' })).toHaveAttribute(

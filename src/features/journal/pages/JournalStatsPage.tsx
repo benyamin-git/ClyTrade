@@ -13,7 +13,6 @@ import {
   YAxis,
 } from 'recharts'
 import { buildEquityCurve, calculateJournalStats } from '@/calculations/journalStats'
-import { MARKET_IDS, type Market } from '@/data/models/market'
 import { listTrades } from '@/data/repositories/trades.repo'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
@@ -25,13 +24,11 @@ import { formatCompact, formatCurrency, formatNumber } from '@/lib/format'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { EmptyState } from '@/ui/components/EmptyState'
-import { MultiSelectField } from '@/ui/components/MultiSelectField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { JournalFilterSheet } from '../components/JournalFilterSheet'
 import {
-  buildTradeChips,
   DEFAULT_TRADE_FILTERS,
   filterTrades,
   TRADE_FILTER_GROUPS,
@@ -86,7 +83,6 @@ export function JournalStatsPage() {
     [curve],
   )
 
-  const chip = useMemo(() => buildTradeChips(filters, t), [filters, t])
   const rangeIsDefault = range === preferences.defaultTimeRange
   const activeCount = activeGroupCount(filters, TRADE_FILTER_GROUPS) + (rangeIsDefault ? 0 : 1)
   const tagOptions = useMemo(() => tradeTagOptions(trades ?? []), [trades])
@@ -105,36 +101,24 @@ export function JournalStatsPage() {
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <FilterBar
-        chips={chip.map((item) => ({
-          id: item.id,
-          label: item.label,
-          onClear: () => patch(item.clear(filters)),
-        }))}
         activeCount={activeCount}
         onOpenFilters={() => setSheetOpen(true)}
-        onClearAll={handleReset}
+        leading={
+          <SegmentedControl
+            value={range}
+            options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
+            onChange={setRange}
+            ariaLabel={t('filters.sections.timeRange')}
+            size="sm"
+            className="no-scrollbar max-w-full overflow-x-auto"
+          />
+        }
         trailing={
           <span className="text-xs text-on-surface-variant">
             {t('journal.stats.closedOpen', { closed: stats.closed, open: stats.open })}
           </span>
         }
-      >
-        <SegmentedControl
-          value={range}
-          options={TIME_RANGES.map((id) => ({ value: id, label: t(`timeRange.${id}`) }))}
-          onChange={setRange}
-          ariaLabel={t('filters.sections.timeRange')}
-          size="sm"
-          className="no-scrollbar max-w-full overflow-x-auto"
-        />
-        <MultiSelectField
-          label={t('fields.market')}
-          value={filters.markets}
-          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
-          onChange={(markets) => patch({ markets: markets as Market[] })}
-          className="w-56"
-        />
-      </FilterBar>
+      />
 
       {stats.closed === 0 ? (
         <Card className="flex-1">
