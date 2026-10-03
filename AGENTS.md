@@ -33,6 +33,9 @@ export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 
 Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing work.
 
+Full code review reports live in `docs/reviews/`; read the latest one before
+large changes.
+
 ## Hard rules
 
 - **Never modify `src/calculations/**` without explicit permission from the project

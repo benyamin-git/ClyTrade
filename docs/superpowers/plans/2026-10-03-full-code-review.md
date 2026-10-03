@@ -29,13 +29,7 @@ de-duplicates them in Task 3.
 ```ts
 type Severity = 'Critical' | 'High' | 'Medium' | 'Low' | 'Nit'
 type Dimension =
-  | 'correctness'
-  | 'security'
-  | 'architecture'
-  | 'performance'
-  | 'a11y'
-  | 'i18n'
-  | 'tests'
+  'correctness' | 'security' | 'architecture' | 'performance' | 'a11y' | 'i18n' | 'tests'
 
 interface Finding {
   id: string // assigned in Task 3, e.g. CR-001
@@ -134,24 +128,24 @@ passes, then independently re-resolves every citation before accepting a finding
 
 Area pass map (exact paths):
 
-| # | Area | Paths |
-| --- | --- | --- |
-| B1 | App shell + navigation | `src/app/**`, `src/navigation/**` |
-| B2 | Journal feature | `src/features/journal/**` |
-| B3 | Portfolio feature | `src/features/portfolio/**` |
-| B4 | Calculations feature | `src/features/calculations/**` |
-| B5 | Settings feature | `src/features/settings/**` |
-| B6 | Filters feature | `src/features/filters/**` |
-| B7 | Calculations core (**read-only**) | `src/calculations/**` |
-| B8 | Data layer | `src/data/**` |
-| B9 | UI design system | `src/ui/**` |
-| B10 | Theme + styles | `src/theme/**`, `src/styles/**` |
-| B11 | i18n | `src/i18n/**` |
-| B12 | Library + test setup | `src/lib/**`, `src/test/**` |
-| B13 | Backend/manifest/tooling | `scripts/**`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js` |
-| B14 | Native shell | `src-tauri/**` |
-| B15 | CI workflows | `.github/workflows/**` |
-| B16 | Docs + prose | `README.md`, `masterplan.md`, `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `TODO.md`, `src/docs/**` |
+| #   | Area                              | Paths                                                                                                  |
+| --- | --------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| B1  | App shell + navigation            | `src/app/**`, `src/navigation/**`                                                                      |
+| B2  | Journal feature                   | `src/features/journal/**`                                                                              |
+| B3  | Portfolio feature                 | `src/features/portfolio/**`                                                                            |
+| B4  | Calculations feature              | `src/features/calculations/**`                                                                         |
+| B5  | Settings feature                  | `src/features/settings/**`                                                                             |
+| B6  | Filters feature                   | `src/features/filters/**`                                                                              |
+| B7  | Calculations core (**read-only**) | `src/calculations/**`                                                                                  |
+| B8  | Data layer                        | `src/data/**`                                                                                          |
+| B9  | UI design system                  | `src/ui/**`                                                                                            |
+| B10 | Theme + styles                    | `src/theme/**`, `src/styles/**`                                                                        |
+| B11 | i18n                              | `src/i18n/**`                                                                                          |
+| B12 | Library + test setup              | `src/lib/**`, `src/test/**`                                                                            |
+| B13 | Backend/manifest/tooling          | `scripts/**`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`                                   |
+| B14 | Native shell                      | `src-tauri/**`                                                                                         |
+| B15 | CI workflows                      | `.github/workflows/**`                                                                                 |
+| B16 | Docs + prose                      | `README.md`, `masterplan.md`, `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `TODO.md`, `src/docs/**` |
 
 Per-area focus notes:
 

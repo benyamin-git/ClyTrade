@@ -57,28 +57,28 @@ plan. This is an audit program: it changes no product behavior by itself.
 
 ## Decision log
 
-| # | Decision | Rationale | Status | Source |
-|---|----------|-----------|--------|--------|
-| D1 | Deliverable = severity-ranked findings report + fix plan, as two documents | Findings can't be enumerated before the review runs | decided | user |
-| D2 | Scope = all areas: `src/**` (app, features, calculations, data, ui, theme, i18n, docs, lib, navigation, test), `scripts/`, `src-tauri/` (Rust + Android + config), `.github/workflows/`, docs/prose | Owner wants the whole project covered | decided | user |
-| D3 | Dimensions = correctness/bugs (priority), security/data-safety, architecture/conventions, performance, a11y/UX, i18n/RTL, tests/coverage | All standard dimensions requested | decided | user |
-| D4 | Method = manual expert read + `typecheck`/`lint`/`test`; security-audit skill full mode; CodeRabbit skipped | CLI not installed; avoid external API | decided | user |
-| D5 | Constraints = `src/calculations/**` strictly read-only; no silent behavior/API changes; generated files only via npm scripts; rest of tree fair game for recommended fixes | AGENTS.md hard rule + owner intent | decided | user |
-| D6 | Report = committed `docs/reviews/<date>-code-review.md` | Requested separate report | decided | user |
-| D7 | Fix plan covers all confirmed findings, severity-ordered | Owner wants completeness | decided | user |
-| D8 | Severity = unified Critical / High / Medium / Low / Nit | One scale for bugs and security | decided | user |
-| D9 | Review broken into one task per repo area | Per-area passes chosen | decided | user |
-| D10 | Security = full six-phase audit, standard profile, cap ~30 agent invocations, artifacts in `~/security-audit-skill/clytrade/run-N`; summary folded into report | Explicit full audit requested | decided | user |
-| D11 | Report structure = exec summary → severity table → per-area detail → security summary → coverage statement + gaps | Full structured report | decided | user |
-| D12 | Two plans: Plan 1 review+report; Plan 2 fixes after findings | Findings unknown now; two gates | decided | user |
-| D13 | Fixes follow house TDD, one commit each, run `typecheck`/`lint`/`test` | Matches repo history | decided | user |
-| D14 | Tests dimension assessed manually over the 51 test files; no coverage dependency | Keep deps unchanged | decided | user |
-| D15 | Parallel exploration subagents per area; parent owns synthesis and report | Speed with consistency | decided | user |
-| D16 | Ordering: security audit → per-area review → synthesis | Security view informs correctness pass | decided | user |
-| D17 | Unfixed/accepted Low/Nit findings appended to `TODO.md` | Don't lose items | decided | user |
-| D18 | Add a pointer to `docs/reviews/` in `AGENTS.md` | Future agents find reports | decided | user |
-| D19 | Review targets current `master` HEAD (`15e30c0`), clean worktree; report dated at run time | Reproducibility | assumed | recommendation |
-| D20 | Report filename `2026-10-03-code-review.md` (run date may adjust the date prefix) | Consistent with `docs/superpowers` date convention | assumed | recommendation |
+| #   | Decision                                                                                                                                                                                            | Rationale                                           | Status  | Source         |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------- | -------------- |
+| D1  | Deliverable = severity-ranked findings report + fix plan, as two documents                                                                                                                          | Findings can't be enumerated before the review runs | decided | user           |
+| D2  | Scope = all areas: `src/**` (app, features, calculations, data, ui, theme, i18n, docs, lib, navigation, test), `scripts/`, `src-tauri/` (Rust + Android + config), `.github/workflows/`, docs/prose | Owner wants the whole project covered               | decided | user           |
+| D3  | Dimensions = correctness/bugs (priority), security/data-safety, architecture/conventions, performance, a11y/UX, i18n/RTL, tests/coverage                                                            | All standard dimensions requested                   | decided | user           |
+| D4  | Method = manual expert read + `typecheck`/`lint`/`test`; security-audit skill full mode; CodeRabbit skipped                                                                                         | CLI not installed; avoid external API               | decided | user           |
+| D5  | Constraints = `src/calculations/**` strictly read-only; no silent behavior/API changes; generated files only via npm scripts; rest of tree fair game for recommended fixes                          | AGENTS.md hard rule + owner intent                  | decided | user           |
+| D6  | Report = committed `docs/reviews/<date>-code-review.md`                                                                                                                                             | Requested separate report                           | decided | user           |
+| D7  | Fix plan covers all confirmed findings, severity-ordered                                                                                                                                            | Owner wants completeness                            | decided | user           |
+| D8  | Severity = unified Critical / High / Medium / Low / Nit                                                                                                                                             | One scale for bugs and security                     | decided | user           |
+| D9  | Review broken into one task per repo area                                                                                                                                                           | Per-area passes chosen                              | decided | user           |
+| D10 | Security = full six-phase audit, standard profile, cap ~30 agent invocations, artifacts in `~/security-audit-skill/clytrade/run-N`; summary folded into report                                      | Explicit full audit requested                       | decided | user           |
+| D11 | Report structure = exec summary → severity table → per-area detail → security summary → coverage statement + gaps                                                                                   | Full structured report                              | decided | user           |
+| D12 | Two plans: Plan 1 review+report; Plan 2 fixes after findings                                                                                                                                        | Findings unknown now; two gates                     | decided | user           |
+| D13 | Fixes follow house TDD, one commit each, run `typecheck`/`lint`/`test`                                                                                                                              | Matches repo history                                | decided | user           |
+| D14 | Tests dimension assessed manually over the 51 test files; no coverage dependency                                                                                                                    | Keep deps unchanged                                 | decided | user           |
+| D15 | Parallel exploration subagents per area; parent owns synthesis and report                                                                                                                           | Speed with consistency                              | decided | user           |
+| D16 | Ordering: security audit → per-area review → synthesis                                                                                                                                              | Security view informs correctness pass              | decided | user           |
+| D17 | Unfixed/accepted Low/Nit findings appended to `TODO.md`                                                                                                                                             | Don't lose items                                    | decided | user           |
+| D18 | Add a pointer to `docs/reviews/` in `AGENTS.md`                                                                                                                                                     | Future agents find reports                          | decided | user           |
+| D19 | Review targets current `master` HEAD (`15e30c0`), clean worktree; report dated at run time                                                                                                          | Reproducibility                                     | assumed | recommendation |
+| D20 | Report filename `2026-10-03-code-review.md` (run date may adjust the date prefix)                                                                                                                   | Consistent with `docs/superpowers` date convention  | assumed | recommendation |
 
 ## Architecture / method
 
