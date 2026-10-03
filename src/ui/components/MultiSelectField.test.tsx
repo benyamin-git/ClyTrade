@@ -76,6 +76,16 @@ describe('MultiSelectField', () => {
     expect(screen.getByRole('button', { name: 'Stocks' })).toHaveAttribute('aria-pressed', 'false')
   })
 
+  it('hides the visible label while keeping the group accessible name', () => {
+    render(
+      <MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} hideLabel />,
+      { wrapper: I18nProvider },
+    )
+
+    expect(screen.getByText('Market')).toHaveClass('sr-only')
+    expect(screen.getByRole('group', { name: 'Market' })).toBeInTheDocument()
+  })
+
   it('shows a disabled no-options line when there are no options', () => {
     render(<MultiSelectField label="Market" value={[]} options={[]} onChange={() => {}} />, {
       wrapper: I18nProvider,

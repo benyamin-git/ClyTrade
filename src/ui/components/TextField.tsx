@@ -10,6 +10,7 @@ export interface TextFieldProps {
   hint?: string
   error?: string | null
   disabled?: boolean
+  hideLabel?: boolean
   className?: string
 }
 
@@ -21,11 +22,12 @@ export function TextField({
   hint,
   error,
   disabled,
+  hideLabel,
   className,
 }: TextFieldProps) {
   const id = useId()
   return (
-    <Field label={label} htmlFor={id} hint={hint} error={error} className={className}>
+    <Field label={label} htmlFor={id} hint={hint} error={error} hideLabel={hideLabel} className={className}>
       <input
         id={id}
         type="text"

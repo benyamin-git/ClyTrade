@@ -44,15 +44,15 @@ interface TriStateFieldProps {
 function TriStateField({ label, value, onChange }: TriStateFieldProps) {
   const { t } = useI18n()
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium tracking-wide text-on-surface-variant uppercase">
         {label}
       </span>
       <SegmentedControl
         value={value}
         onChange={onChange}
         ariaLabel={label}
-        size="sm"
+        fullWidth
         options={[
           { value: 'any', label: t('filters.triState.any') },
           { value: 'has', label: t('filters.triState.has') },
@@ -84,6 +84,7 @@ export function PortfolioFilterSheet({
             value={filters.search}
             onChange={(search) => onChange({ search })}
             placeholder={t('filters.assetSearchPlaceholder')}
+            hideLabel
           />
         )
       case 'market':
@@ -93,6 +94,7 @@ export function PortfolioFilterSheet({
             value={filters.markets}
             options={marketOptions}
             onChange={(values) => onChange({ markets: values as Market[] })}
+            hideLabel
           />
         )
       case 'priceSize':

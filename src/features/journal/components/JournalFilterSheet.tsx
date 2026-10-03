@@ -85,15 +85,15 @@ interface TriStateFieldProps {
 function TriStateField({ label, value, onChange }: TriStateFieldProps) {
   const { t } = useI18n()
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium tracking-wide text-on-surface-variant uppercase">
         {label}
       </span>
       <SegmentedControl
         value={value}
         onChange={onChange}
         ariaLabel={label}
-        size="sm"
+        fullWidth
         options={[
           { value: 'any', label: t('filters.triState.any') },
           { value: 'has', label: t('filters.triState.has') },
@@ -129,6 +129,7 @@ export function JournalFilterSheet({
             value={filters.search}
             onChange={(search) => onChange({ search })}
             placeholder={t('filters.searchPlaceholder')}
+            hideLabel
           />
         )
       case 'market':
@@ -138,6 +139,7 @@ export function JournalFilterSheet({
             value={filters.markets}
             options={marketOptions}
             onChange={(values) => onChange({ markets: values as Market[] })}
+            hideLabel
           />
         )
       case 'direction':
@@ -175,6 +177,7 @@ export function JournalFilterSheet({
             value={filters.tags}
             options={tagOptions.map((tag) => ({ value: tag, label: tag }))}
             onChange={(tags) => onChange({ tags })}
+            hideLabel
           />
         )
       case 'strategies':
@@ -184,6 +187,7 @@ export function JournalFilterSheet({
             value={filters.strategies}
             options={strategyOptions.map((strategy) => ({ value: strategy, label: strategy }))}
             onChange={(strategies) => onChange({ strategies })}
+            hideLabel
           />
         )
       case 'dates':

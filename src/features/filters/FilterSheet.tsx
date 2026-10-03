@@ -54,7 +54,7 @@ export function FilterSheet({ open, onClose, sections, onClearAll }: FilterSheet
               setOpenSections((current) => ({ ...current, [section.id]: next }))
             }
           >
-            {section.children}
+            <div className="px-2 pt-1 pb-3">{section.children}</div>
           </CollapsibleSection>
         ))}
       </div>

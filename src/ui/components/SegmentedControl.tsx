@@ -23,7 +23,7 @@ const sizeClasses = {
 } as const
 
 const variantClasses = {
-  pill: 'rounded-app-full border border-outline-variant/60 bg-surface-container p-0.5',
+  pill: 'rounded-app-full border border-outline-variant bg-surface-container-lowest p-0.5',
   inline: 'rounded-app-sm bg-surface-container p-0.5',
 } as const
 
@@ -53,7 +53,7 @@ export function SegmentedControl<T extends string>({
                 sizeClasses[size],
                 active
                   ? 'border-transparent bg-secondary-container text-on-secondary-container'
-                  : 'border-outline-variant/60 bg-surface-container text-on-surface-variant',
+                  : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant',
               )}
             >
               {option.label}

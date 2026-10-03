@@ -46,9 +46,10 @@ single **Filters** button that opens a sheet holding every control for that page
   multi-select: choose one to narrow the list, and tap the active one again to
   clear it and see every outcome. There is no "all" button, because leaving the
   group untouched already means all.
-- **The multi-select lists are plain checklists.** Markets, tags and strategies
-  have no search boxes of their own. The **Search** section is the single place
-  to type, and it finds records by symbol or note.
+- **The multi-select lists are plain toggle buttons.** Markets, tags and
+  strategies are a set of independent buttons; tap one to add a value and tap it
+  again to remove it. They have no search boxes of their own. The **Search**
+  section is the single place to type, and it finds records by symbol or note.
 - Numeric fields are ranges, entered as two **Min** and **Max** number inputs.
   Leave an end blank for no bound on that side; leave both blank for no
   constraint. The placeholder shows the smallest and largest value in the data,

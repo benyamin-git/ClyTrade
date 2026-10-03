@@ -14,6 +14,7 @@ export interface MultiSelectFieldProps {
   onChange: (value: string[]) => void
   hint?: string
   disabled?: boolean
+  hideLabel?: boolean
   className?: string
 }
 
@@ -24,6 +25,7 @@ export function MultiSelectField({
   onChange,
   hint,
   disabled,
+  hideLabel,
   className,
 }: MultiSelectFieldProps) {
   const { t } = useI18n()
@@ -39,7 +41,7 @@ export function MultiSelectField({
   }
 
   return (
-    <Field label={label} hint={hint} className={className}>
+    <Field label={label} hint={hint} hideLabel={hideLabel} className={className}>
       <div
         role="group"
         aria-label={label}
@@ -64,7 +66,7 @@ export function MultiSelectField({
                   'h-9 px-4 text-sm',
                   active
                     ? 'border-transparent bg-secondary-container text-on-secondary-container'
-                    : 'border-outline-variant/60 bg-surface-container text-on-surface-variant',
+                    : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant',
                 )}
               >
                 {option.label}
