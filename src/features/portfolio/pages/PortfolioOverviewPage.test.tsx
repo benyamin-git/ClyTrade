@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
@@ -45,6 +45,8 @@ describe('PortfolioOverviewPage filters', () => {
     expect(await screen.findByText('BTC')).toBeInTheDocument()
     expect(screen.getByText('EURUSD')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Market/ }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
 
     expect(screen.queryByText('BTC')).not.toBeInTheDocument()
@@ -58,6 +60,8 @@ describe('PortfolioOverviewPage filters', () => {
     renderPage()
     expect(await screen.findByText('$300.00')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Market/ }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
 
     expect(await screen.findByText('EURUSD')).toBeInTheDocument()
@@ -76,6 +80,7 @@ describe('PortfolioOverviewPage filters', () => {
     expect(screen.getByText('$900.00')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
     await userEvent.click(screen.getByRole('tab', { name: 'Gains' }))
     await userEvent.click(screen.getByRole('button', { name: 'Done' }))
 
@@ -85,6 +90,7 @@ describe('PortfolioOverviewPage filters', () => {
     expect(screen.getByText('$850.00')).toBeInTheDocument()
     expect(screen.queryByText('$900.00')).not.toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters: 1 active' }))
     await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
 
     expect(screen.getByText('CCC')).toBeInTheDocument()
@@ -98,11 +104,14 @@ describe('PortfolioOverviewPage filters', () => {
     renderPage()
     expect(await screen.findByText('BTC')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
     await userEvent.type(screen.getByLabelText('Search'), 'zzz')
 
     expect(await screen.findByText('No assets match your filters')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Remove Search: zzz' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Filters: 1 active' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
 
     expect(screen.getByText('BTC')).toBeInTheDocument()
   })
