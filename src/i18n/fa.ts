@@ -51,7 +51,6 @@ export const fa = {
     pnl: 'سود و زیان',
     pnlPercent: 'درصد سود و زیان',
     quantity: 'مقدار',
-    remove: 'حذف {{label}}',
     rMultiple: 'مضرب R',
     searchPlaceholder: 'جستجوی معاملات',
     sections: {
@@ -381,11 +380,6 @@ export const fa = {
       symbol: 'نماد',
     },
     rValue: 'RR {{value}}',
-    filters: {
-      all: 'همه',
-      closed: 'بسته',
-      open: 'باز',
-    },
     tradeCount: {
       one: '{{count}} معامله',
       other: '{{count}} معامله',

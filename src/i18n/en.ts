@@ -49,7 +49,6 @@ export const en = {
     pnl: 'PnL',
     pnlPercent: 'PnL %',
     quantity: 'Quantity',
-    remove: 'Remove {{label}}',
     rMultiple: 'R multiple',
     searchPlaceholder: 'Search trades',
     sections: {
@@ -378,11 +377,6 @@ export const en = {
       symbol: 'Symbol',
     },
     rValue: '{{value}}R',
-    filters: {
-      all: 'All',
-      closed: 'Closed',
-      open: 'Open',
-    },
     tradeCount: {
       one: '{{count}} trade',
       other: '{{count}} trades',
