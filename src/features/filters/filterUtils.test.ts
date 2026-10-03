@@ -3,10 +3,13 @@ import type { FilterGroupDescriptor, Range } from './filterTypes'
 import {
   EMPTY_RANGE,
   activeGroupCount,
+  countRange,
+  countTriState,
   inRange,
   isRangeActive,
   matchesText,
   matchesTriState,
+  sectionCount,
   toggleInArray,
   withRangeBound,
 } from './filterUtils'
@@ -169,5 +172,45 @@ describe('activeGroupCount', () => {
 
   it('is zero for an empty group list', () => {
     expect(activeGroupCount({ search: 'aapl', markets: [], entry: EMPTY_RANGE }, [])).toBe(0)
+  })
+})
+
+describe('countRange', () => {
+  it.each([
+    [EMPTY_RANGE, 0],
+    [{ min: 1, max: null }, 1],
+    [{ min: null, max: 2 }, 1],
+    [{ min: 1, max: 2 }, 2],
+  ] as const)('counts %j as %i bound(s)', (range, expected) => {
+    expect(countRange(range)).toBe(expected)
+  })
+})
+
+describe('countTriState', () => {
+  it.each([
+    ['any', 0],
+    ['has', 1],
+    ['missing', 1],
+  ] as const)('counts %s as %i', (state, expected) => {
+    expect(countTriState(state)).toBe(expected)
+  })
+})
+
+describe('sectionCount', () => {
+  const counters = {
+    markets: (filters: SampleFilters) => filters.markets.length,
+    search: (filters: SampleFilters) => (filters.search.trim() === '' ? 0 : 1),
+  }
+
+  it('uses the counter registered for the section id', () => {
+    expect(
+      sectionCount('markets', counters, { search: '', markets: ['a', 'b'], entry: EMPTY_RANGE }),
+    ).toBe(2)
+  })
+
+  it('returns zero for a section without a counter', () => {
+    expect(
+      sectionCount('unknown', counters, { search: 'aapl', markets: [], entry: EMPTY_RANGE }),
+    ).toBe(0)
   })
 })

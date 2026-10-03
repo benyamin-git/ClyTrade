@@ -36,6 +36,22 @@ export function withRangeBound(range: Range, bound: 'min' | 'max', value: number
   return { ...range, [bound]: value }
 }
 
+export function countRange(range: Range): number {
+  return (range.min !== null ? 1 : 0) + (range.max !== null ? 1 : 0)
+}
+
+export function countTriState(state: TriState): number {
+  return state === 'any' ? 0 : 1
+}
+
+export function sectionCount<F>(
+  id: string,
+  counters: Readonly<Record<string, (filters: F) => number>>,
+  filters: F,
+): number {
+  return counters[id]?.(filters) ?? 0
+}
+
 export function activeGroupCount<F>(
   filters: F,
   groups: readonly FilterGroupDescriptor<F>[],

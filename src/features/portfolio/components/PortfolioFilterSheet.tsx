@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { MARKET_IDS, type Market } from '@/data/models/market'
 import { FilterSheet, type FilterSectionSpec } from '@/features/filters/FilterSheet'
-import type { Range, TriState } from '@/features/filters/filterTypes'
+import type { TriState } from '@/features/filters/filterTypes'
+import { countRange, countTriState, sectionCount } from '@/features/filters/filterUtils'
 import { useI18n } from '@/i18n/I18nContext'
 import { formatNumber, formatPercent, formatPrice } from '@/lib/format'
 import { MultiSelectField } from '@/ui/components/MultiSelectField'
@@ -23,35 +24,17 @@ export interface PortfolioFilterSheetProps {
   bounds: AssetNumericBounds
 }
 
-function countRange(range: Range): number {
-  return (range.min !== null ? 1 : 0) + (range.max !== null ? 1 : 0)
-}
-
-function countTriState(state: TriState): number {
-  return state === 'any' ? 0 : 1
-}
-
-function sectionCount(id: string, filters: AssetFilters): number {
-  switch (id) {
-    case 'text':
-      return filters.search.trim() === '' ? 0 : 1
-    case 'market':
-      return filters.markets.length
-    case 'priceSize':
-      return (
-        countRange(filters.quantity) +
-        countRange(filters.avgCost) +
-        countRange(filters.currentPrice)
-      )
-    case 'performance':
-      return countRange(filters.value) + countRange(filters.pnl) + countRange(filters.pnlPercent)
-    case 'outcome':
-      return filters.outcome === 'all' ? 0 : 1
-    case 'presence':
-      return countTriState(filters.hasPrice) + countTriState(filters.hasNotes)
-    default:
-      return 0
-  }
+const SECTION_COUNTERS: Readonly<Record<string, (filters: AssetFilters) => number>> = {
+  text: (filters) => (filters.search.trim() === '' ? 0 : 1),
+  market: (filters) => filters.markets.length,
+  priceSize: (filters) =>
+    countRange(filters.quantity) +
+    countRange(filters.avgCost) +
+    countRange(filters.currentPrice),
+  performance: (filters) =>
+    countRange(filters.value) + countRange(filters.pnl) + countRange(filters.pnlPercent),
+  outcome: (filters) => (filters.outcome === 'all' ? 0 : 1),
+  presence: (filters) => countTriState(filters.hasPrice) + countTriState(filters.hasNotes),
 }
 
 interface TriStateFieldProps {
@@ -210,7 +193,7 @@ export function PortfolioFilterSheet({
   const sections: FilterSectionSpec[] = ASSET_FILTER_GROUPS.map((group) => ({
     id: group.id,
     title: t(group.labelKey),
-    count: sectionCount(group.id, filters),
+    count: sectionCount(group.id, SECTION_COUNTERS, filters),
     children: controlFor(group.id),
   }))
 

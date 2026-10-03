@@ -1,8 +1,13 @@
 import type { ReactNode } from 'react'
 import { MARKET_IDS, type Market } from '@/data/models/market'
 import { FilterSheet, type FilterSectionSpec } from '@/features/filters/FilterSheet'
-import type { Range, TriState } from '@/features/filters/filterTypes'
-import { withRangeBound } from '@/features/filters/filterUtils'
+import type { TriState } from '@/features/filters/filterTypes'
+import {
+  countRange,
+  countTriState,
+  sectionCount,
+  withRangeBound,
+} from '@/features/filters/filterUtils'
 import { useI18n } from '@/i18n/I18nContext'
 import { fromDateInputValue, TIME_RANGES, toDateInputValue, type TimeRange } from '@/lib/dates'
 import { formatNumber, formatPrice } from '@/lib/format'
@@ -45,56 +50,30 @@ function dateBound(value: string, edge: 'start' | 'end'): number | null {
   return date.getTime()
 }
 
-function countRange(range: Range): number {
-  return (range.min !== null ? 1 : 0) + (range.max !== null ? 1 : 0)
-}
-
-function countTriState(state: TriState): number {
-  return state === 'any' ? 0 : 1
-}
-
-function sectionCount(id: string, filters: TradeFilters): number {
-  switch (id) {
-    case 'text':
-      return filters.search.trim() === '' ? 0 : 1
-    case 'market':
-      return filters.markets.length
-    case 'direction':
-      return filters.direction === 'all' ? 0 : 1
-    case 'status':
-      return filters.status === 'all' ? 0 : 1
-    case 'tags':
-      return filters.tags.length
-    case 'strategies':
-      return filters.strategies.length
-    case 'dates':
-      return countRange(filters.opened) + countRange(filters.closed)
-    case 'priceSize':
-      return (
-        countRange(filters.entry) +
-        countRange(filters.exit) +
-        countRange(filters.size) +
-        countRange(filters.leverage)
-      )
-    case 'performance':
-      return (
-        countRange(filters.fees) +
-        countRange(filters.netPnl) +
-        countRange(filters.rMultiple) +
-        countRange(filters.duration)
-      )
-    case 'outcome':
-      return filters.outcome === 'all' ? 0 : 1
-    case 'presence':
-      return (
-        countTriState(filters.hasStop) +
-        countTriState(filters.hasTarget) +
-        countTriState(filters.hasNotes) +
-        countTriState(filters.hasTags)
-      )
-    default:
-      return 0
-  }
+const SECTION_COUNTERS: Readonly<Record<string, (filters: TradeFilters) => number>> = {
+  text: (filters) => (filters.search.trim() === '' ? 0 : 1),
+  market: (filters) => filters.markets.length,
+  direction: (filters) => (filters.direction === 'all' ? 0 : 1),
+  status: (filters) => (filters.status === 'all' ? 0 : 1),
+  tags: (filters) => filters.tags.length,
+  strategies: (filters) => filters.strategies.length,
+  dates: (filters) => countRange(filters.opened) + countRange(filters.closed),
+  priceSize: (filters) =>
+    countRange(filters.entry) +
+    countRange(filters.exit) +
+    countRange(filters.size) +
+    countRange(filters.leverage),
+  performance: (filters) =>
+    countRange(filters.fees) +
+    countRange(filters.netPnl) +
+    countRange(filters.rMultiple) +
+    countRange(filters.duration),
+  outcome: (filters) => (filters.outcome === 'all' ? 0 : 1),
+  presence: (filters) =>
+    countTriState(filters.hasStop) +
+    countTriState(filters.hasTarget) +
+    countTriState(filters.hasNotes) +
+    countTriState(filters.hasTags),
 }
 
 interface TriStateFieldProps {
@@ -372,7 +351,7 @@ export function JournalFilterSheet({
   ).map((group) => ({
     id: group.id,
     title: t(group.labelKey),
-    count: sectionCount(group.id, filters),
+    count: sectionCount(group.id, SECTION_COUNTERS, filters),
     children: controlFor(group.id),
   }))
 
