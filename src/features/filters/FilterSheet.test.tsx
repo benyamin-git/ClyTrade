@@ -19,7 +19,7 @@ function renderSheet(
     onClearAll?: () => void
   } = {},
 ) {
-  return render(
+  const result = render(
     <FilterSheet
       open={overrides.open ?? true}
       onClose={overrides.onClose ?? (() => {})}
@@ -28,6 +28,16 @@ function renderSheet(
     />,
     { wrapper: I18nProvider },
   )
+  const rerender = (open: boolean) =>
+    result.rerender(
+      <FilterSheet
+        open={open}
+        onClose={overrides.onClose ?? (() => {})}
+        sections={overrides.sections ?? makeSections()}
+        onClearAll={overrides.onClearAll ?? (() => {})}
+      />,
+    )
+  return { ...result, rerender }
 }
 
 describe('FilterSheet', () => {
@@ -60,6 +70,21 @@ describe('FilterSheet', () => {
     await user.click(screen.getByRole('button', { name: /Market/ }))
 
     expect(screen.queryByText('Market body')).not.toBeInTheDocument()
+  })
+
+  it('remembers a section toggle across close and reopen', async () => {
+    const user = userEvent.setup()
+    const { rerender } = renderSheet()
+
+    await user.click(screen.getByRole('button', { name: /Tags/ }))
+    expect(screen.getByText('Tags body')).toBeInTheDocument()
+
+    rerender(false)
+    expect(screen.queryByText('Tags body')).not.toBeInTheDocument()
+
+    rerender(true)
+    expect(screen.getByText('Tags body')).toBeInTheDocument()
+    expect(screen.getByText('Market body')).toBeInTheDocument()
   })
 
   it('calls onClearAll when Clear all is clicked', async () => {

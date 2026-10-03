@@ -45,4 +45,16 @@ describe('Checkbox', () => {
     rerender(<Checkbox label="Stocks" checked={false} onChange={() => {}} />)
     expect(container.querySelector('svg')).toBeNull()
   })
+
+  it('shows a focus ring on the styled box when the input is focused', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Checkbox label="Stocks" checked={false} onChange={() => {}} />)
+
+    await user.tab()
+
+    expect(screen.getByRole('checkbox', { name: 'Stocks' })).toHaveFocus()
+    expect(container.querySelector('span[aria-hidden="true"]')).toHaveClass(
+      'group-focus-within:ring-2',
+    )
+  })
 })

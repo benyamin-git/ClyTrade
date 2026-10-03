@@ -8,6 +8,8 @@ export interface CollapsibleSectionProps {
   count?: number
   defaultOpen?: boolean
   autoOpen?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   children: ReactNode
   className?: string
 }
@@ -17,12 +19,22 @@ export function CollapsibleSection({
   count,
   defaultOpen = true,
   autoOpen = false,
+  open: controlledOpen,
+  onOpenChange,
   children,
   className,
 }: CollapsibleSectionProps) {
   const id = useId()
-  const [open, setOpen] = useState(defaultOpen || autoOpen)
+  const [internalOpen, setInternalOpen] = useState(defaultOpen || autoOpen)
+  const controlled = controlledOpen !== undefined
+  const open = controlled ? controlledOpen : internalOpen
   const panelId = `${id}-panel`
+
+  function toggle() {
+    const next = !open
+    if (!controlled) setInternalOpen(next)
+    onOpenChange?.(next)
+  }
 
   return (
     <div className={cn('flex flex-col', className)}>
@@ -30,7 +42,7 @@ export function CollapsibleSection({
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggle}
         className="state-layer flex h-control w-full items-center gap-2 rounded-app-sm px-2 text-start text-sm font-medium text-on-surface transition-colors"
       >
         <ChevronDown

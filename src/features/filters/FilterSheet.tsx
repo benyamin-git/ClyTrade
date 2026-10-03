@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useI18n } from '@/i18n/I18nContext'
 import { Button } from '@/ui/components/Button'
@@ -20,6 +21,13 @@ export interface FilterSheetProps {
 
 export function FilterSheet({ open, onClose, sections, onClearAll }: FilterSheetProps) {
   const { t } = useI18n()
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {}
+    for (const section of sections) {
+      if (section.count > 0) initial[section.id] = true
+    }
+    return initial
+  })
 
   return (
     <Sheet
@@ -41,8 +49,10 @@ export function FilterSheet({ open, onClose, sections, onClearAll }: FilterSheet
             key={section.id}
             title={section.title}
             count={section.count}
-            defaultOpen={false}
-            autoOpen={section.count > 0}
+            open={openSections[section.id] ?? false}
+            onOpenChange={(next) =>
+              setOpenSections((current) => ({ ...current, [section.id]: next }))
+            }
           >
             {section.children}
           </CollapsibleSection>

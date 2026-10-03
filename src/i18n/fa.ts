@@ -3,6 +3,7 @@ import type { Dictionary } from './en'
 export const fa = {
   common: {
     about: 'دربارهٔ {{title}}',
+    all: 'همه',
     cancel: 'انصراف',
     close: 'بستن',
     closeDialog: 'بستن پنجره',

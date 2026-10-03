@@ -1,6 +1,7 @@
 export const en = {
   common: {
     about: 'About {{title}}',
+    all: 'All',
     cancel: 'Cancel',
     close: 'Close',
     closeDialog: 'Close dialog',

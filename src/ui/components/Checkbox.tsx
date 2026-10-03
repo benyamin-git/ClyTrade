@@ -16,7 +16,7 @@ export function Checkbox({ label, checked, onChange, disabled, className }: Chec
     <label
       htmlFor={id}
       className={cn(
-        'state-layer inline-flex h-control w-fit cursor-pointer items-center gap-2 rounded-app-sm px-2 text-sm text-on-surface select-none',
+        'group state-layer inline-flex h-control w-fit cursor-pointer items-center gap-2 rounded-app-sm px-2 text-sm text-on-surface select-none',
         disabled && 'cursor-not-allowed opacity-50',
         className,
       )}
@@ -32,7 +32,7 @@ export function Checkbox({ label, checked, onChange, disabled, className }: Chec
       <span
         aria-hidden="true"
         className={cn(
-          'flex size-5 shrink-0 items-center justify-center rounded-app-xs border transition-colors',
+          'flex size-5 shrink-0 items-center justify-center rounded-app-xs border transition-colors group-focus-within:ring-2 group-focus-within:ring-primary group-focus-within:ring-offset-1 group-focus-within:ring-offset-surface',
           checked
             ? 'border-primary bg-primary text-on-primary'
             : 'border-outline bg-transparent',

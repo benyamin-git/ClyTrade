@@ -148,7 +148,7 @@ export function JournalFilterSheet({
             ariaLabel={t('filters.sections.direction')}
             fullWidth
             options={[
-              { value: 'all', label: t('timeRange.all') },
+              { value: 'all', label: t('common.all') },
               { value: 'long', label: t('direction.long') },
               { value: 'short', label: t('direction.short') },
             ]}
@@ -162,7 +162,7 @@ export function JournalFilterSheet({
             ariaLabel={t('filters.sections.status')}
             fullWidth
             options={[
-              { value: 'all', label: t('timeRange.all') },
+              { value: 'all', label: t('common.all') },
               { value: 'open', label: t('status.open') },
               { value: 'closed', label: t('status.closed') },
             ]}
