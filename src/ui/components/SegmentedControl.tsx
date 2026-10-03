@@ -11,6 +11,7 @@ export interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void
   size?: 'xs' | 'sm' | 'md'
   variant?: 'pill' | 'inline'
+  fullWidth?: boolean
   ariaLabel?: string
   className?: string
 }
@@ -32,6 +33,7 @@ export function SegmentedControl<T extends string>({
   onChange,
   size = 'md',
   variant = 'pill',
+  fullWidth = false,
   ariaLabel,
   className,
 }: SegmentedControlProps<T>) {
@@ -40,7 +42,8 @@ export function SegmentedControl<T extends string>({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        'inline-flex w-fit shrink-0 items-center gap-0.5',
+        'inline-flex items-center gap-0.5',
+        fullWidth ? 'w-full flex-wrap' : 'w-fit shrink-0',
         variantClasses[variant],
         className,
       )}
@@ -55,7 +58,8 @@ export function SegmentedControl<T extends string>({
             aria-selected={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'state-layer font-medium transition-colors',
+              'state-layer font-medium whitespace-nowrap transition-colors',
+              fullWidth && 'min-w-fit flex-1',
               variant === 'pill' ? 'rounded-app-full' : 'rounded-app-xs',
               sizeClasses[size],
               active
