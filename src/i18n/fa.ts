@@ -20,7 +20,6 @@ export const fa = {
     assetNoMatchDescription: 'برای دیدن دارایی‌های بیشتر، برخی فیلترها را حذف کنید.',
     assetNoMatchTitle: 'هیچ دارایی‌ای با فیلترهای شما مطابقت ندارد',
     assetOutcome: {
-      all: 'همه',
       breakeven: 'سربه‌سر',
       gain: 'سودها',
       loss: 'زیان‌ها',
@@ -44,7 +43,6 @@ export const fa = {
     noOptions: 'گزینه‌ای نیست',
     open: 'فیلترها',
     outcome: {
-      all: 'همه نتایج',
       breakeven: 'سربه‌سر',
       loss: 'باخت‌ها',
       win: 'بردها',

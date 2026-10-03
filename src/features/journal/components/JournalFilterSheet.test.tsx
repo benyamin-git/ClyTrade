@@ -116,13 +116,45 @@ describe('JournalFilterSheet', () => {
     expect(onChange).toHaveBeenLastCalledWith({ search: 'b' })
   })
 
-  it('makes the outcome control full width', async () => {
+  it('renders the outcome options as separate buttons without an All option', async () => {
     const user = userEvent.setup()
     renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
 
-    expect(screen.getByRole('tablist', { name: 'Outcome' })).toHaveClass('w-full')
+    expect(screen.getByRole('group', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Wins' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('button', { name: 'All outcomes' })).not.toBeInTheDocument()
+  })
+
+  it('reports the outcome selection through onChange', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderSheet()
+
+    await user.click(screen.getByRole('button', { name: /Outcome/ }))
+    await user.click(screen.getByRole('button', { name: 'Losses' }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ outcome: 'loss' })
+  })
+
+  it('clears the outcome when the active option is tapped', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderSheet({ filters: { ...DEFAULT_TRADE_FILTERS, outcome: 'win' } })
+
+    await user.click(screen.getByRole('button', { name: 'Wins' }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ outcome: 'all' })
+  })
+
+  it('renders no search box in the market, tags or strategies sections', async () => {
+    const user = userEvent.setup()
+    renderSheet()
+
+    for (const section of ['Market', 'Tags', 'Strategies']) {
+      await user.click(screen.getByRole('button', { name: new RegExp(section) }))
+    }
+
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
   })
 
   it('shows the status and dates sections in the overview variant', () => {

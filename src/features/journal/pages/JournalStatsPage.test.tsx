@@ -71,7 +71,7 @@ describe('JournalStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Wins' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Wins' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
     expect(screen.getByText('1W / 0L')).toBeInTheDocument()
@@ -85,7 +85,7 @@ describe('JournalStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Losses' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Losses' }))
 
     expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)

@@ -41,6 +41,14 @@ single **Filters** button that opens a sheet holding every control for that page
 - Multiple values inside one section are combined with **OR**. Selecting Crypto
   and Forex shows trades in either market, not only trades that are somehow
   both. The same applies to tags and strategies.
+- **Outcome is a single choice.** Wins, losses and break-even are mutually
+  exclusive, so the outcome control is a row of independent buttons rather than a
+  multi-select: choose one to narrow the list, and tap the active one again to
+  clear it and see every outcome. There is no "all" button, because leaving the
+  group untouched already means all.
+- **The multi-select lists are plain checklists.** Markets, tags and strategies
+  have no search boxes of their own. The **Search** section is the single place
+  to type, and it finds records by symbol or note.
 - Numeric fields are ranges, entered as two **Min** and **Max** number inputs.
   Leave an end blank for no bound on that side; leave both blank for no
   constraint. The placeholder shows the smallest and largest value in the data,

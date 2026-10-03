@@ -90,13 +90,15 @@ describe('PortfolioFilterSheet', () => {
     expect(onChange).toHaveBeenLastCalledWith({ quantity: { min: 25, max: null } })
   })
 
-  it('makes the outcome control full width', async () => {
+  it('renders the outcome options as separate buttons without an All option', async () => {
     const user = userEvent.setup()
     renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
 
-    expect(screen.getByRole('tablist', { name: 'Outcome' })).toHaveClass('w-full')
+    expect(screen.getByRole('group', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Gains' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('button', { name: 'All outcomes' })).not.toBeInTheDocument()
   })
 
   it('reports the outcome selection through onChange', async () => {
@@ -104,9 +106,29 @@ describe('PortfolioFilterSheet', () => {
     const { onChange } = renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
-    await user.click(screen.getByRole('tab', { name: 'Gains' }))
+    await user.click(screen.getByRole('button', { name: 'Gains' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'gain' })
+  })
+
+  it('clears the outcome when the active option is tapped', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderSheet({ filters: { ...DEFAULT_ASSET_FILTERS, outcome: 'loss' } })
+
+    await user.click(screen.getByRole('button', { name: 'Losses' }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ outcome: 'all' })
+  })
+
+  it('hides the market search box', async () => {
+    const user = userEvent.setup()
+    renderSheet()
+
+    await user.click(screen.getByRole('button', { name: /Market/ }))
+
+    expect(
+      within(screen.getByRole('group', { name: 'Market' })).queryByRole('searchbox'),
+    ).not.toBeInTheDocument()
   })
 
   it('reports the has-price tri-state through onChange', async () => {

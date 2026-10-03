@@ -305,11 +305,12 @@ export function JournalFilterSheet({
         return (
           <SegmentedControl
             value={filters.outcome}
-            onChange={(outcome) => onChange({ outcome })}
+            onChange={(outcome) =>
+              onChange({ outcome: outcome === filters.outcome ? 'all' : outcome })
+            }
             ariaLabel={t('filters.sections.outcome')}
-            fullWidth
+            variant="separated"
             options={[
-              { value: 'all', label: t('filters.outcome.all') },
               { value: 'win', label: t('filters.outcome.win') },
               { value: 'loss', label: t('filters.outcome.loss') },
               { value: 'breakeven', label: t('filters.outcome.breakeven') },

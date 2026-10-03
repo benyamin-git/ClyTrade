@@ -81,7 +81,7 @@ describe('PortfolioOverviewPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
-    await userEvent.click(screen.getByRole('tab', { name: 'Gains' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Gains' }))
     await userEvent.click(screen.getByRole('button', { name: 'Done' }))
 
     expect(screen.getByText('AAA')).toBeInTheDocument()

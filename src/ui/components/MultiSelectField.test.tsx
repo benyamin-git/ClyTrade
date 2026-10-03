@@ -11,12 +11,13 @@ const options: readonly MultiSelectOption[] = [
 ]
 
 describe('MultiSelectField', () => {
-  it('renders a labelled search field and a checkbox per option', () => {
+  it('renders a labelled group with a checkbox per option and no search field', () => {
     render(<MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} />, {
       wrapper: I18nProvider,
     })
 
-    expect(screen.getByLabelText('Market')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Market' })).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Stocks' })).not.toBeChecked()
     expect(screen.getByRole('checkbox', { name: 'Crypto' })).not.toBeChecked()
     expect(screen.getByRole('checkbox', { name: 'Forex' })).not.toBeChecked()
@@ -65,19 +66,6 @@ describe('MultiSelectField', () => {
     expect(onChange).toHaveBeenCalledWith(['crypto'])
   })
 
-  it('filters the options case-insensitively as the user types', async () => {
-    const user = userEvent.setup()
-    render(<MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} />, {
-      wrapper: I18nProvider,
-    })
-
-    await user.type(screen.getByLabelText('Market'), 'cR')
-
-    expect(screen.getByRole('checkbox', { name: 'Crypto' })).toBeInTheDocument()
-    expect(screen.queryByRole('checkbox', { name: 'Stocks' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('checkbox', { name: 'Forex' })).not.toBeInTheDocument()
-  })
-
   it('shows a disabled no-options line when there are no options', () => {
     render(<MultiSelectField label="Market" value={[]} options={[]} onChange={() => {}} />, {
       wrapper: I18nProvider,
@@ -88,13 +76,12 @@ describe('MultiSelectField', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   })
 
-  it('disables the search field and option rows when disabled', () => {
+  it('disables the option rows when disabled', () => {
     render(
       <MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} disabled />,
       { wrapper: I18nProvider },
     )
 
-    expect(screen.getByLabelText('Market')).toBeDisabled()
     expect(screen.getByRole('checkbox', { name: 'Stocks' })).toBeDisabled()
   })
 })

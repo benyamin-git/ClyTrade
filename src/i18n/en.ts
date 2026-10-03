@@ -18,7 +18,6 @@ export const en = {
     assetNoMatchDescription: 'Try removing some filters to see more assets.',
     assetNoMatchTitle: 'No assets match your filters',
     assetOutcome: {
-      all: 'All outcomes',
       breakeven: 'Break-even',
       gain: 'Gains',
       loss: 'Losses',
@@ -42,7 +41,6 @@ export const en = {
     noOptions: 'No options',
     open: 'Filters',
     outcome: {
-      all: 'All outcomes',
       breakeven: 'Break-even',
       loss: 'Losses',
       win: 'Wins',

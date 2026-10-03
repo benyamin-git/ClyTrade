@@ -28,9 +28,7 @@ const SECTION_COUNTERS: Readonly<Record<string, (filters: AssetFilters) => numbe
   text: (filters) => (filters.search.trim() === '' ? 0 : 1),
   market: (filters) => filters.markets.length,
   priceSize: (filters) =>
-    countRange(filters.quantity) +
-    countRange(filters.avgCost) +
-    countRange(filters.currentPrice),
+    countRange(filters.quantity) + countRange(filters.avgCost) + countRange(filters.currentPrice),
   performance: (filters) =>
     countRange(filters.value) + countRange(filters.pnl) + countRange(filters.pnlPercent),
   outcome: (filters) => (filters.outcome === 'all' ? 0 : 1),
@@ -159,11 +157,12 @@ export function PortfolioFilterSheet({
         return (
           <SegmentedControl
             value={filters.outcome}
-            onChange={(outcome) => onChange({ outcome })}
+            onChange={(outcome) =>
+              onChange({ outcome: outcome === filters.outcome ? 'all' : outcome })
+            }
             ariaLabel={t('filters.sections.outcome')}
-            fullWidth
+            variant="separated"
             options={[
-              { value: 'all', label: t('filters.assetOutcome.all') },
               { value: 'gain', label: t('filters.assetOutcome.gain') },
               { value: 'loss', label: t('filters.assetOutcome.loss') },
               { value: 'breakeven', label: t('filters.assetOutcome.breakeven') },

@@ -10,7 +10,7 @@ export interface SegmentedControlProps<T extends string> {
   options: readonly SegmentedControlOption<T>[]
   onChange: (value: T) => void
   size?: 'xs' | 'sm' | 'md'
-  variant?: 'pill' | 'inline'
+  variant?: 'pill' | 'inline' | 'separated'
   fullWidth?: boolean
   ariaLabel?: string
   className?: string
@@ -37,6 +37,33 @@ export function SegmentedControl<T extends string>({
   ariaLabel,
   className,
 }: SegmentedControlProps<T>) {
+  if (variant === 'separated') {
+    return (
+      <div role="group" aria-label={ariaLabel} className={cn('flex flex-wrap gap-2', className)}>
+        {options.map((option) => {
+          const active = option.value === value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onChange(option.value)}
+              className={cn(
+                'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full border font-medium whitespace-nowrap transition-colors',
+                sizeClasses[size],
+                active
+                  ? 'border-transparent bg-secondary-container text-on-secondary-container'
+                  : 'border-outline-variant/60 bg-surface-container text-on-surface-variant',
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div
       role="tablist"
