@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import type { Trade } from '@/data/models/trade'
-import { MARKET_IDS, type Market } from '@/data/models/market'
 import { deleteTrade, listTrades } from '@/data/repositories/trades.repo'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
@@ -17,17 +16,13 @@ import { Card } from '@/ui/components/Card'
 import { DataTable, type Column } from '@/ui/components/DataTable'
 import { EmptyState } from '@/ui/components/EmptyState'
 import { IconButton } from '@/ui/components/IconButton'
-import { MultiSelectField } from '@/ui/components/MultiSelectField'
-import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { Sheet } from '@/ui/components/Sheet'
-import { TextField } from '@/ui/components/TextField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { JournalFilterSheet } from '../components/JournalFilterSheet'
 import { TradeFormSheet } from '../components/TradeFormSheet'
 import {
   DEFAULT_TRADE_FILTERS,
   TRADE_FILTER_GROUPS,
-  buildTradeChips,
   filterTrades,
   tradeNumericBounds,
   tradeStrategyOptions,
@@ -49,7 +44,6 @@ export function JournalOverviewPage() {
   const [deleting, setDeleting] = useState<Trade | null>(null)
 
   const filtered = useMemo(() => filterTrades(rows, filters), [rows, filters])
-  const chips = useMemo(() => buildTradeChips(filters, t), [filters, t])
   const activeCount = activeGroupCount(filters, TRADE_FILTER_GROUPS)
   const tagOptions = useMemo(() => tradeTagOptions(trades ?? []), [trades])
   const strategyOptions = useMemo(() => tradeStrategyOptions(trades ?? []), [trades])
@@ -208,14 +202,8 @@ export function JournalOverviewPage() {
   return (
     <ViewportPage className="gap-3">
       <FilterBar
-        chips={chips.map((chip) => ({
-          id: chip.id,
-          label: chip.label,
-          onClear: () => patch(chip.clear(filters)),
-        }))}
         activeCount={activeCount}
         onOpenFilters={() => setSheetOpen(true)}
-        onClearAll={reset}
         trailing={
           <div className="flex items-center gap-3">
             <span className="text-xs text-on-surface-variant">
@@ -226,44 +214,7 @@ export function JournalOverviewPage() {
             </Button>
           </div>
         }
-      >
-        <TextField
-          label={t('filters.sections.text')}
-          value={filters.search}
-          onChange={(search) => patch({ search })}
-          placeholder={t('filters.searchPlaceholder')}
-          className="w-56"
-        />
-        <MultiSelectField
-          label={t('fields.market')}
-          value={filters.markets}
-          options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
-          onChange={(markets) => patch({ markets: markets as Market[] })}
-          className="w-56"
-        />
-        <SegmentedControl
-          value={filters.direction}
-          options={[
-            { value: 'all', label: t('journal.filters.all') },
-            { value: 'long', label: t('direction.long') },
-            { value: 'short', label: t('direction.short') },
-          ]}
-          onChange={(direction) => patch({ direction })}
-          ariaLabel={t('filters.sections.direction')}
-          size="sm"
-        />
-        <SegmentedControl
-          value={filters.status}
-          options={[
-            { value: 'all', label: t('journal.filters.all') },
-            { value: 'open', label: t('journal.filters.open') },
-            { value: 'closed', label: t('journal.filters.closed') },
-          ]}
-          onChange={(status) => patch({ status })}
-          ariaLabel={t('filters.sections.status')}
-          size="sm"
-        />
-      </FilterBar>
+      />
 
       <Card className="flex-1">
         <DataTable

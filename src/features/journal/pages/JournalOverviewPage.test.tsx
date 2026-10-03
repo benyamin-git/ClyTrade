@@ -54,6 +54,8 @@ describe('JournalOverviewPage market filter', () => {
     expect(await screen.findByText('BTCUSDT')).toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Market/ }))
     await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
 
     expect(screen.queryByText('BTCUSDT')).not.toBeInTheDocument()
@@ -68,6 +70,8 @@ describe('JournalOverviewPage market filter', () => {
     expect(await screen.findByText('BTCUSDT')).toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()
 
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
+    await userEvent.click(screen.getByRole('button', { name: /Search/ }))
     await userEvent.type(screen.getByLabelText('Search'), 'BTC')
 
     expect(screen.getByText('BTCUSDT')).toBeInTheDocument()
