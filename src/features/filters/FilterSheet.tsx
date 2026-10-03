@@ -37,7 +37,13 @@ export function FilterSheet({ open, onClose, sections, onClearAll }: FilterSheet
     >
       <div className="flex flex-col gap-2">
         {sections.map((section) => (
-          <CollapsibleSection key={section.id} title={section.title} count={section.count}>
+          <CollapsibleSection
+            key={section.id}
+            title={section.title}
+            count={section.count}
+            defaultOpen={false}
+            autoOpen={section.count > 0}
+          >
             {section.children}
           </CollapsibleSection>
         ))}

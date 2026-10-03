@@ -37,14 +37,20 @@ describe('FilterSheet', () => {
     expect(screen.getByText('Filters')).toBeInTheDocument()
   })
 
-  it('renders every section with its count and children', () => {
+  it('renders every section header and only non-zero count badges', () => {
     renderSheet()
 
     expect(screen.getByRole('button', { name: /Market/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tags/ })).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.queryByText('0')).not.toBeInTheDocument()
+  })
+
+  it('starts collapsed unless a section has an active count', () => {
+    renderSheet()
+
     expect(screen.getByText('Market body')).toBeInTheDocument()
-    expect(screen.getByText('Tags body')).toBeInTheDocument()
+    expect(screen.queryByText('Tags body')).not.toBeInTheDocument()
   })
 
   it('collapses a section when its header is clicked', async () => {
@@ -54,7 +60,6 @@ describe('FilterSheet', () => {
     await user.click(screen.getByRole('button', { name: /Market/ }))
 
     expect(screen.queryByText('Market body')).not.toBeInTheDocument()
-    expect(screen.getByText('Tags body')).toBeInTheDocument()
   })
 
   it('calls onClearAll when Clear all is clicked', async () => {
