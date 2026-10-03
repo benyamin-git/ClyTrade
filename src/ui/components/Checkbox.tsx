@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 export interface CheckboxProps {
@@ -15,7 +16,7 @@ export function Checkbox({ label, checked, onChange, disabled, className }: Chec
     <label
       htmlFor={id}
       className={cn(
-        'inline-flex h-control w-fit cursor-pointer items-center gap-2 text-sm text-on-surface select-none',
+        'state-layer inline-flex h-control w-fit cursor-pointer items-center gap-2 rounded-app-sm px-2 text-sm text-on-surface select-none',
         disabled && 'cursor-not-allowed opacity-50',
         className,
       )}
@@ -26,8 +27,19 @@ export function Checkbox({ label, checked, onChange, disabled, className }: Chec
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
-        className="size-4 shrink-0 accent-primary"
+        className="sr-only"
       />
+      <span
+        aria-hidden="true"
+        className={cn(
+          'flex size-5 shrink-0 items-center justify-center rounded-app-xs border transition-colors',
+          checked
+            ? 'border-primary bg-primary text-on-primary'
+            : 'border-outline bg-transparent',
+        )}
+      >
+        {checked ? <Check className="size-3.5" strokeWidth={3} /> : null}
+      </span>
       <span>{label}</span>
     </label>
   )

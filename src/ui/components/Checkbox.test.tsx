@@ -31,4 +31,18 @@ describe('Checkbox', () => {
     await user.click(checkbox)
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it('hides the native input behind the styled box', () => {
+    render(<Checkbox label="Stocks" checked onChange={() => {}} />)
+
+    expect(screen.getByRole('checkbox', { name: 'Stocks' })).toHaveClass('sr-only')
+  })
+
+  it('renders a check glyph only when checked', () => {
+    const { container, rerender } = render(<Checkbox label="Stocks" checked onChange={() => {}} />)
+    expect(container.querySelector('svg')).not.toBeNull()
+
+    rerender(<Checkbox label="Stocks" checked={false} onChange={() => {}} />)
+    expect(container.querySelector('svg')).toBeNull()
+  })
 })
