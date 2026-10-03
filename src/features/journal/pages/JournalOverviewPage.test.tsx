@@ -56,7 +56,7 @@ describe('JournalOverviewPage market filter', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Market/ }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Stocks' }))
 
     expect(screen.queryByText('BTCUSDT')).not.toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()

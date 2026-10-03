@@ -11,16 +11,16 @@ const options: readonly MultiSelectOption[] = [
 ]
 
 describe('MultiSelectField', () => {
-  it('renders a labelled group with a checkbox per option and no search field', () => {
+  it('renders a labelled group with a toggle per option and no search field', () => {
     render(<MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} />, {
       wrapper: I18nProvider,
     })
 
     expect(screen.getByRole('group', { name: 'Market' })).toBeInTheDocument()
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Stocks' })).not.toBeChecked()
-    expect(screen.getByRole('checkbox', { name: 'Crypto' })).not.toBeChecked()
-    expect(screen.getByRole('checkbox', { name: 'Forex' })).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'Stocks' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Crypto' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Forex' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('reports a single selected value when an option is toggled on', async () => {
@@ -30,7 +30,7 @@ describe('MultiSelectField', () => {
       wrapper: I18nProvider,
     })
 
-    await user.click(screen.getByRole('checkbox', { name: 'Crypto' }))
+    await user.click(screen.getByRole('button', { name: 'Crypto' }))
 
     expect(onChange).toHaveBeenCalledWith(['crypto'])
   })
@@ -43,7 +43,7 @@ describe('MultiSelectField', () => {
       { wrapper: I18nProvider },
     )
 
-    await user.click(screen.getByRole('checkbox', { name: 'Stocks' }))
+    await user.click(screen.getByRole('button', { name: 'Stocks' }))
 
     expect(onChange).toHaveBeenCalledWith(['stock', 'crypto'])
   })
@@ -61,9 +61,19 @@ describe('MultiSelectField', () => {
       { wrapper: I18nProvider },
     )
 
-    await user.click(screen.getByRole('checkbox', { name: 'Stocks' }))
+    await user.click(screen.getByRole('button', { name: 'Stocks' }))
 
     expect(onChange).toHaveBeenCalledWith(['crypto'])
+  })
+
+  it('marks a selected option as pressed', () => {
+    render(
+      <MultiSelectField label="Market" value={['crypto']} options={options} onChange={() => {}} />,
+      { wrapper: I18nProvider },
+    )
+
+    expect(screen.getByRole('button', { name: 'Crypto' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Stocks' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('shows a disabled no-options line when there are no options', () => {
@@ -73,15 +83,15 @@ describe('MultiSelectField', () => {
 
     const message = screen.getByText('No options')
     expect(message).toHaveAttribute('aria-disabled', 'true')
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('disables the option rows when disabled', () => {
+  it('disables the option toggles when disabled', () => {
     render(
       <MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} disabled />,
       { wrapper: I18nProvider },
     )
 
-    expect(screen.getByRole('checkbox', { name: 'Stocks' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Stocks' })).toBeDisabled()
   })
 })

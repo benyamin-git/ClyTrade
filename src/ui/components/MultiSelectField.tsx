@@ -1,6 +1,5 @@
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
-import { Checkbox } from './Checkbox'
 import { Field } from './Field'
 
 export interface MultiSelectOption {
@@ -44,29 +43,34 @@ export function MultiSelectField({
       <div
         role="group"
         aria-label={label}
-        className={cn(
-          'flex max-h-48 flex-col overflow-y-auto rounded-app-sm border border-outline-variant bg-surface-container-lowest p-1',
-          disabled && 'opacity-50',
-        )}
+        className={cn('flex flex-wrap gap-2', disabled && 'opacity-50')}
       >
         {options.length === 0 ? (
-          <p
-            aria-disabled="true"
-            className="px-2 py-1.5 text-sm text-on-surface-variant opacity-50"
-          >
+          <p aria-disabled="true" className="text-sm text-on-surface-variant opacity-50">
             {t('filters.noOptions')}
           </p>
         ) : (
-          options.map((option) => (
-            <Checkbox
-              key={option.value}
-              label={option.label}
-              checked={value.includes(option.value)}
-              onChange={() => toggle(option.value)}
-              disabled={disabled}
-              className="px-2"
-            />
-          ))
+          options.map((option) => {
+            const active = value.includes(option.value)
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={active}
+                disabled={disabled}
+                onClick={() => toggle(option.value)}
+                className={cn(
+                  'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full border font-medium whitespace-nowrap transition-colors',
+                  'h-9 px-4 text-sm',
+                  active
+                    ? 'border-transparent bg-secondary-container text-on-secondary-container'
+                    : 'border-outline-variant/60 bg-surface-container text-on-surface-variant',
+                )}
+              >
+                {option.label}
+              </button>
+            )
+          })
         )}
       </div>
     </Field>

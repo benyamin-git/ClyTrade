@@ -47,7 +47,7 @@ describe('PortfolioOverviewPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Market/ }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Forex' }))
 
     expect(screen.queryByText('BTC')).not.toBeInTheDocument()
     expect(screen.getByText('EURUSD')).toBeInTheDocument()
@@ -62,7 +62,7 @@ describe('PortfolioOverviewPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Market/ }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Forex' }))
 
     expect(await screen.findByText('EURUSD')).toBeInTheDocument()
     expect(screen.queryByText('$300.00')).not.toBeInTheDocument()

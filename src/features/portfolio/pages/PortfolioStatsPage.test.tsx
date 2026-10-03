@@ -46,7 +46,7 @@ describe('PortfolioStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Market/ }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Forex' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Forex' }))
 
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
   })

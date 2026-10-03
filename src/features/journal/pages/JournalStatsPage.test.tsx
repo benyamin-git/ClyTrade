@@ -56,7 +56,7 @@ describe('JournalStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Market/ }))
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stocks' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Stocks' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
   })
