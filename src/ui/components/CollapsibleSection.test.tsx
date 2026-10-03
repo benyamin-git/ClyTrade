@@ -74,4 +74,43 @@ describe('CollapsibleSection', () => {
 
     expect(screen.queryByText('0')).not.toBeInTheDocument()
   })
+
+  it('hides the count badge when the count is zero', () => {
+    render(
+      <CollapsibleSection title="Asset types" count={0}>
+        <p>Body content</p>
+      </CollapsibleSection>,
+    )
+
+    expect(screen.queryByText('0')).not.toBeInTheDocument()
+  })
+
+  it('starts open when autoOpen even though defaultOpen is false', () => {
+    render(
+      <CollapsibleSection title="Asset types" defaultOpen={false} autoOpen>
+        <p>Body content</p>
+      </CollapsibleSection>,
+    )
+
+    expect(screen.getByRole('button', { name: /Asset types/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.getByText('Body content')).toBeInTheDocument()
+  })
+
+  it('respects a user toggle after auto-open', async () => {
+    const user = userEvent.setup()
+    render(
+      <CollapsibleSection title="Asset types" defaultOpen={false} autoOpen>
+        <p>Body content</p>
+      </CollapsibleSection>,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Asset types/ }))
+    expect(screen.getByRole('button', { name: /Asset types/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  })
 })

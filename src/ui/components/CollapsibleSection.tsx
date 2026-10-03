@@ -7,6 +7,7 @@ export interface CollapsibleSectionProps {
   title: string
   count?: number
   defaultOpen?: boolean
+  autoOpen?: boolean
   children: ReactNode
   className?: string
 }
@@ -15,11 +16,12 @@ export function CollapsibleSection({
   title,
   count,
   defaultOpen = true,
+  autoOpen = false,
   children,
   className,
 }: CollapsibleSectionProps) {
   const id = useId()
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(defaultOpen || autoOpen)
   const panelId = `${id}-panel`
 
   return (
@@ -36,7 +38,7 @@ export function CollapsibleSection({
           aria-hidden="true"
         />
         <span className="flex-1 truncate">{title}</span>
-        {count !== undefined ? (
+        {count !== undefined && count > 0 ? (
           <span className="shrink-0 rounded-app-full bg-secondary-container px-2 py-0.5 text-xs font-medium text-on-secondary-container tabular-nums">
             {count}
           </span>
