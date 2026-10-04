@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isIos } from '@/lib/platform'
+import { db } from './db'
 import { assetSchema } from './models/asset'
 import { settingRowSchema } from './models/backup-schemas'
 import { tradeSchema } from './models/trade'
@@ -74,7 +75,7 @@ export async function downloadBackup(backup: BackupFile): Promise<BackupExportRe
   return 'downloaded'
 }
 
-export type BackupErrorCode = 'invalid-json' | 'invalid-backup' | 'future-version'
+export type BackupErrorCode = 'invalid-json' | 'invalid-backup' | 'future-version' | 'duplicate-id'
 
 export class BackupError extends Error {
   readonly code: BackupErrorCode
@@ -104,22 +105,42 @@ export function parseBackup(text: string): BackupFile {
   if (!result.success) {
     throw new BackupError('invalid-backup')
   }
+  const { trades, assets, settings } = result.data.data
+  const tradeIds = new Set<string>()
+  for (const trade of trades) {
+    if (tradeIds.has(trade.id)) throw new BackupError('duplicate-id')
+    tradeIds.add(trade.id)
+  }
+  const assetIds = new Set<string>()
+  for (const asset of assets) {
+    if (assetIds.has(asset.id)) throw new BackupError('duplicate-id')
+    assetIds.add(asset.id)
+  }
+  const settingKeys = new Set<string>()
+  for (const row of settings) {
+    if (settingKeys.has(row.key)) throw new BackupError('duplicate-id')
+    settingKeys.add(row.key)
+  }
   return result.data
 }
 
 export async function importBackup(backup: BackupFile, mode: ImportMode): Promise<void> {
   const { trades, assets, settings } = backup.data
   if (mode === 'replace') {
-    await Promise.all([
-      replaceAllTrades(trades),
-      replaceAllAssets(assets),
-      replaceAllSettings(settings),
-    ])
+    await db.transaction('rw', db.trades, db.assets, db.settings, async () => {
+      await replaceAllTrades(trades)
+      await replaceAllAssets(assets)
+      await replaceAllSettings(settings)
+    })
     return
   }
   await Promise.all([mergeTrades(trades), mergeAssets(assets), mergeSettings(settings)])
 }
 
 export async function clearAllData(): Promise<void> {
-  await Promise.all([replaceAllTrades([]), replaceAllAssets([]), replaceAllSettings([])])
+  await db.transaction('rw', db.trades, db.assets, db.settings, async () => {
+    await replaceAllTrades([])
+    await replaceAllAssets([])
+    await replaceAllSettings([])
+  })
 }

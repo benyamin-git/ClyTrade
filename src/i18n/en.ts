@@ -88,6 +88,7 @@ export const en = {
       'invalid-json': 'This file is not valid JSON.',
       'invalid-backup': 'This file is not a valid ClyTrade backup.',
       'future-version': 'This backup was created by a newer version of ClyTrade.',
+      'duplicate-id': 'This backup contains duplicate record ids and cannot be imported.',
     },
     export: {
       title: 'Export',

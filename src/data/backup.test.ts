@@ -5,9 +5,14 @@ import {
   BackupError,
   backupFilename,
   downloadBackup,
+  importBackup,
   parseBackup,
   type BackupFile,
 } from './backup'
+import type { Asset } from './models/asset'
+import { clearAssets, listAssets } from './repositories/assets.repo'
+import { clearTrades, listTrades } from './repositories/trades.repo'
+import type { Trade } from './models/trade'
 
 const validBackup: BackupFile = {
   app: BACKUP_APP_ID,
@@ -110,10 +115,139 @@ describe('parseBackup', () => {
     expect(codeOf(text)).toBe(expected)
   })
 
+  it('rejects a backup whose trades contain a duplicate id', () => {
+    const trade = makeTrade('dup')
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, trades: [trade, { ...trade, symbol: 'ETHUSDT' }] },
+        }),
+      ),
+    ).toBe('duplicate-id')
+  })
+
+  it('rejects a backup whose assets contain a duplicate id', () => {
+    const asset = {
+      id: 'dup',
+      symbol: 'BTC',
+      market: 'crypto',
+      name: null,
+      quantity: 1,
+      averageCost: 1,
+      currentPrice: null,
+      notes: null,
+      createdAt: 1,
+      updatedAt: 2,
+    }
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, assets: [asset, { ...asset, symbol: 'ETH' }] },
+        }),
+      ),
+    ).toBe('duplicate-id')
+  })
+
+  it('rejects a backup whose settings contain a duplicate key', () => {
+    const row = { key: 'preferences', value: {}, updatedAt: 1 }
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, settings: [row, { ...row, updatedAt: 2 }] },
+        }),
+      ),
+    ).toBe('duplicate-id')
+  })
+
   it('builds a timestamped filename', () => {
     expect(backupFilename(new Date('2026-01-02T03:04:05.000Z'))).toBe(
       'clytrade-backup-2026-01-02-03-04-05.json',
     )
+  })
+})
+
+function makeTrade(id: string): Trade {
+  return {
+    id,
+    symbol: 'BTCUSDT',
+    market: 'crypto',
+    direction: 'long',
+    status: 'closed',
+    entryPrice: 100,
+    exitPrice: 110,
+    size: 1,
+    leverage: 1,
+    stopPrice: null,
+    targetPrice: null,
+    fees: 0,
+    openedAt: 1,
+    closedAt: 2,
+    strategy: null,
+    notes: null,
+    tags: [],
+    createdAt: 1,
+    updatedAt: 2,
+  }
+}
+
+function makeAsset(id: string): Asset {
+  return {
+    id,
+    symbol: id.toUpperCase(),
+    market: 'crypto',
+    name: null,
+    quantity: 1,
+    averageCost: 1,
+    currentPrice: null,
+    notes: null,
+    createdAt: 1,
+    updatedAt: 2,
+  }
+}
+
+describe('importBackup', () => {
+  beforeEach(async () => {
+    await clearTrades()
+    await clearAssets()
+  })
+
+  afterEach(async () => {
+    await clearTrades()
+    await clearAssets()
+  })
+
+  it('rolls back every store when a replace fails midway', async () => {
+    await importBackup(
+      {
+        ...validBackup,
+        data: {
+          trades: [makeTrade('seed-trade')],
+          assets: [makeAsset('seed-asset')],
+          settings: [],
+        },
+      },
+      'replace',
+    )
+    expect((await listTrades()).map((trade) => trade.id)).toEqual(['seed-trade'])
+    expect((await listAssets()).map((asset) => asset.id)).toEqual(['seed-asset'])
+
+    const duplicate = makeTrade('duplicate')
+    const conflicting: BackupFile = {
+      ...validBackup,
+      data: {
+        trades: [duplicate, { ...duplicate, symbol: 'ETHUSDT' }],
+        assets: [makeAsset('new-asset')],
+        settings: [],
+      },
+    }
+
+    await expect(importBackup(conflicting, 'replace')).rejects.toThrow()
+
+    expect((await listTrades()).map((trade) => trade.id)).toEqual(['seed-trade'])
+    expect((await listAssets()).map((asset) => asset.id)).toEqual(['seed-asset'])
   })
 })
 

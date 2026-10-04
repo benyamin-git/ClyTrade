@@ -90,6 +90,7 @@ export const fa = {
       'invalid-json': 'این فایل JSON معتبر نیست.',
       'invalid-backup': 'این فایل، فایل پشتیبان معتبر ClyTrade نیست.',
       'future-version': 'این فایل پشتیبان با نسخهٔ جدیدتری از ClyTrade ساخته شده است.',
+      'duplicate-id': 'این فایل پشتیبان دارای شناسه‌های تکراری است و قابل بازیابی نیست.',
     },
     export: {
       title: 'پشتیبان‌گیری',
