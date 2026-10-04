@@ -2,8 +2,21 @@
 
 **Report:** `docs/reviews/2026-10-03-code-review.md`
 **Spec:** `docs/superpowers/specs/2026-10-03-full-code-review-design.md`
-**Status:** Draft (awaiting approval)
+**Status:** Approved
 **Date:** 2026-10-03
+
+## Approved decisions (2026-10-03)
+
+- Scope of this pass: **Highs + Mediums only** (Tasks 1–15). Low/Nit findings
+  stay tracked in `TODO.md` and are not implemented here.
+- Execution: **subagent-driven**, one task at a time, reviewed and committed per
+  task; full final gate (`typecheck`, `lint`, `test`, `format:check`, `build`).
+- Task 2 duplicate ids: **reject at `parseBackup`** with a clear error naming the
+  duplicate; import aborts before touching the DB.
+- CR-050: keep the Journal Stats time-range control **inline** and document the
+  deliberate exception in `AGENTS.md`.
+- Task 15: `src/calculations/**` fixes **authorized** by the owner; the
+  `[OWNER APPROVAL]` gate no longer applies.
 
 ## Global constraints
 
@@ -355,7 +368,5 @@ after approval).
 
 ## Open questions
 
-- CR-050: keep the Journal Stats inline time range (and amend AGENTS.md) or move
-  it into the sheet? Owner preference.
-- Task 2 duplicate-id semantics: reject at parse time or overwrite last-wins?
-  Owner preference; the plan defaults to reject-with-clear-error.
+- None outstanding; both former questions were resolved by the 2026-10-03
+  approved decisions above.
