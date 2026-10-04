@@ -17,6 +17,18 @@
   deliberate exception in `AGENTS.md`.
 - Task 15: `src/calculations/**` fixes **authorized** by the owner; the
   `[OWNER APPROVAL]` gate no longer applies.
+- **AFK authorization (2026-10-03):** the owner is away, so the run proceeds
+  without per-task permission. Explicitly authorized: commit each accepted task
+  to `master`; edit `.github/workflows/**` and add a CI workflow (Task 13); edit
+  Android native files (`AndroidManifest.xml`, remove `file_paths.xml` and the
+  template layout, `MainActivity.kt`) (Task 14); run the generators
+  (`npm run accents`, `npm run icons:native`) (Tasks 12–13). **Do not push.**
+  On ambiguity or a failure after one retry, take the most conservative
+  reversible option, document it in the task summary and continue; only an
+  unresolvable hard failure stops the run, leaving a written status.
+- Final gate: `typecheck`, `lint`, `test`, `format:check`, web `build`; attempt
+  native builds only if the Rust/Android toolchain is present and report any gate
+  not run.
 
 ## Global constraints
 
