@@ -109,9 +109,7 @@ export function PortfolioStatsPage() {
     [inputs],
   )
 
-  const filterBar = (
-    <FilterBar activeCount={activeCount} onOpenFilters={() => setSheetOpen(true)} />
-  )
+  const filterBar = <FilterBar activeCount={activeCount} onOpenFilters={() => setSheetOpen(true)} />
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">

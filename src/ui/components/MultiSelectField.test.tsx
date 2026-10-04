@@ -78,7 +78,13 @@ describe('MultiSelectField', () => {
 
   it('hides the visible label while keeping the group accessible name', () => {
     render(
-      <MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} hideLabel />,
+      <MultiSelectField
+        label="Market"
+        value={[]}
+        options={options}
+        onChange={() => {}}
+        hideLabel
+      />,
       { wrapper: I18nProvider },
     )
 

@@ -68,7 +68,9 @@ describe('PortfolioStatsPage filters', () => {
     expect(screen.queryByText('$900.00')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters: 1 active' }))
-    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }),
+    )
 
     expect(await screen.findByText('$900.00')).toBeInTheDocument()
     expect(screen.queryByText('$850.00')).not.toBeInTheDocument()
@@ -94,7 +96,9 @@ describe('PortfolioStatsPage filters', () => {
     expect(await screen.findByText('No assets match your filters')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)
 
-    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }),
+    )
 
     expect(await screen.findByText('1 asset')).toBeInTheDocument()
   })

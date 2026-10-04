@@ -27,7 +27,14 @@ export function TextField({
 }: TextFieldProps) {
   const id = useId()
   return (
-    <Field label={label} htmlFor={id} hint={hint} error={error} hideLabel={hideLabel} className={className}>
+    <Field
+      label={label}
+      htmlFor={id}
+      hint={hint}
+      error={error}
+      hideLabel={hideLabel}
+      className={className}
+    >
       <input
         id={id}
         type="text"

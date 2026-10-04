@@ -19,12 +19,12 @@ database.
 
 ## What is in V1
 
-| Area             | What it does                                                                                                                                                                                                               |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Area             | What it does                                                                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filter from one Filters button — search, market, direction, status, tags, strategy, date and numeric ranges, outcome and field presence in a sheet — with an equity curve and PnL charts. |
-| **Portfolio**    | Track holdings with blended cost basis, manual prices, unrealized PnL and allocation charts. Filter from one Filters button — search, market, quantity, cost, price, value, PnL, outcome and field presence.                                              |
-| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                                                    |
-| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation.        |
+| **Portfolio**    | Track holdings with blended cost basis, manual prices, unrealized PnL and allocation charts. Filter from one Filters button — search, market, quantity, cost, price, value, PnL, outcome and field presence.                                                  |
+| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                                                                                       |
+| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation.                                           |
 
 ## Screenshots
 

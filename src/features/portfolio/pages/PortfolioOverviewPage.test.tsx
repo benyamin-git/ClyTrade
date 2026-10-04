@@ -69,9 +69,7 @@ describe('PortfolioOverviewPage filters', () => {
   })
 
   it('narrows the table and totals by outcome and restores them with Clear all', async () => {
-    await createAsset(
-      draft({ symbol: 'AAA', market: 'crypto', quantity: 3, currentPrice: 150 }),
-    )
+    await createAsset(draft({ symbol: 'AAA', market: 'crypto', quantity: 3, currentPrice: 150 }))
     await createAsset(draft({ symbol: 'BBB', market: 'stocks', quantity: 2, currentPrice: 200 }))
     await createAsset(draft({ symbol: 'CCC', market: 'forex', quantity: 1, currentPrice: 50 }))
 
@@ -111,7 +109,9 @@ describe('PortfolioOverviewPage filters', () => {
     expect(await screen.findByText('No assets match your filters')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters: 1 active' }))
-    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }))
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Clear all' }),
+    )
 
     expect(screen.getByText('BTC')).toBeInTheDocument()
   })

@@ -28,7 +28,7 @@ Translation is implemented; the structure is small and type-checked:
 - **UI strings** live in `src/i18n/`. `en.ts` is the source of truth. A new
   language is a dictionary (for example `src/i18n/de.ts`) implementing the same
   keys, registered in `src/i18n/locales.ts` with its `intlLocale`, text direction
-  and calendar, plus the language list in the `index.html` pre-paint script.
+  and calendar, plus the language detection in the `index.html` pre-paint script.
 - **Documentation** lives in `src/docs/<locale>/`. Copy `src/docs/en/**` and
   translate page by page; a missing file falls back to English. Titles and
   summaries go in the dictionary next to the other `docs.items.*` keys.
