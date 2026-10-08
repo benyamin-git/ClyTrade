@@ -30,7 +30,7 @@ describe('DataControlsPage', () => {
   it('names the import mode control', () => {
     renderPage()
 
-    expect(screen.getByRole('tablist', { name: 'Import mode' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Import mode' })).toBeInTheDocument()
   })
 
   it('clears all data and shows a confirmation', async () => {

@@ -122,8 +122,8 @@ describe('JournalFilterSheet', () => {
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
 
-    expect(screen.getByRole('group', { name: 'Outcome' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Wins' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('radiogroup', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Wins' })).toHaveAttribute('aria-checked', 'false')
     expect(screen.queryByRole('button', { name: 'All outcomes' })).not.toBeInTheDocument()
   })
 
@@ -132,7 +132,7 @@ describe('JournalFilterSheet', () => {
     const { onChange } = renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
-    await user.click(screen.getByRole('button', { name: 'Losses' }))
+    await user.click(screen.getByRole('radio', { name: 'Losses' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'loss' })
   })
@@ -141,7 +141,7 @@ describe('JournalFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet({ filters: { ...DEFAULT_TRADE_FILTERS, outcome: 'win' } })
 
-    await user.click(screen.getByRole('button', { name: 'Wins' }))
+    await user.click(screen.getByRole('radio', { name: 'Wins' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'all' })
   })
@@ -180,7 +180,7 @@ describe('JournalFilterSheet', () => {
     })
 
     await user.click(screen.getByRole('button', { name: /Time range/ }))
-    await user.click(screen.getByRole('tab', { name: '7D' }))
+    await user.click(screen.getByRole('radio', { name: '7D' }))
 
     expect(onChange).toHaveBeenCalledWith('7d')
   })
@@ -189,6 +189,6 @@ describe('JournalFilterSheet', () => {
     renderSheet({ variant: 'stats' })
 
     expect(screen.queryByRole('button', { name: /Time range/ })).not.toBeInTheDocument()
-    expect(screen.queryByRole('tablist', { name: 'Time range' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: 'Time range' })).not.toBeInTheDocument()
   })
 })

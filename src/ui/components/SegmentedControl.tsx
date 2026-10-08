@@ -10,22 +10,20 @@ export interface SegmentedControlProps<T extends string> {
   value: T
   options: readonly SegmentedControlOption<T>[]
   onChange: (value: T) => void
-  size?: 'xs' | 'sm' | 'md'
-  variant?: 'pill' | 'inline' | 'separated'
+  size?: 'sm' | 'md'
+  variant?: 'pill' | 'separated'
   fullWidth?: boolean
   ariaLabel?: string
   className?: string
 }
 
 const sizeClasses = {
-  xs: 'h-8 px-2 text-2xs',
   sm: 'h-control px-3 text-xs',
   md: 'h-control px-4 text-sm',
 } as const
 
 const variantClasses = {
   pill: 'rounded-app-full border border-outline-variant bg-surface-container-lowest p-0.5',
-  inline: 'rounded-app-sm bg-surface-container p-0.5',
 } as const
 
 export function SegmentedControl<T extends string>({
@@ -39,34 +37,6 @@ export function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
-
-  if (variant === 'separated') {
-    return (
-      <div role="group" aria-label={ariaLabel} className={cn('flex flex-wrap gap-2', className)}>
-        {options.map((option) => {
-          const active = option.value === value
-          return (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(option.value)}
-              className={cn(
-                'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full border font-medium whitespace-nowrap transition-colors',
-                sizeClasses[size],
-                active
-                  ? 'border-transparent bg-secondary-container text-on-secondary-container'
-                  : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant',
-              )}
-            >
-              {option.label}
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
-
   const activeIndex = options.findIndex((option) => option.value === value)
 
   function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -98,9 +68,47 @@ export function SegmentedControl<T extends string>({
     tabRefs.current[wrapped]?.focus()
   }
 
+  if (variant === 'separated') {
+    return (
+      <div
+        role="radiogroup"
+        aria-label={ariaLabel}
+        className={cn('flex flex-wrap gap-2', className)}
+      >
+        {options.map((option, index) => {
+          const active = option.value === value
+          const tabbable = active || (activeIndex === -1 && index === 0)
+          return (
+            <button
+              key={option.value}
+              ref={(element) => {
+                tabRefs.current[index] = element
+              }}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              tabIndex={tabbable ? 0 : -1}
+              onClick={() => onChange(option.value)}
+              onKeyDown={(event) => onKeyDown(event, index)}
+              className={cn(
+                'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full border font-medium whitespace-nowrap transition-colors',
+                sizeClasses[size],
+                active
+                  ? 'border-transparent bg-secondary-container text-on-secondary-container'
+                  : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant',
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div
-      role="tablist"
+      role="radiogroup"
       aria-label={ariaLabel}
       aria-orientation="horizontal"
       className={cn(
@@ -120,15 +128,15 @@ export function SegmentedControl<T extends string>({
               tabRefs.current[index] = element
             }}
             type="button"
-            role="tab"
-            aria-selected={active}
+            role="radio"
+            aria-checked={active}
             tabIndex={tabbable ? 0 : -1}
             onClick={() => onChange(option.value)}
             onKeyDown={(event) => onKeyDown(event, index)}
             className={cn(
               'state-layer font-medium whitespace-nowrap transition-colors',
               fullWidth && 'min-w-fit flex-1',
-              variant === 'pill' ? 'rounded-app-full' : 'rounded-app-xs',
+              'rounded-app-full',
               sizeClasses[size],
               active
                 ? 'bg-secondary-container text-on-secondary-container'

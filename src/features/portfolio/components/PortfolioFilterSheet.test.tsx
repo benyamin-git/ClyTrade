@@ -96,8 +96,8 @@ describe('PortfolioFilterSheet', () => {
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
 
-    expect(screen.getByRole('group', { name: 'Outcome' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Gains' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('radiogroup', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Gains' })).toHaveAttribute('aria-checked', 'false')
     expect(screen.queryByRole('button', { name: 'All outcomes' })).not.toBeInTheDocument()
   })
 
@@ -106,7 +106,7 @@ describe('PortfolioFilterSheet', () => {
     const { onChange } = renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Outcome/ }))
-    await user.click(screen.getByRole('button', { name: 'Gains' }))
+    await user.click(screen.getByRole('radio', { name: 'Gains' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'gain' })
   })
@@ -115,7 +115,7 @@ describe('PortfolioFilterSheet', () => {
     const user = userEvent.setup()
     const { onChange } = renderSheet({ filters: { ...DEFAULT_ASSET_FILTERS, outcome: 'loss' } })
 
-    await user.click(screen.getByRole('button', { name: 'Losses' }))
+    await user.click(screen.getByRole('radio', { name: 'Losses' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ outcome: 'all' })
   })
@@ -136,8 +136,8 @@ describe('PortfolioFilterSheet', () => {
     const { onChange } = renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Presence/ }))
-    const control = screen.getByRole('tablist', { name: 'Has price' })
-    await user.click(within(control).getByRole('tab', { name: 'Has' }))
+    const control = screen.getByRole('radiogroup', { name: 'Has price' })
+    await user.click(within(control).getByRole('radio', { name: 'Has' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ hasPrice: 'has' })
   })
@@ -147,8 +147,8 @@ describe('PortfolioFilterSheet', () => {
     const { onChange } = renderSheet()
 
     await user.click(screen.getByRole('button', { name: /Presence/ }))
-    const control = screen.getByRole('tablist', { name: 'Has notes' })
-    await user.click(within(control).getByRole('tab', { name: 'Missing' }))
+    const control = screen.getByRole('radiogroup', { name: 'Has notes' })
+    await user.click(within(control).getByRole('radio', { name: 'Missing' }))
 
     expect(onChange).toHaveBeenLastCalledWith({ hasNotes: 'missing' })
   })

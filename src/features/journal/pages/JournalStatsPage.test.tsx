@@ -92,7 +92,7 @@ describe('JournalStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
-    await userEvent.click(screen.getByRole('button', { name: 'Wins' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Wins' }))
 
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
     expect(screen.getByText('1W / 0L')).toBeInTheDocument()
@@ -106,7 +106,7 @@ describe('JournalStatsPage filters', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }))
     await userEvent.click(screen.getByRole('button', { name: /Outcome/ }))
-    await userEvent.click(screen.getByRole('button', { name: 'Losses' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Losses' }))
 
     expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)
@@ -136,18 +136,18 @@ describe('JournalStatsPage filters', () => {
     renderPage()
     expect(await screen.findByText(/1 closed/)).toBeInTheDocument()
 
-    const timeRange = screen.getByRole('tablist', { name: 'Time range' })
-    await userEvent.click(within(timeRange).getByRole('tab', { name: '7D' }))
-    expect(within(timeRange).getByRole('tab', { name: '7D' })).toHaveAttribute(
-      'aria-selected',
+    const timeRange = screen.getByRole('radiogroup', { name: 'Time range' })
+    await userEvent.click(within(timeRange).getByRole('radio', { name: '7D' }))
+    expect(within(timeRange).getByRole('radio', { name: '7D' })).toHaveAttribute(
+      'aria-checked',
       'true',
     )
 
     await userEvent.click(screen.getByRole('button', { name: /Filters/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Clear all' }))
 
-    expect(within(timeRange).getByRole('tab', { name: '30D' })).toHaveAttribute(
-      'aria-selected',
+    expect(within(timeRange).getByRole('radio', { name: '30D' })).toHaveAttribute(
+      'aria-checked',
       'true',
     )
   })

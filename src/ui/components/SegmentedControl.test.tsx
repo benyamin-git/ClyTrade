@@ -22,6 +22,19 @@ function OutcomeControl() {
   )
 }
 
+function SeparatedOutcomeControl() {
+  const [value, setValue] = useState<'all' | 'win' | 'loss'>('all')
+  return (
+    <SegmentedControl
+      value={value}
+      options={threeOptions}
+      onChange={setValue}
+      variant="separated"
+      ariaLabel="Outcome"
+    />
+  )
+}
+
 describe('SegmentedControl', () => {
   it('renders options and reports the selected value', async () => {
     const user = userEvent.setup()
@@ -30,48 +43,53 @@ describe('SegmentedControl', () => {
       <SegmentedControl value="all" options={options} onChange={onChange} ariaLabel="Outcome" />,
     )
 
-    expect(screen.getByRole('tab', { name: 'All' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('tab', { name: 'Win' })).toHaveAttribute('aria-selected', 'false')
+    expect(screen.getByRole('radiogroup', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: 'Win' })).toHaveAttribute('aria-checked', 'false')
 
-    await user.click(screen.getByRole('tab', { name: 'Win' }))
+    await user.click(screen.getByRole('radio', { name: 'Win' }))
     expect(onChange).toHaveBeenCalledWith('win')
   })
 
   it('wraps options when full width', () => {
     render(<SegmentedControl value="all" options={options} onChange={() => {}} fullWidth />)
 
-    expect(screen.getByRole('tablist')).toHaveClass('w-full', 'flex-wrap')
+    expect(screen.getByRole('radiogroup')).toHaveClass('w-full', 'flex-wrap')
   })
 
   it('does not stretch by default', () => {
     render(<SegmentedControl value="all" options={options} onChange={() => {}} />)
 
-    expect(screen.getByRole('tablist')).not.toHaveClass('w-full')
+    expect(screen.getByRole('radiogroup')).not.toHaveClass('w-full')
   })
 
-  it('sizes every non-compact control to the control token', () => {
+  it('sizes every control to the control token', () => {
     const { rerender } = render(
-      <SegmentedControl value="all" options={options} onChange={() => {}} />,
+      <SegmentedControl value="all" options={options} onChange={() => {}} size="sm" />,
     )
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveClass('h-control')
 
-    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-control')
+    rerender(<SegmentedControl value="all" options={options} onChange={() => {}} />)
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveClass('h-control')
 
-    rerender(<SegmentedControl value="all" options={options} onChange={() => {}} size="sm" />)
-    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-control')
+    rerender(
+      <SegmentedControl
+        value="all"
+        options={options}
+        onChange={() => {}}
+        variant="separated"
+        size="sm"
+      />,
+    )
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveClass('h-control')
 
     rerender(
       <SegmentedControl value="all" options={options} onChange={() => {}} variant="separated" />,
     )
-    expect(screen.getByRole('button', { name: 'All' })).toHaveClass('h-control')
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveClass('h-control')
   })
 
-  it('sizes the compact control above the minimum target', () => {
-    render(<SegmentedControl value="all" options={options} onChange={() => {}} size="xs" />)
-
-    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-8')
-  })
-
-  it('renders separated options as pressed buttons in a group', async () => {
+  it('renders separated options as radios in a group', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
     render(
@@ -84,28 +102,46 @@ describe('SegmentedControl', () => {
       />,
     )
 
-    expect(screen.getByRole('group', { name: 'Outcome' })).toBeInTheDocument()
+    expect(screen.getByRole('radiogroup', { name: 'Outcome' })).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Win' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('radio', { name: 'Win' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: 'All' })).toHaveAttribute('aria-checked', 'false')
 
-    await user.click(screen.getByRole('button', { name: 'All' }))
+    await user.click(screen.getByRole('radio', { name: 'All' }))
     expect(onChange).toHaveBeenCalledWith('all')
   })
 
-  it('keeps one tab in the tab order and moves selection with arrow keys', async () => {
+  it('moves selection with arrow keys in the separated variant', async () => {
     const user = userEvent.setup()
-    render(<OutcomeControl />)
+    render(<SeparatedOutcomeControl />)
 
-    const all = screen.getByRole('tab', { name: 'All' })
-    const win = screen.getByRole('tab', { name: 'Win' })
+    const all = screen.getByRole('radio', { name: 'All' })
+    const win = screen.getByRole('radio', { name: 'Win' })
     expect(all).toHaveAttribute('tabindex', '0')
     expect(win).toHaveAttribute('tabindex', '-1')
 
     all.focus()
     await user.keyboard('{ArrowRight}')
     expect(win).toHaveFocus()
-    expect(win).toHaveAttribute('aria-selected', 'true')
+    expect(win).toHaveAttribute('aria-checked', 'true')
+    expect(win).toHaveAttribute('tabindex', '0')
+    expect(all).toHaveAttribute('aria-checked', 'false')
+    expect(all).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('keeps one radio in the tab order and moves selection with arrow keys', async () => {
+    const user = userEvent.setup()
+    render(<OutcomeControl />)
+
+    const all = screen.getByRole('radio', { name: 'All' })
+    const win = screen.getByRole('radio', { name: 'Win' })
+    expect(all).toHaveAttribute('tabindex', '0')
+    expect(win).toHaveAttribute('tabindex', '-1')
+
+    all.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(win).toHaveFocus()
+    expect(win).toHaveAttribute('aria-checked', 'true')
     expect(win).toHaveAttribute('tabindex', '0')
     expect(all).toHaveAttribute('tabindex', '-1')
 
@@ -133,11 +169,11 @@ describe('SegmentedControl', () => {
       </div>,
     )
 
-    screen.getByRole('tab', { name: 'All' }).focus()
+    screen.getByRole('radio', { name: 'All' }).focus()
     await user.keyboard('{ArrowRight}')
     expect(onChange).toHaveBeenLastCalledWith('loss')
 
-    screen.getByRole('tab', { name: 'Loss' }).focus()
+    screen.getByRole('radio', { name: 'Loss' }).focus()
     await user.keyboard('{ArrowLeft}')
     expect(onChange).toHaveBeenLastCalledWith('all')
   })
@@ -153,6 +189,6 @@ describe('SegmentedControl', () => {
       />,
     )
 
-    expect(screen.getByRole('group')).not.toHaveClass('w-full')
+    expect(screen.getByRole('radiogroup')).not.toHaveClass('w-full')
   })
 })
