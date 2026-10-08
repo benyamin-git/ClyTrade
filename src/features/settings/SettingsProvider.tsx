@@ -8,9 +8,23 @@ import {
 } from '@/data/repositories/settings.repo'
 import { SettingsContext, type SettingsContextValue } from './SettingsContext'
 
+interface StoredPreferences {
+  preferences: Preferences
+  error: Error | null
+}
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const stored = useLiveQuery(() => getPreferences(), [])
-  const preferences = stored ?? DEFAULT_PREFERENCES
+  const stored = useLiveQuery<StoredPreferences>(async () => {
+    try {
+      return { preferences: await getPreferences(), error: null }
+    } catch (cause) {
+      return {
+        preferences: DEFAULT_PREFERENCES,
+        error: cause instanceof Error ? cause : new Error(String(cause)),
+      }
+    }
+  }, [])
+  const preferences = stored?.preferences ?? DEFAULT_PREFERENCES
 
   const setPreferences = useCallback((next: Preferences) => {
     void persistPreferences(next)
@@ -25,7 +39,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       preferences,
       setPreferences,
       updatePreferences,
-      ready: stored !== undefined,
+      ready: stored !== undefined && stored.error === null,
+      error: stored?.error ?? null,
     }),
     [preferences, setPreferences, updatePreferences, stored],
   )

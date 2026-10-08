@@ -6,6 +6,7 @@ export interface SettingsContextValue {
   setPreferences: (preferences: Preferences) => void
   updatePreferences: (patch: Partial<Preferences>) => void
   ready: boolean
+  error: Error | null
 }
 
 export const SettingsContext = createContext<SettingsContextValue | null>(null)

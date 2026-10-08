@@ -73,4 +73,20 @@ describe('useInstallPrompt', () => {
     await act(() => result.current.promptInstall())
     expect(prompt).toHaveBeenCalledOnce()
   })
+
+  it('clears the spent install prompt event when the user dismisses it', async () => {
+    const { result } = renderHook(() => useInstallPrompt())
+    const event = Object.assign(new Event('beforeinstallprompt'), {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: 'dismissed' as const }),
+    })
+
+    act(() => {
+      window.dispatchEvent(event)
+    })
+
+    expect(result.current.canInstall).toBe(true)
+    await act(() => result.current.promptInstall())
+    expect(result.current.canInstall).toBe(false)
+  })
 })

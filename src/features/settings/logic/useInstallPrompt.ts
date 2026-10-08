@@ -37,9 +37,12 @@ export function useInstallPrompt(): InstallPromptState {
 
   const promptInstall = useCallback(async () => {
     if (!promptEvent) return
-    await promptEvent.prompt()
-    const choice = await promptEvent.userChoice
-    if (choice.outcome === 'accepted') setPromptEvent(null)
+    try {
+      await promptEvent.prompt()
+      await promptEvent.userChoice
+    } finally {
+      setPromptEvent(null)
+    }
   }, [promptEvent])
 
   return { canInstall: promptEvent !== null, installed, isIos: isIosDevice, promptInstall }

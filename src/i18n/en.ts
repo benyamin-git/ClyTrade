@@ -104,6 +104,7 @@ export const en = {
         'Restore a ClyTrade backup. Merge keeps existing records and overwrites matching ids; replace clears the database first.',
       merge: 'Merge',
       replace: 'Replace',
+      modeAria: 'Import mode',
       chooseFile: 'Choose file',
       imported: 'Imported {{trades}} trades and {{assets}} assets ({{mode}}).',
       failed: 'Import failed.',
@@ -125,6 +126,7 @@ export const en = {
         'This deletes every trade, asset and setting stored by ClyTrade on this device. The action cannot be undone.',
       deleteEverything: 'Delete everything',
       cleared: 'All data cleared.',
+      failed: 'Could not clear all data.',
     },
     sample: {
       title: 'Sample data',
@@ -552,6 +554,7 @@ export const en = {
     interface: 'Interface',
     language: 'Language',
     languageHint: 'Applies to the interface immediately',
+    loadFailed: 'Could not load preferences.',
     riskPerTrade: 'Risk per trade',
   },
 }

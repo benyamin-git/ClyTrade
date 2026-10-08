@@ -2,8 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
-import { DEFAULT_PREFERENCES } from '@/data/models/settings'
-import { clearSettings, getPreferences, setPreferences } from '@/data/repositories/settings.repo'
+import { DEFAULT_PREFERENCES, PREFERENCES_KEY } from '@/data/models/settings'
+import {
+  clearSettings,
+  getPreferences,
+  getSetting,
+  setPreferences,
+} from '@/data/repositories/settings.repo'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { PreferencesPage } from './PreferencesPage'
 
@@ -52,6 +57,37 @@ describe('PreferencesPage', () => {
 
     await waitFor(async () => {
       expect((await getPreferences()).defaultMarket).toBe('forex')
+    })
+  })
+
+  it('clamps a below-minimum number before persisting and keeps the other fields', async () => {
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, currency: 'EUR', language: 'en' })
+    renderPage()
+
+    const leverage = await screen.findByLabelText('Leverage')
+    await user.clear(leverage)
+    await user.type(leverage, '0')
+
+    await waitFor(async () => {
+      const stored = await getSetting<{ currency: string; leverage: number }>(PREFERENCES_KEY)
+      expect(stored?.leverage).toBe(1)
+      expect(stored?.currency).toBe('EUR')
+    })
+  })
+
+  it('clamps an above-maximum number before persisting', async () => {
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    const risk = await screen.findByLabelText('Risk per trade')
+    await user.clear(risk)
+    await user.type(risk, '150')
+
+    await waitFor(async () => {
+      const stored = await getSetting<{ riskPercent: number }>(PREFERENCES_KEY)
+      expect(stored?.riskPercent).toBe(100)
     })
   })
 })

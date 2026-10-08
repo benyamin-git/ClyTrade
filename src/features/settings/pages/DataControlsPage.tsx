@@ -90,6 +90,20 @@ export function DataControlsPage() {
     }
   }
 
+  async function handleReset() {
+    if (busy) return
+    setBusy(true)
+    try {
+      await clearAllData()
+      setMessage({ tone: 'ok', text: t('data.reset.cleared') })
+    } catch {
+      setMessage({ tone: 'error', text: t('data.reset.failed') })
+    } finally {
+      setBusy(false)
+      setConfirmReset(false)
+    }
+  }
+
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <div className="flex w-full max-w-4xl flex-col gap-4">
@@ -147,6 +161,7 @@ export function DataControlsPage() {
                 ]}
                 onChange={setMode}
                 size="sm"
+                ariaLabel={t('data.import.modeAria')}
               />
               <Button
                 size="sm"
@@ -241,15 +256,7 @@ export function DataControlsPage() {
               <Button variant="text" onClick={() => setConfirmReset(false)}>
                 {t('common.cancel')}
               </Button>
-              <Button
-                variant="danger"
-                onClick={() => {
-                  void clearAllData().then(() => {
-                    setConfirmReset(false)
-                    setMessage({ tone: 'ok', text: t('data.reset.cleared') })
-                  })
-                }}
-              >
+              <Button variant="danger" onClick={() => void handleReset()} disabled={busy}>
                 {t('data.reset.deleteEverything')}
               </Button>
             </>

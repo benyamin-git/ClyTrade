@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { MARKET_IDS } from '@/data/models/market'
+import { PREFERENCE_LIMITS, type BoundedPreference } from '@/data/models/settings'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { useI18n } from '@/i18n/I18nContext'
 import { LOCALES } from '@/i18n/locales'
 import { CURRENCIES, currencySymbol } from '@/lib/currency'
 import { TIME_RANGES } from '@/lib/dates'
+import { clamp } from '@/lib/money'
 import { APP_PLATFORM, APP_VERSION, isPlatformId } from '@/lib/version'
 import { Card } from '@/ui/components/Card'
 import { Field } from '@/ui/components/Field'
@@ -13,6 +15,11 @@ import { NumberField } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { SelectField } from '@/ui/components/SelectField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
+
+function clampPreference(key: BoundedPreference, value: number): number {
+  const limits = PREFERENCE_LIMITS[key]
+  return clamp(value, limits.min, limits.max)
+}
 
 function PreferencesForm() {
   const { preferences, updatePreferences } = usePreferences()
@@ -53,46 +60,59 @@ function PreferencesForm() {
               unit={currencySymbol(preferences.currency)}
               value={preferences.accountSize}
               onChange={(value) => {
-                if (value !== null) updatePreferences({ accountSize: value })
+                if (value !== null) {
+                  updatePreferences({ accountSize: clampPreference('accountSize', value) })
+                }
               }}
-              min={0}
+              min={PREFERENCE_LIMITS.accountSize.min}
             />
             <NumberField
               label={t('preferences.riskPerTrade')}
               unit="%"
               value={preferences.riskPercent}
               onChange={(value) => {
-                if (value !== null) updatePreferences({ riskPercent: value })
+                if (value !== null) {
+                  updatePreferences({ riskPercent: clampPreference('riskPercent', value) })
+                }
               }}
-              min={0}
-              max={100}
+              min={PREFERENCE_LIMITS.riskPercent.min}
+              max={PREFERENCE_LIMITS.riskPercent.max}
             />
             <NumberField
               label={t('fields.leverage')}
               unit="×"
               value={preferences.leverage}
               onChange={(value) => {
-                if (value !== null) updatePreferences({ leverage: value })
+                if (value !== null) {
+                  updatePreferences({ leverage: clampPreference('leverage', value) })
+                }
               }}
-              min={1}
+              min={PREFERENCE_LIMITS.leverage.min}
             />
             <NumberField
               label={t('fields.feePerSide')}
               unit="%"
               value={preferences.feePercent}
               onChange={(value) => {
-                if (value !== null) updatePreferences({ feePercent: value })
+                if (value !== null) {
+                  updatePreferences({ feePercent: clampPreference('feePercent', value) })
+                }
               }}
-              min={0}
+              min={PREFERENCE_LIMITS.feePercent.min}
             />
             <NumberField
               label={t('fields.maintenanceMargin')}
               unit="%"
               value={preferences.maintenanceMarginPercent}
               onChange={(value) => {
-                if (value !== null) updatePreferences({ maintenanceMarginPercent: value })
+                if (value !== null) {
+                  updatePreferences({
+                    maintenanceMarginPercent: clampPreference('maintenanceMarginPercent', value),
+                  })
+                }
               }}
-              min={0}
+              min={PREFERENCE_LIMITS.maintenanceMarginPercent.min}
+              max={PREFERENCE_LIMITS.maintenanceMarginPercent.max}
             />
             <Field label={t('preferences.feesInRisk')} hint={t('preferences.feesInRiskHint')}>
               <SegmentedControl
