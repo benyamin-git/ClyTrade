@@ -79,6 +79,7 @@ Other commands:
 | `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                     |
 | `npm run icons:native`             | Regenerate Tauri and Android icons from `public/icons/icon-512.png`           |
 | `npm run accents`                  | Regenerate the accent palettes into `src/theme/accents.css`                   |
+| `npm run a11y`                     | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical) |
 | `npm run screenshots`              | Capture desktop screenshots into `screenshots/desktop/`                       |
 | `npm run screenshots:install`      | Fetch the Chromium build Playwright needs                                     |
 | `npm run tauri:build`              | Windows desktop build (needs Windows and Rust)                                |

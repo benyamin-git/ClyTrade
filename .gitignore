@@ -11,3 +11,5 @@ coverage
 release
 
 .worktrees
+
+.playwright-cli/

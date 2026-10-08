@@ -25,6 +25,7 @@ export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 | `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                                                                                                                 |
 | `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`                                                                                                           |
 | `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`                                                                                                                   |
+| `npm run a11y`                     | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical)                                                                                             |
 | `npm run screenshots`              | Capture desktop screenshots of the key pages into `screenshots/desktop/`                                                                                                  |
 | `npm run screenshots:install`      | Fetch the Chromium build Playwright needs (first run only)                                                                                                                |
 | `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                                                                                                                              |
