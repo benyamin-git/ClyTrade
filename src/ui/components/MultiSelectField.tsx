@@ -63,7 +63,7 @@ export function MultiSelectField({
                 onClick={() => toggle(option.value)}
                 className={cn(
                   'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full border font-medium whitespace-nowrap transition-colors',
-                  'h-9 px-4 text-sm',
+                  'h-control px-4 text-sm',
                   active
                     ? 'border-transparent bg-secondary-container text-on-secondary-container'
                     : 'border-outline-variant bg-surface-container-lowest text-on-surface-variant',

@@ -66,6 +66,14 @@ describe('MultiSelectField', () => {
     expect(onChange).toHaveBeenCalledWith(['crypto'])
   })
 
+  it('sizes the option toggles to the control token', () => {
+    render(<MultiSelectField label="Market" value={[]} options={options} onChange={() => {}} />, {
+      wrapper: I18nProvider,
+    })
+
+    expect(screen.getByRole('button', { name: 'Stocks' })).toHaveClass('h-control')
+  })
+
   it('marks a selected option as pressed', () => {
     render(
       <MultiSelectField label="Market" value={['crypto']} options={options} onChange={() => {}} />,

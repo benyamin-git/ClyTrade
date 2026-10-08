@@ -49,6 +49,22 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('tablist')).not.toHaveClass('w-full')
   })
 
+  it('sizes every non-compact control to the control token', () => {
+    const { rerender } = render(
+      <SegmentedControl value="all" options={options} onChange={() => {}} />,
+    )
+
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-control')
+
+    rerender(<SegmentedControl value="all" options={options} onChange={() => {}} size="sm" />)
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-control')
+
+    rerender(
+      <SegmentedControl value="all" options={options} onChange={() => {}} variant="separated" />,
+    )
+    expect(screen.getByRole('button', { name: 'All' })).toHaveClass('h-control')
+  })
+
   it('renders separated options as pressed buttons in a group', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

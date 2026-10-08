@@ -19,15 +19,27 @@ export interface FilterSheetProps {
   onClearAll: () => void
 }
 
+function activeSectionState(sections: readonly FilterSectionSpec[]): Record<string, boolean> {
+  const initial: Record<string, boolean> = {}
+  for (const section of sections) {
+    if (section.count > 0) initial[section.id] = true
+  }
+  return initial
+}
+
 export function FilterSheet({ open, onClose, sections, onClearAll }: FilterSheetProps) {
   const { t } = useI18n()
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {}
-    for (const section of sections) {
-      if (section.count > 0) initial[section.id] = true
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({})
+  const [seeded, setSeeded] = useState(false)
+  const [prevOpen, setPrevOpen] = useState(false)
+
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open && !seeded) {
+      setSeeded(true)
+      setOpenSections(activeSectionState(sections))
     }
-    return initial
-  })
+  }
 
   return (
     <Sheet

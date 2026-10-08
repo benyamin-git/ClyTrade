@@ -19,21 +19,22 @@ function renderSheet(
     onClearAll?: () => void
   } = {},
 ) {
+  const sections = overrides.sections ?? makeSections()
   const result = render(
     <FilterSheet
       open={overrides.open ?? true}
       onClose={overrides.onClose ?? (() => {})}
-      sections={overrides.sections ?? makeSections()}
+      sections={sections}
       onClearAll={overrides.onClearAll ?? (() => {})}
     />,
     { wrapper: I18nProvider },
   )
-  const rerender = (open: boolean) =>
+  const rerender = (open: boolean, nextSections: readonly FilterSectionSpec[] = sections) =>
     result.rerender(
       <FilterSheet
         open={open}
         onClose={overrides.onClose ?? (() => {})}
-        sections={overrides.sections ?? makeSections()}
+        sections={nextSections}
         onClearAll={overrides.onClearAll ?? (() => {})}
       />,
     )
@@ -85,6 +86,35 @@ describe('FilterSheet', () => {
     rerender(true)
     expect(screen.getByText('Tags body')).toBeInTheDocument()
     expect(screen.getByText('Market body')).toBeInTheDocument()
+  })
+
+  it('auto-opens an active section on the first open and keeps manual toggles afterwards', async () => {
+    const user = userEvent.setup()
+    const inactive: FilterSectionSpec[] = [
+      { id: 'market', title: 'Market', count: 0, children: <p>Market body</p> },
+      { id: 'tags', title: 'Tags', count: 0, children: <p>Tags body</p> },
+    ]
+    const active: FilterSectionSpec[] = [
+      { id: 'market', title: 'Market', count: 2, children: <p>Market body</p> },
+      { id: 'tags', title: 'Tags', count: 0, children: <p>Tags body</p> },
+    ]
+    const { rerender } = renderSheet({ open: false, sections: inactive })
+
+    expect(screen.queryByText('Market body')).not.toBeInTheDocument()
+
+    rerender(true, active)
+    expect(screen.getByText('Market body')).toBeInTheDocument()
+    expect(screen.queryByText('Tags body')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Market/ }))
+    expect(screen.queryByText('Market body')).not.toBeInTheDocument()
+
+    rerender(false, active)
+    rerender(true, active)
+    expect(screen.queryByText('Market body')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Tags/ }))
+    expect(screen.getByText('Tags body')).toBeInTheDocument()
   })
 
   it('calls onClearAll when Clear all is clicked', async () => {

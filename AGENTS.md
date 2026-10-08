@@ -130,7 +130,10 @@ depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
   from that button. There is no on-page quick bar or chips. Filter state is
   page-local: it is not persisted to the URL or `localStorage` and resets when
   the page unmounts. The Journal Stats sheet offers every filter group except
-  status and always analyzes closed trades.
+  status and always analyzes closed trades. The **one deliberate exception** to
+  the sheet-only rule is the Journal Stats time-range control: it stays inline
+  next to the filters button (period is the most frequent cut) while also
+  appearing as a sheet section — do not move it into the sheet.
 - `__APP_VERSION__` and `__APP_PLATFORM__` are injected by `vite.config.ts` from
   `package.json` and `TAURI_ENV_PLATFORM`. Read them through `src/lib/version.ts`;
   never touch `process.env` from app code.

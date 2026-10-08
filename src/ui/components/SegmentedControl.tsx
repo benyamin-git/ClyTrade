@@ -19,8 +19,8 @@ export interface SegmentedControlProps<T extends string> {
 
 const sizeClasses = {
   xs: 'h-6 px-1.5 text-2xs',
-  sm: 'h-8 px-3 text-xs',
-  md: 'h-9 px-4 text-sm',
+  sm: 'h-control px-3 text-xs',
+  md: 'h-control px-4 text-sm',
 } as const
 
 const variantClasses = {
