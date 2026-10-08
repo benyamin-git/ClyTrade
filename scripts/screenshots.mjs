@@ -18,7 +18,7 @@ const PAGES = [
     route: '/journal/stats',
     ready: (page) => page.getByText('Equity curve'),
     prepare: async (page) => {
-      await page.getByRole('tab', { name: 'All' }).click()
+      await page.getByRole('radio', { name: 'All' }).click()
     },
   },
   {
@@ -44,7 +44,7 @@ const PAGES = [
   {
     slug: 'settings-themes',
     route: '/settings/themes',
-    ready: (page) => page.getByText('Material Light'),
+    ready: (page) => page.getByText('Light', { exact: true }),
   },
 ]
 
@@ -142,7 +142,7 @@ async function main() {
     })
     await context.addInitScript(() => {
       try {
-        localStorage.setItem('clytrade.theme', 'md3-dark')
+        localStorage.setItem('clytrade.theme', 'dark')
       } catch {
         // storage unavailable
       }
