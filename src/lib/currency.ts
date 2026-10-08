@@ -1,24 +1,23 @@
 export interface CurrencyDef {
   code: string
   symbol: string
-  label: string
   customSymbol?: boolean
 }
 
 export const CURRENCIES: readonly CurrencyDef[] = [
-  { code: 'USD', symbol: '$', label: 'US Dollar' },
-  { code: 'EUR', symbol: '€', label: 'Euro' },
-  { code: 'GBP', symbol: '£', label: 'British Pound' },
-  { code: 'JPY', symbol: '¥', label: 'Japanese Yen' },
-  { code: 'CHF', symbol: 'Fr', label: 'Swiss Franc' },
-  { code: 'CAD', symbol: 'C$', label: 'Canadian Dollar' },
-  { code: 'AUD', symbol: 'A$', label: 'Australian Dollar' },
-  { code: 'CNY', symbol: 'CN¥', label: 'Chinese Yuan' },
-  { code: 'INR', symbol: '₹', label: 'Indian Rupee' },
-  { code: 'BRL', symbol: 'R$', label: 'Brazilian Real' },
-  { code: 'KRW', symbol: '₩', label: 'South Korean Won' },
-  { code: 'TRY', symbol: '₺', label: 'Turkish Lira' },
-  { code: 'IRT', symbol: 'تومان', label: 'Iranian Toman', customSymbol: true },
+  { code: 'USD', symbol: '$' },
+  { code: 'EUR', symbol: '€' },
+  { code: 'GBP', symbol: '£' },
+  { code: 'JPY', symbol: '¥' },
+  { code: 'CHF', symbol: 'Fr' },
+  { code: 'CAD', symbol: 'C$' },
+  { code: 'AUD', symbol: 'A$' },
+  { code: 'CNY', symbol: 'CN¥' },
+  { code: 'INR', symbol: '₹' },
+  { code: 'BRL', symbol: 'R$' },
+  { code: 'KRW', symbol: '₩' },
+  { code: 'TRY', symbol: '₺' },
+  { code: 'IRT', symbol: 'تومان', customSymbol: true },
 ]
 
 export const DEFAULT_CURRENCY = 'USD'

@@ -113,6 +113,10 @@ export function JournalStatsPage() {
   const filteredEmpty = allRows.length > 0 && activeCount > 0 && stats.closed === 0
 
   const currency = preferences.currency
+  const compactMoney = (value: number | null) =>
+    value === null
+      ? '—'
+      : formatCurrency(value, currency, { notation: 'compact', maximumFractionDigits: 2 })
 
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
@@ -199,11 +203,11 @@ export function JournalStatsPage() {
               />
               <Stat
                 label={t('journal.stats.averageWinLoss')}
-                value={`${stats.averageWin === null ? '—' : formatCompact(stats.averageWin)} / ${stats.averageLoss === null ? '—' : formatCompact(stats.averageLoss)}`}
+                value={`${compactMoney(stats.averageWin)} / ${compactMoney(stats.averageLoss)}`}
               />
               <Stat
                 label={t('journal.stats.bestWorst')}
-                value={`${stats.bestTrade === null ? '—' : formatCompact(stats.bestTrade)} / ${stats.worstTrade === null ? '—' : formatCompact(stats.worstTrade)}`}
+                value={`${compactMoney(stats.bestTrade)} / ${compactMoney(stats.worstTrade)}`}
               />
             </div>
           </Card>

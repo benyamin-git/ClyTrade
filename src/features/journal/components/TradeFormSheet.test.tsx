@@ -165,4 +165,17 @@ describe('TradeFormSheet validation', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Fees cannot be negative.')
     expect(await listTrades()).toEqual([])
   })
+
+  it('splits tags on both comma characters', async () => {
+    renderForm(null)
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'scalp، btc, swing' } })
+    save()
+
+    await waitFor(async () => {
+      expect(await listTrades()).toHaveLength(1)
+    })
+    const [saved] = await listTrades()
+    expect(saved?.tags).toEqual(['scalp', 'btc', 'swing'])
+  })
 })

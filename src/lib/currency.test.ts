@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CURRENCIES, currencySymbol } from './currency'
+import { CURRENCIES, currencyDef, currencySymbol } from './currency'
 
 describe('currencySymbol', () => {
   it.each([
@@ -25,6 +25,10 @@ describe('currencySymbol', () => {
 
   it('falls back to the uppercased code for unknown currencies', () => {
     expect(currencySymbol('xyz')).toBe('XYZ')
+  })
+
+  it('keeps translated labels out of the currency data', () => {
+    expect(currencyDef('IRT')).toEqual({ code: 'IRT', symbol: 'تومان', customSymbol: true })
   })
 
   it('has unique codes and symbols', () => {

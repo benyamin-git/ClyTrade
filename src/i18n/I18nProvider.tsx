@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { setIntlContext } from '@/lib/intl'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
+import { getIntlContext, resetIntlContext, setIntlContext, subscribeIntlContext } from '@/lib/intl'
 import { I18nContext, type I18nContextValue } from './I18nContext'
 import {
   DICTIONARIES,
@@ -22,8 +29,12 @@ export function I18nProvider({ children, preference, onPreferenceChange }: I18nP
   const [autoLocale, setAutoLocale] = useState<Locale>(() => readStoredLanguage() ?? detectLocale())
   const locale = preference ?? autoLocale
   const def = localeDef(locale)
+  useSyncExternalStore(subscribeIntlContext, getIntlContext)
 
-  setIntlContext({ locale: def.intlLocale, calendar: def.calendar })
+  useEffect(() => {
+    setIntlContext({ locale: def.intlLocale, calendar: def.calendar })
+    return () => resetIntlContext()
+  }, [def.intlLocale, def.calendar])
 
   useEffect(() => {
     document.documentElement.lang = locale
@@ -42,10 +53,7 @@ export function I18nProvider({ children, preference, onPreferenceChange }: I18nP
 
   const t = useMemo(() => createTranslator(DICTIONARIES[locale]), [locale])
 
-  const value = useMemo<I18nContextValue>(
-    () => ({ locale, dir: def.dir, t, setLocale }),
-    [locale, def.dir, t, setLocale],
-  )
+  const value: I18nContextValue = { locale, dir: def.dir, t, setLocale }
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

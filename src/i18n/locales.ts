@@ -43,9 +43,9 @@ export function detectLocale(languages?: readonly string[]): Locale {
   const candidates =
     languages ??
     (typeof navigator === 'undefined' ? [] : (navigator.languages ?? [navigator.language]))
-  for (const candidate of candidates) {
-    if (candidate.toLowerCase().startsWith('fa')) return 'fa'
-  }
+  const primary = candidates.map((candidate) => candidate.toLowerCase().split('-')[0])
+  if (primary.includes('fa')) return 'fa'
+  if (primary.includes('en')) return 'en'
   return DEFAULT_LOCALE
 }
 

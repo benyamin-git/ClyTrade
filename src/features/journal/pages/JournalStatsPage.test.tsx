@@ -121,6 +121,15 @@ describe('JournalStatsPage filters', () => {
     expect(await screen.findByText('1 closed · 1 open')).toBeInTheDocument()
   })
 
+  it('marks the money stats with the selected currency', async () => {
+    await createTrade(closedDraft('BTCUSDT', 'crypto'))
+
+    renderPage()
+
+    expect(await screen.findByText('$10.00 / —')).toBeInTheDocument()
+    expect(screen.getByText('$10.00 / $10.00')).toBeInTheDocument()
+  })
+
   it('resets the time range to the preference default with Clear all', async () => {
     await createTrade(closedDraft('BTCUSDT', 'crypto'))
 

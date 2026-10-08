@@ -92,7 +92,7 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
       strategy: strategy.trim() === '' ? null : strategy.trim(),
       notes: notes.trim() === '' ? null : notes.trim(),
       tags: tags
-        .split(',')
+        .split(/[,،]/)
         .map((tag) => tag.trim())
         .filter((tag) => tag !== ''),
     }

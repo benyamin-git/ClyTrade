@@ -178,7 +178,7 @@ export const en = {
       },
       filtering: {
         title: 'Filtering',
-        summary: 'Quick bar and advanced sheet, how conditions combine, and filtered totals.',
+        summary: 'Filters button and advanced sheet, how conditions combine, and filtered totals.',
       },
       'data-and-backups': {
         title: 'Data & Backups',

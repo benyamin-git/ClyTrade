@@ -16,6 +16,14 @@ describe('locales', () => {
     expect(detectLocale([])).toBe('en')
   })
 
+  it('matches only whole primary language subtags', () => {
+    expect(detectLocale(['fap'])).toBe('en')
+    expect(detectLocale(['fat'])).toBe('en')
+    expect(detectLocale(['FA'])).toBe('fa')
+    expect(detectLocale(['de-DE', 'fa-IR'])).toBe('fa')
+    expect(detectLocale(['de-DE', 'en-US'])).toBe('en')
+  })
+
   it('marks persian as rtl with latin digits and the gregorian calendar', () => {
     expect(localeDef('fa')).toMatchObject({
       dir: 'rtl',
