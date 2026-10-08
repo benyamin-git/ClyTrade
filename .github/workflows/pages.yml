@@ -13,11 +13,16 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/ci.yml
+
   build:
     name: Build PWA
+    needs: checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

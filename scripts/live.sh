@@ -19,7 +19,28 @@ if lsof -i ":$PORT" -sTCP:LISTEN -t >/dev/null 2>&1; then
 fi
 
 nohup ./node_modules/.bin/vite --host "$HOST" --port "$PORT" --strictPort >"$LOG" 2>&1 &
-echo "$!" >"$PIDFILE"
+pid="$!"
+echo "$pid" >"$PIDFILE"
+
+bound=""
+for _ in {1..75}; do
+  if lsof -i ":$PORT" -sTCP:LISTEN -t >/dev/null 2>&1; then
+    bound=1
+    break
+  fi
+  if ! kill -0 "$pid" 2>/dev/null; then
+    break
+  fi
+  sleep 0.2
+done
+
+if [ -z "$bound" ]; then
+  kill "$pid" 2>/dev/null || true
+  rm -f "$PIDFILE"
+  echo "Live server failed to bind port $PORT. Log follows:" >&2
+  tail -n 20 "$LOG" >&2 || true
+  exit 1
+fi
 
 echo "Live server on http://$HOST:$PORT"
 echo "Log:  $LOG"

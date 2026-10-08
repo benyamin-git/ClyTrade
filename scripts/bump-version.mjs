@@ -16,7 +16,20 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
   process.exit(1)
 }
 
-execFileSync('npm', ['version', '--no-git-tag-version', version], {
+const nodeDir = dirname(process.execPath)
+const npmCli =
+  process.env.npm_execpath ??
+  [
+    join(nodeDir, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    join(nodeDir, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+  ].find((candidate) => existsSync(candidate))
+
+if (!npmCli || !existsSync(npmCli)) {
+  console.error('Could not locate the npm CLI. Run this script via npm run version:set.')
+  process.exit(1)
+}
+
+execFileSync(process.execPath, [npmCli, 'version', '--no-git-tag-version', version], {
   cwd: root,
   stdio: 'inherit',
 })

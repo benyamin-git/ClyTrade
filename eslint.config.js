@@ -20,4 +20,18 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['**/*.mjs', '*.config.{js,mjs,cjs}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['scripts/screenshots.mjs'],
+    languageOptions: {
+      globals: { document: 'readonly' },
+    },
+  },
 ])
