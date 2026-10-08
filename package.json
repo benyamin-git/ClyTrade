@@ -39,6 +39,7 @@
     "accents": "node scripts/generate-accents.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:install": "playwright install chromium",
+    "a11y": "node scripts/a11y.mjs",
     "tauri": "tauri",
     "tauri:build": "tauri build",
     "android:init": "tauri android init",
@@ -60,6 +61,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/cli": "^2.11.5",
