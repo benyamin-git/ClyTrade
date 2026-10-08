@@ -1,14 +1,12 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const ACCENTS = [
-  { id: 'teal', hue: 195, chroma: 0.1 },
-  { id: 'blue', hue: 255, chroma: 0.15 },
-  { id: 'green', hue: 145, chroma: 0.13 },
-  { id: 'lime', hue: 115, chroma: 0.14 },
-  { id: 'amber', hue: 80, chroma: 0.13 },
-  { id: 'orange', hue: 45, chroma: 0.15 },
-  { id: 'rose', hue: 15, chroma: 0.15 },
-  { id: 'violet', hue: 300, chroma: 0.14 },
+  { id: 'blue', hue: 255, chroma: 0.21 },
+  { id: 'teal', hue: 195, chroma: 0.16 },
+  { id: 'green', hue: 145, chroma: 0.19 },
+  { id: 'orange', hue: 45, chroma: 0.21 },
+  { id: 'rose', hue: 15, chroma: 0.21 },
+  { id: 'violet', hue: 300, chroma: 0.2 },
 ]
 
 const SECONDARY_RATIO = 0.28
@@ -25,11 +23,11 @@ const PRIMARY_TONES = {
     ['inverse-primary', 0.835, 0.72],
   ],
   dark: [
-    ['primary', 0.835, 0.72],
+    ['primary', 0.74, 1],
     ['on-primary', 0.325, 1.04],
     ['primary-container', 0.41, 1.02],
     ['on-primary-container', 0.918, 0.36],
-    ['surface-tint', 0.835, 0.72],
+    ['surface-tint', 0.74, 1],
     ['inverse-primary', 0.4955, 1],
   ],
 }
@@ -122,17 +120,9 @@ function toHex(rgb) {
 }
 
 function oklchToHex(L, C, H) {
-  let low = 0
-  let high = C
-  for (let i = 0; i < 40; i += 1) {
-    const mid = (low + high) / 2
-    if (inGamut(oklchToLinear(L, mid, H))) {
-      low = mid
-    } else {
-      high = mid
-    }
-  }
-  return toHex(oklchToLinear(L, low, H))
+  let c = C
+  while (c > 0 && !inGamut(oklchToLinear(L, c, H))) c /= 2
+  return toHex(oklchToLinear(L, c, H))
 }
 
 function hexToOklch(hex) {

@@ -73,12 +73,9 @@ export const en = {
     value: 'Value',
   },
   accent: {
-    amber: 'Amber',
     blue: 'Blue',
     green: 'Green',
-    lime: 'Lime',
     orange: 'Orange',
-    purple: 'Purple',
     rose: 'Rose',
     teal: 'Teal',
     violet: 'Violet',
@@ -478,7 +475,7 @@ export const en = {
   themes: {
     accent: 'Accent',
     accentDescription:
-      'Recolors the primary, secondary and tertiary families and tints the surfaces of the active theme. Blue is the default; Purple restores the palette the theme ships with.',
+      'Recolors the primary, secondary and tertiary families and tints the surfaces of the active theme. Blue is the default.',
     footer: 'Themes use Material Design 3 color roles, so every screen follows your choice.',
   },
   shell: {

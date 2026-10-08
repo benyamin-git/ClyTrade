@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nContext'
-import { ACCENTS, THEME_NATIVE_ACCENT } from '@/theme/accents'
+import { ACCENTS } from '@/theme/accents'
 import { useTheme } from '@/theme/ThemeContext'
 import { THEMES } from '@/theme/theme'
 import { cn } from '@/lib/cn'
@@ -33,11 +33,7 @@ export function ThemesPage() {
                   data-theme={themeId}
                   className="flex h-24 flex-col justify-between rounded-app-sm border border-outline-variant/40 bg-background p-3"
                 >
-                  <span className="flex items-center gap-1">
-                    <span className="size-2.5 rounded-full bg-primary" />
-                    <span className="size-2.5 rounded-full bg-secondary" />
-                    <span className="size-2.5 rounded-full bg-tertiary" />
-                  </span>
+                  <span className="size-2.5 rounded-full bg-primary" />
                   <span className="flex flex-col gap-1">
                     <span className="h-1.5 w-3/4 rounded-full bg-surface-container-high" />
                     <span className="h-1.5 w-1/2 rounded-full bg-surface-container" />
@@ -85,7 +81,7 @@ export function ThemesPage() {
                 >
                   <span
                     data-theme={theme}
-                    data-accent={accentId === THEME_NATIVE_ACCENT ? undefined : accentId}
+                    data-accent={accentId}
                     className="size-10 rounded-app-full border border-outline-variant/40 bg-primary"
                   />
                   <span className="w-full text-center text-2xs leading-tight text-on-surface-variant">

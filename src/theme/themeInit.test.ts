@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { runInThisContext } from 'node:vm'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ACCENTS, DEFAULT_ACCENT, THEME_NATIVE_ACCENT } from './accents'
+import { ACCENTS, DEFAULT_ACCENT } from './accents'
 import { DEFAULT_LIGHT_THEME, THEME_SURFACE_COLORS } from './theme'
 import { injectThemeInit, THEME_INIT_PLACEHOLDER } from './themeInit'
 
@@ -93,12 +93,16 @@ describe('pre-paint script', () => {
     expect(statusBar.getAttribute('content')).toBe('black-translucent')
   })
 
-  it('leaves the theme-native accent to the base palette', () => {
-    localStorage.setItem('clytrade.accent', THEME_NATIVE_ACCENT)
+  it.each([
+    ['purple', 'violet'],
+    ['lime', 'green'],
+    ['amber', 'orange'],
+  ] as const)('migrates the legacy %s accent before paint', (legacy, migrated) => {
+    localStorage.setItem('clytrade.accent', legacy)
 
     runInThisContext(prepaintScript())
 
-    expect(document.documentElement.dataset.accent).toBeUndefined()
+    expect(document.documentElement.dataset.accent).toBe(migrated)
   })
 
   it('falls back to the default accent for an unknown stored value', () => {

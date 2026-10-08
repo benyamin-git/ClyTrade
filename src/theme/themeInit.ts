@@ -1,4 +1,4 @@
-import { ACCENTS, DEFAULT_ACCENT, THEME_NATIVE_ACCENT } from './accents.ts'
+import { ACCENTS, DEFAULT_ACCENT, LEGACY_ACCENT_MIGRATIONS } from './accents.ts'
 import {
   DEFAULT_DARK_THEME,
   DEFAULT_LIGHT_THEME,
@@ -14,7 +14,7 @@ export function injectThemeInit(html: string): string {
   const config = {
     accents: ACCENTS,
     defaultAccent: DEFAULT_ACCENT,
-    nativeAccent: THEME_NATIVE_ACCENT,
+    accentMigrations: LEGACY_ACCENT_MIGRATIONS,
     themes: THEMES,
     themeMigrations: LEGACY_THEME_MIGRATIONS,
     darkThemes: THEMES.filter(isDarkTheme),

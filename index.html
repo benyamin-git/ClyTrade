@@ -46,10 +46,11 @@
             if (themeColor) themeColor.setAttribute('content', surface)
           }
           var accent = localStorage.getItem('clytrade.accent')
-          if (accent !== config.nativeAccent) {
-            document.documentElement.dataset.accent =
-              config.accents.indexOf(accent) === -1 ? config.defaultAccent : accent
+          if (accent !== null && Object.hasOwn(config.accentMigrations, accent)) {
+            accent = config.accentMigrations[accent]
           }
+          document.documentElement.dataset.accent =
+            config.accents.indexOf(accent) === -1 ? config.defaultAccent : accent
           var language = localStorage.getItem('clytrade.language')
           if (language !== 'en' && language !== 'fa') {
             language = (navigator.language || '').toLowerCase().indexOf('fa') === 0 ? 'fa' : 'en'

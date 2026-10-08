@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { readStoredAccent, THEME_NATIVE_ACCENT, writeStoredAccent, type AccentId } from './accents'
+import { readStoredAccent, writeStoredAccent, type AccentId } from './accents'
 import { ThemeContext, type ThemeContextValue } from './ThemeContext'
 import {
   DEFAULT_DARK_THEME,
@@ -26,11 +26,7 @@ function syncThemeColor(): void {
 function applyTheme(theme: ThemeId, accent: AccentId): void {
   const root = document.documentElement
   root.dataset.theme = theme
-  if (accent === THEME_NATIVE_ACCENT) {
-    delete root.dataset.accent
-  } else {
-    root.dataset.accent = accent
-  }
+  root.dataset.accent = accent
   syncNativeSystemBar(theme)
   syncIosStatusBar(theme)
   syncThemeColor()

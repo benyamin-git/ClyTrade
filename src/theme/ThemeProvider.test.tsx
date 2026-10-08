@@ -48,14 +48,15 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.dataset.accent).toBe('blue')
   })
 
-  it('clears the attribute for the theme-native accent', () => {
+  it('migrates a legacy stored accent and writes it back', () => {
     localStorage.setItem('clytrade.accent', 'purple')
     render(
       <ThemeProvider>
         <div />
       </ThemeProvider>,
     )
-    expect(document.documentElement.dataset.accent).toBeUndefined()
+    expect(document.documentElement.dataset.accent).toBe('violet')
+    expect(localStorage.getItem('clytrade.accent')).toBe('violet')
   })
 
   it('applies a stored preset accent', () => {
