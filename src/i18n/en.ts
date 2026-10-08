@@ -532,6 +532,7 @@ export const en = {
   },
   platform: {
     android: 'Android',
+    androideabi: 'Android',
     darwin: 'macOS',
     ios: 'iOS',
     linux: 'Linux',

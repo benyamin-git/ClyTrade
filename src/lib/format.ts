@@ -3,6 +3,10 @@ import { getIntlContext } from './intl'
 
 const numberFormatters = new Map<string, Intl.NumberFormat>()
 
+export function resetFormatCaches(): void {
+  numberFormatters.clear()
+}
+
 function numberFormatter(key: string, build: () => Intl.NumberFormat): Intl.NumberFormat {
   let formatter = numberFormatters.get(key)
   if (!formatter) {
@@ -40,7 +44,6 @@ export function formatCurrency(
       new Intl.NumberFormat(locale, {
         style: 'currency',
         currency,
-        maximumFractionDigits: 2,
         ...options,
       }),
   ).format(value)
@@ -48,7 +51,12 @@ export function formatCurrency(
 
 export function formatPercent(value: number, maximumFractionDigits = 2): string {
   if (!Number.isFinite(value)) return '—'
-  return `${formatNumber(value, { maximumFractionDigits })}%`
+  const { locale } = getIntlContext()
+  const key = `${locale}|percent|${maximumFractionDigits}`
+  return numberFormatter(
+    key,
+    () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits }),
+  ).format(value / 100)
 }
 
 export function formatCompact(value: number): string {
@@ -81,12 +89,33 @@ function toAsciiDigits(input: string): string {
   return result
 }
 
+const GROUPING = /[,٬\s،]/
+
+function normalizeGroupedNumber(value: string): string | null {
+  const sign = value.startsWith('-') || value.startsWith('+') ? value.slice(0, 1) : ''
+  const unsigned = sign === '' ? value : value.slice(1)
+  const dot = unsigned.indexOf('.')
+  const integerPart = dot === -1 ? unsigned : unsigned.slice(0, dot)
+  const fractionPart = dot === -1 ? null : unsigned.slice(dot + 1)
+  const groups = integerPart.split(GROUPING)
+  if (groups.length === 1) {
+    if (!/^\d*$/.test(integerPart)) return null
+  } else {
+    const [first, ...rest] = groups
+    if (first === undefined || !/^\d{1,3}$/.test(first)) return null
+    if (!rest.every((group) => /^\d{3}$/.test(group))) return null
+  }
+  if (fractionPart !== null && !/^\d*$/.test(fractionPart)) return null
+  const digits = groups.join('')
+  if (digits === '' && !fractionPart) return null
+  return `${sign}${digits}${fractionPart === null ? '' : `.${fractionPart}`}`
+}
+
 export function parseNumberInput(raw: string): number | null {
-  const normalized = toAsciiDigits(raw.trim())
-    .replace(/٫/g, '.')
-    .replace(/[\s,٬،]/g, '')
-    .replace(/[%٪]$/, '')
+  const normalized = toAsciiDigits(raw.trim()).replace(/[%٪]$/, '').replace(/٫/g, '.')
   if (normalized === '') return null
-  const parsed = Number(normalized)
+  const candidate = GROUPING.test(normalized) ? normalizeGroupedNumber(normalized) : normalized
+  if (candidate === null) return null
+  const parsed = Number(candidate)
   return Number.isFinite(parsed) ? parsed : null
 }

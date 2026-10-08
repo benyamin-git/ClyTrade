@@ -29,7 +29,7 @@ export interface NumberFieldProps {
 }
 
 function toRaw(value: number | null): string {
-  return value === null ? '' : String(value)
+  return value === null || !Number.isFinite(value) ? '' : String(value)
 }
 
 export function NumberField({
@@ -51,7 +51,13 @@ export function NumberField({
   const { t } = useI18n()
   const id = useId()
   const [raw, setRaw] = useState(() => toRaw(value))
+  const [lastValue, setLastValue] = useState(value)
   const [lastUnit, setLastUnit] = useState(unitValue)
+
+  if (value !== lastValue) {
+    setLastValue(value)
+    if (parseNumberInput(raw) !== value) setRaw(toRaw(value))
+  }
 
   if (unitValue !== lastUnit) {
     setLastUnit(unitValue)
@@ -60,7 +66,10 @@ export function NumberField({
 
   function handleBlur() {
     const parsed = parseNumberInput(raw)
-    if (parsed === null) return
+    if (parsed === null) {
+      setRaw(toRaw(value))
+      return
+    }
     const clamped = clamp(parsed, min ?? -Infinity, max ?? Infinity)
     setRaw(toRaw(clamped))
     if (clamped !== value) onChange(clamped)

@@ -1,10 +1,14 @@
 import '@testing-library/jest-dom/vitest'
 import 'fake-indexeddb/auto'
 import { beforeEach } from 'vitest'
+import { resetDateFormatterCache } from '@/lib/dates'
+import { resetFormatCaches } from '@/lib/format'
 import { resetIntlContext } from '@/lib/intl'
 
 beforeEach(() => {
   resetIntlContext()
+  resetDateFormatterCache()
+  resetFormatCaches()
   localStorage.clear()
 })
 

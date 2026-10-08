@@ -38,6 +38,10 @@ export function isWithinRange(timestamp: number, range: TimeRange, now = new Dat
 
 const dateFormatters = new Map<string, Intl.DateTimeFormat>()
 
+export function resetDateFormatterCache(): void {
+  dateFormatters.clear()
+}
+
 export function formatDate(timestamp: number | Date): string {
   const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp
   if (Number.isNaN(date.getTime())) return '—'
@@ -61,5 +65,6 @@ export function toDateInputValue(date: Date): string {
 export function fromDateInputValue(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
   const date = new Date(`${value}T00:00:00`)
-  return Number.isNaN(date.getTime()) ? null : date
+  if (Number.isNaN(date.getTime())) return null
+  return toDateInputValue(date) === value ? date : null
 }

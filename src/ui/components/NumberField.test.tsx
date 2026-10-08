@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
@@ -73,5 +74,51 @@ describe('NumberField', () => {
 
     await user.click(screen.getByRole('tab', { name: '$' }))
     expect(onUnitChange).toHaveBeenCalledWith('currency')
+  })
+
+  it('resets unparseable blur text to the controlled value', async () => {
+    const user = userEvent.setup()
+    render(<NumberField label="Risk" value={5} onChange={() => {}} />, {
+      wrapper: I18nProvider,
+    })
+    const input = screen.getByLabelText('Risk')
+
+    await user.clear(input)
+    await user.type(input, 'abc')
+    expect(input).toHaveValue('abc')
+
+    await user.tab()
+    expect(input).toHaveValue('5')
+  })
+
+  it('renders an empty field for a non-finite value', () => {
+    render(<NumberField label="Risk" value={Number.POSITIVE_INFINITY} onChange={() => {}} />, {
+      wrapper: I18nProvider,
+    })
+
+    expect(screen.getByLabelText('Risk')).toHaveValue('')
+  })
+
+  it('syncs the display when the value prop changes externally', () => {
+    const { rerender } = render(<NumberField label="Risk" value={1} onChange={() => {}} />, {
+      wrapper: I18nProvider,
+    })
+    expect(screen.getByLabelText('Risk')).toHaveValue('1')
+
+    rerender(<NumberField label="Risk" value={42} onChange={() => {}} />)
+
+    expect(screen.getByLabelText('Risk')).toHaveValue('42')
+  })
+
+  it('keeps in-progress text while the parent echoes the parsed value', async () => {
+    const user = userEvent.setup()
+    function Controlled() {
+      const [value, setValue] = useState<number | null>(null)
+      return <NumberField label="Risk" value={value} onChange={setValue} />
+    }
+    render(<Controlled />, { wrapper: I18nProvider })
+
+    await user.type(screen.getByLabelText('Risk'), '1.50')
+    expect(screen.getByLabelText('Risk')).toHaveValue('1.50')
   })
 })

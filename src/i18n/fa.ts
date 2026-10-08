@@ -536,6 +536,7 @@ export const fa = {
   },
   platform: {
     android: 'اندروید',
+    androideabi: 'اندروید',
     darwin: 'مک‌اواس',
     ios: 'آی‌اواس',
     linux: 'لینوکس',
