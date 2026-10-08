@@ -8,7 +8,7 @@ export const en = {
     delete: 'Delete',
     loading: 'Loading…',
     saveChanges: 'Save changes',
-    unitAria: '{{label}} unit',
+    unitToggle: 'Switch {{label}} unit (currently {{unit}})',
   },
   filters: {
     activeCount: {

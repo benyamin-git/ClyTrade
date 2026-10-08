@@ -6,8 +6,12 @@ import type { TranslationKey } from './types'
 
 describe('translate', () => {
   it('interpolates parameters', () => {
-    expect(translate(en, 'common.unitAria', { label: 'Risk' })).toBe('Risk unit')
-    expect(translate(fa, 'common.unitAria', { label: 'ریسک' })).toBe('واحد ریسک')
+    expect(translate(en, 'common.unitToggle', { label: 'Risk', unit: '%' })).toBe(
+      'Switch Risk unit (currently %)',
+    )
+    expect(translate(fa, 'common.unitToggle', { label: 'ریسک', unit: '%' })).toBe(
+      'تغییر واحد ریسک (اکنون %)',
+    )
   })
 
   it('selects plural forms by count', () => {

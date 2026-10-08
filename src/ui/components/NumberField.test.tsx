@@ -72,7 +72,10 @@ describe('NumberField', () => {
       { wrapper: I18nProvider },
     )
 
-    await user.click(screen.getByRole('tab', { name: '$' }))
+    const toggle = screen.getByRole('button', { name: 'Switch Risk unit (currently %)' })
+    expect(toggle).toHaveTextContent('%')
+
+    await user.click(toggle)
     expect(onUnitChange).toHaveBeenCalledWith('currency')
   })
 

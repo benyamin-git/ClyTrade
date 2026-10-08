@@ -64,6 +64,16 @@ export function NumberField({
     setRaw(toRaw(value))
   }
 
+  const currentUnit = unitOptions?.find((option) => option.value === unitValue)
+  const nextUnit = unitOptions?.find((option) => option.value !== unitValue)
+  const unitToggle =
+    unitOptions?.length === 2 && unitValue && onUnitChange && currentUnit && nextUnit
+      ? { current: currentUnit, next: nextUnit, onChange: onUnitChange }
+      : null
+  const unitToggleLabel = currentUnit
+    ? t('common.unitToggle', { label, unit: currentUnit.label })
+    : undefined
+
   function handleBlur() {
     const parsed = parseNumberInput(raw)
     if (parsed === null) {
@@ -80,7 +90,8 @@ export function NumberField({
       {({ describedBy, invalid }) => (
         <div
           className={cn(
-            'flex h-control items-center gap-2 rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
+            'relative flex h-control items-center gap-2 rounded-app-sm border border-outline-variant bg-surface-container-lowest transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary',
+            !unitToggle && 'px-3',
             invalid && 'border-error focus-within:border-error focus-within:ring-error',
             disabled && 'opacity-50',
           )}
@@ -104,16 +115,29 @@ export function NumberField({
             }}
             onBlur={handleBlur}
             onFocus={(event) => event.target.select()}
-            className="tabular w-full min-w-0 bg-transparent text-base outline-none placeholder:text-on-surface-variant/50"
+            className={cn(
+              'tabular w-full min-w-0 bg-transparent text-base outline-none placeholder:text-on-surface-variant/50',
+              unitToggle && 'ps-3 pe-[calc(var(--spacing-control)+0.75rem)]',
+            )}
           />
-          {unitOptions && unitValue && onUnitChange ? (
+          {unitToggle ? (
+            <button
+              type="button"
+              disabled={disabled}
+              aria-label={unitToggleLabel}
+              title={unitToggleLabel}
+              onClick={() => unitToggle.onChange(unitToggle.next.value)}
+              className="state-layer absolute inset-y-0 end-0 flex w-control items-center justify-center rounded-e-app-sm text-xs font-medium text-on-surface-variant disabled:pointer-events-none"
+            >
+              {unitToggle.current.label}
+            </button>
+          ) : unitOptions && unitValue && onUnitChange ? (
             <SegmentedControl
               value={unitValue}
               options={unitOptions}
               onChange={onUnitChange}
-              size="xs"
-              variant="inline"
-              ariaLabel={t('common.unitAria', { label })}
+              size="sm"
+              ariaLabel={unitToggleLabel}
             />
           ) : unit ? (
             <span className="shrink-0 text-xs text-on-surface-variant">{unit}</span>

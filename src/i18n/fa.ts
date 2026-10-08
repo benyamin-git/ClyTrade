@@ -10,7 +10,7 @@ export const fa = {
     delete: 'حذف',
     loading: 'در حال بارگذاری…',
     saveChanges: 'ذخیره تغییرات',
-    unitAria: 'واحد {{label}}',
+    unitToggle: 'تغییر واحد {{label}} (اکنون {{unit}})',
   },
   filters: {
     activeCount: {
