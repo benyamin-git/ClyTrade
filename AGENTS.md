@@ -86,6 +86,10 @@ large changes.
   in `.github/workflows/release.yml`; do not rename builds by hand. Tag pushes
   also deploy the PWA to GitHub Pages via `.github/workflows/pages.yml` (base
   `/ClyTrade/`); that base belongs in the workflow, never in `vite.config.ts`.
+  CI (`.github/workflows/ci.yml`) runs lint, typecheck, test, format:check and
+  build on every branch push and PR; `pages.yml` reuses it and gates the deploy
+  on it, and `release.yml` asserts the tag matches `package.json` before
+  building.
 
 ## Architecture
 
@@ -147,6 +151,11 @@ depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
   appearing as a sheet section — do not move it into the sheet.
 - `__APP_VERSION__` and `__APP_PLATFORM__` are injected by `vite.config.ts` from
   `package.json` and `TAURI_ENV_PLATFORM`. Read them through `src/lib/version.ts`;
-  never touch `process.env` from app code.
+  never touch `process.env` from app code. The pre-paint theme config
+  (`__THEME_INIT__`) is injected into `index.html` at build time by
+  `src/theme/themeInit.ts` (`transformIndexHtml`), which single-sources theme
+  ids, dark themes, accents and surface colors from `src/theme/accents.ts` and
+  `src/theme/theme.ts` — update those modules, never the inline script in
+  `index.html`.
 - User-facing documentation lives in `src/docs/**` and must explain the _why_ behind
   opinionated decisions, not just the how.

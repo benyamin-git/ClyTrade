@@ -121,8 +121,9 @@ deployment the next time it opens online.
 ## Data and storage
 
 All data is stored in IndexedDB, in a database named `clytrade`, through Dexie.
-Nothing is sent anywhere. The interface language, theme and accent are kept in
-`localStorage` and applied before the first paint.
+Nothing is sent anywhere. The interface language, the accent and an explicit
+theme choice are kept in `localStorage` and applied before the first paint;
+until you pick a theme, the app follows the system light or dark setting.
 
 Settings → Data Controls **Export backup** writes a single JSON file containing
 the journal, portfolio and settings (including the interface language and default
