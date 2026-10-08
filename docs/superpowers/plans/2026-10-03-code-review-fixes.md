@@ -382,3 +382,44 @@ after approval).
 
 - None outstanding; both former questions were resolved by the 2026-10-03
   approved decisions above.
+
+## Completion log (2026-10-03)
+
+All 15 tasks implemented and committed to `master` (not pushed). One commit per
+task, in plan order:
+
+| Task | Commit    | Summary                                               |
+| ---- | --------- | ----------------------------------------------------- |
+| 1    | `4c09324` | Release pipeline formatting + docs fixes              |
+| 2    | `5900eed` | Atomic replace-mode import; duplicate ids rejected    |
+| 3    | `45a81da` | Dexie v2 preferences backfill                         |
+| 4    | `5da83ec` | Partial trade/asset updates validated                 |
+| 5    | `31b9dff` | Journal open/closed single source of truth            |
+| 6    | `feb625c` | Preferences clamped + repaired field-by-field         |
+| 7    | `acde3b2` | Sheet/DataTable/SegmentedControl/Field/NavDrawer a11y |
+| 8    | `7c67caa` | Filter sheet first-open auto-seed + density tokens    |
+| 9    | `5b5d3a6` | Date/format/number helpers corrected + table tests    |
+| 10   | `df779c9` | Portfolio valid-metric counts + id-keyed cells        |
+| 11   | `ad7e649` | Intl context timing, locale matching, tags split      |
+| 12   | `dbbf4b6` | Accent gamut fix, pre-paint theme sync, motion CSS    |
+| 13   | `c991577` | PR CI, Pages gating, release preflight + tooling      |
+| 14   | `c4dc7ac` | Android backup disabled, native/docs accuracy         |
+| 15   | `df1cedc` | Margin/win-rate/liquidation guards, calculator UI     |
+
+Notes:
+
+- **Task 2 resolves NV-1.** The decisive hazard was cross-store (a duplicate
+  aborting one store while a sibling replace committed); the regression test
+  proves full rollback, and duplicates are rejected at `parseBackup`.
+- **Tasks 4 and 6 were completed by the orchestrator** after the per-task
+  subagents died on API socket errors mid-work; the partial work was reviewed,
+  finished, and verified before committing.
+- **Task 13 CR mapping:** the review's CR numbers for CI/tooling differ from the
+  plan's shorthand; the subagent implemented the underlying findings from the
+  report and verified workflows with `actionlint`.
+- **Final gate:** `typecheck`, `lint`, `test` (71 files / 685 tests),
+  `format:check` and web `build` all pass.
+- **Not run:** native builds. Windows `tauri:build` needs Windows; Android needs
+  a JDK and Android SDK/NDK, neither present on this host. The Kotlin
+  `MainActivity.kt` change is not compiler-verified.
+- Low/Nit findings remain tracked in `TODO.md`.
