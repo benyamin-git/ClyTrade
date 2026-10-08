@@ -10,7 +10,7 @@
   --app-subtabbar-h: 3rem;
   --app-control-h: 2.5rem;
   --app-control-h-touch: 3rem;
-  --app-row-h: 2.25rem;
+  --app-row-h: 2.5rem;
 
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -24,6 +24,13 @@
 
   --app-ease: cubic-bezier(0.2, 0, 0, 1);
   --app-duration: 160ms;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --app-control-h: 3rem;
+    --app-row-h: 3rem;
+  }
 }
 
 :root[lang='fa'] {

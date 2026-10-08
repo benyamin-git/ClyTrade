@@ -20,7 +20,7 @@ export function IconButton({
       title={label}
       className={cn(
         'state-layer inline-flex shrink-0 items-center justify-center rounded-app-full text-on-surface-variant transition-colors hover:text-on-surface disabled:pointer-events-none disabled:opacity-40 [&>svg]:size-5',
-        size === 'sm' ? 'size-9 [&>svg]:size-4' : 'size-control',
+        size === 'sm' ? 'size-control [&>svg]:size-4' : 'size-control',
         className,
       )}
       {...props}
