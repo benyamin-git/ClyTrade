@@ -3,10 +3,10 @@
   <polyline
     points="14,44 24,34 32,40 50,20"
     fill="none"
-    stroke="#d0bcff"
+    stroke="#7daeec"
     stroke-width="6"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <circle cx="50" cy="20" r="5" fill="#d0bcff" />
+  <circle cx="50" cy="20" r="5" fill="#7daeec" />
 </svg>

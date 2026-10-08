@@ -8,7 +8,7 @@ const outDir = join(root, 'public', 'icons')
 mkdirSync(outDir, { recursive: true })
 
 const BACKGROUND = [28, 27, 31, 255]
-const ACCENT = [208, 188, 255, 255]
+const ACCENT = [125, 174, 236, 255]
 
 const CRC_TABLE = (() => {
   const table = new Int32Array(256)
