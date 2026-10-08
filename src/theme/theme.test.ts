@@ -97,6 +97,14 @@ describe('explicit theme storage', () => {
     },
   )
 
+  it('exposes the legacy migration map', () => {
+    expect(LEGACY_THEME_MIGRATIONS).toEqual({
+      'md3-light': 'light',
+      'md3-dark': 'dark',
+      'black-night': 'oled',
+    })
+  })
+
   it.each(['sepia', 'constructor', 'toString'])(
     'returns null for the unknown stored value %s',
     (value) => {

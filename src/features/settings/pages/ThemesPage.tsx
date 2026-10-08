@@ -31,6 +31,7 @@ export function ThemesPage() {
               >
                 <span
                   data-theme={themeId}
+                  data-accent={accent}
                   className="flex h-24 flex-col justify-between rounded-app-sm border border-outline-variant/40 bg-background p-3"
                 >
                   <span className="size-2.5 rounded-full bg-primary" />

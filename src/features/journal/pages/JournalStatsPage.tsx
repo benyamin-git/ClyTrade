@@ -281,8 +281,8 @@ export function JournalStatsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {curve.map((point) => (
-                    <tr key={point.t}>
+                  {curve.map((point, index) => (
+                    <tr key={`${point.t}-${index}`}>
                       <td>{formatDate(point.t)}</td>
                       <td>{formatCurrency(point.equity, currency)}</td>
                     </tr>

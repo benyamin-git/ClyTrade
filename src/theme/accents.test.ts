@@ -153,7 +153,7 @@ describe('accent generator seeds', () => {
   const seedIds = [...generatorSource.matchAll(/\{ id: '([a-z]+)'/g)].map((match) => match[1])
 
   it('seeds exactly the house accent ids', () => {
-    expect(new Set(seedIds)).toEqual(new Set(ACCENTS))
+    expect(seedIds).toEqual([...ACCENTS])
   })
 })
 
