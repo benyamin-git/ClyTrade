@@ -116,7 +116,7 @@ export function NumberField({
             onBlur={handleBlur}
             onFocus={(event) => event.target.select()}
             className={cn(
-              'tabular w-full min-w-0 bg-transparent text-base outline-none placeholder:text-on-surface-variant/50',
+              'tabular w-full min-w-0 bg-transparent text-base outline-none placeholder:text-on-surface-variant',
               unitToggle && 'ps-3 pe-[calc(var(--spacing-control)+0.75rem)]',
             )}
           />

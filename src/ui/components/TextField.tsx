@@ -48,7 +48,7 @@ export function TextField({
           aria-invalid={invalid ? true : undefined}
           onChange={(event) => onChange(event.target.value)}
           className={cn(
-            'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary',
+            'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary',
             invalid && 'border-error focus:border-error focus:ring-error',
             disabled && 'opacity-50',
           )}

@@ -19,7 +19,12 @@ export function Markdown({ children }: { children: string }) {
           li: (props) => <li className="leading-relaxed" {...props} />,
           strong: (props) => <strong className="font-medium text-on-surface" {...props} />,
           a: (props) => (
-            <a className="text-primary underline underline-offset-2" target="_blank" {...props} />
+            <a
+              className="text-primary underline underline-offset-2"
+              target="_blank"
+              rel="noopener noreferrer"
+              {...props}
+            />
           ),
           code: (props) => (
             <code

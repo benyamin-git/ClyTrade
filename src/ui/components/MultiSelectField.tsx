@@ -48,7 +48,7 @@ export function MultiSelectField({
         className={cn('flex flex-wrap gap-2', disabled && 'opacity-50')}
       >
         {options.length === 0 ? (
-          <p aria-disabled="true" className="text-sm text-on-surface-variant opacity-50">
+          <p aria-disabled="true" className="text-sm text-on-surface-variant">
             {t('filters.noOptions')}
           </p>
         ) : (
