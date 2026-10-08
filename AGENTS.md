@@ -67,12 +67,18 @@ large changes.
   listed in its own `.gitignore`. `gen/android` is a committed Tauri project and
   may be customized — the release build type intentionally signs with the debug
   keystore for test builds — so keep such edits minimal and documented here.
-  Current customizations: `MainActivity.kt` keeps `enableEdgeToEdge()` and adds
-  the `ClyTradeNative.setDarkTheme` JS bridge that syncs the Android status and
-  navigation bar icon colors with the in-app theme (see `syncNativeSystemBar` in
-  `src/theme/theme.ts`); `app/proguard-rules.pro` keeps
-  `@android.webkit.JavascriptInterface` methods so the bridge survives release
-  minification.
+  Current customizations: `MainActivity.kt` keeps `enableEdgeToEdge()`, seeds
+  the system bar icon contrast from the current `uiMode` so it is correct before
+  the web app loads, and adds the `ClyTradeNative.setDarkTheme` JS bridge that
+  syncs the Android status and navigation bar icon colors with the in-app theme
+  (see `syncNativeSystemBar` in `src/theme/theme.ts`); `AndroidManifest.xml`
+  sets `android:allowBackup="false"` and points `android:dataExtractionRules` at
+  `res/xml/data_extraction_rules.xml`, which excludes every backup domain from
+  cloud backup and device-to-device transfer so the local-first database cannot
+  leave the device; the unused `FileProvider` (`file_paths.xml`) and the
+  template `activity_main.xml` layout were deliberately removed;
+  `app/proguard-rules.pro` keeps `@android.webkit.JavascriptInterface` methods
+  so the bridge survives release minification.
 - Releases: the version lives in `package.json`; `src-tauri/tauri.conf.json`
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag

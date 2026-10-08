@@ -30,7 +30,9 @@ Translation is implemented; the structure is small and type-checked:
   keys, registered in `src/i18n/locales.ts` with its `intlLocale`, text direction
   and calendar, plus the language detection in the `index.html` pre-paint script.
 - **Documentation** lives in `src/docs/<locale>/`. Copy `src/docs/en/**` and
-  translate page by page; a missing file falls back to English. Titles and
+  translate page by page; a missing file falls back to English. A new page also
+  needs an entry in `src/docs/registry.ts` — the registry is a hardcoded, typed
+  list so no page can exist without a group, title and summary. Those titles and
   summaries go in the dictionary next to the other `docs.items.*` keys.
 - **Tests** for dictionary parity, number parsing and locale detection live next
   to the code. Run `npm test` and `npm run typecheck`.

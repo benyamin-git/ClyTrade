@@ -49,7 +49,8 @@ single **Filters** button that opens a sheet holding every control for that page
 - **The multi-select lists are plain toggle buttons.** Markets, tags and
   strategies are a set of independent buttons; tap one to add a value and tap it
   again to remove it. They have no search boxes of their own. The **Search**
-  section is the single place to type, and it finds records by symbol or note.
+  section is the single place to type: in the Journal it matches symbol,
+  strategy, note and tags; in the Portfolio it matches symbol, name and note.
 - Numeric fields are ranges, entered as two **Min** and **Max** number inputs.
   Leave an end blank for no bound on that side; leave both blank for no
   constraint. The placeholder shows the smallest and largest value in the data,

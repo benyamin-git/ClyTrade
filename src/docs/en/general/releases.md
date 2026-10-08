@@ -67,8 +67,18 @@ from a newer build than the one importing it.
 ## Updates
 
 - **PWA** — updates silently when a new version is deployed.
-- **Windows / Android** — download the newer release and install it over the
-  old one; your data is kept.
+- **Windows** — download the newer release and install it over the old one;
+  your data is kept.
+- **Android** — in-place updates fail. Each CI build is signed with a freshly
+  generated debug keystore, so Android sees a different signing certificate and
+  refuses to install over the existing app ("App not installed"). Uninstalling
+  first is the only workaround, and it wipes the local data, so export a backup
+  before updating.
+
+Android in-place updates are the one place where these test builds fall short of
+the PWA. A stable release keystore (planned before `1.0.0`) will remove the
+uninstall step; until then, treat every Android update as a fresh install with
+an import afterwards.
 
 Export a backup before updating if you want a safety net, especially before
 switching between major versions.

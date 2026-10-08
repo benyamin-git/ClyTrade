@@ -8,9 +8,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 
 class MainActivity : TauriActivity() {
-  @Volatile private var darkTheme: Boolean? = null
+  @Volatile private var darkTheme = false
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    darkTheme =
+      (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+        Configuration.UI_MODE_NIGHT_YES
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
   }
@@ -48,10 +51,9 @@ class MainActivity : TauriActivity() {
   }
 
   private fun applySystemBarAppearance() {
-    val dark = darkTheme ?: return
     WindowCompat.getInsetsController(window, window.decorView).apply {
-      isAppearanceLightStatusBars = !dark
-      isAppearanceLightNavigationBars = !dark
+      isAppearanceLightStatusBars = !darkTheme
+      isAppearanceLightNavigationBars = !darkTheme
     }
   }
 }

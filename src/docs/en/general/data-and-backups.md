@@ -15,7 +15,7 @@ directly:
 ```json
 {
   "app": "clytrade",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "exportedAt": "…",
   "data": { "trades": [], "assets": [], "settings": [] }
 }
