@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useRef } from 'react'
 import { NavLink } from 'react-router'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { tabs } from '@/navigation/tabs'
 import { IconButton } from '@/ui/components/IconButton'
+import { useFocusTrap } from '@/ui/components/useFocusTrap'
 
 export interface NavDrawerProps {
   open: boolean
@@ -13,22 +14,20 @@ export interface NavDrawerProps {
 
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const { t } = useI18n()
+  const navRef = useRef<HTMLElement>(null)
 
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
+  useFocusTrap(open, navRef, onClose)
 
   return (
-    <div className={cn('fixed inset-0 z-50', !open && 'pointer-events-none')} aria-hidden={!open}>
+    <div
+      className={cn('fixed inset-0 z-50', !open && 'pointer-events-none')}
+      aria-hidden={open ? undefined : true}
+      inert={!open}
+    >
       <button
         type="button"
         tabIndex={-1}
-        aria-label={t('shell.closeNavigation')}
+        aria-hidden="true"
         onClick={onClose}
         className={cn(
           'absolute inset-0 bg-scrim/50 transition-opacity duration-200',
@@ -36,6 +35,8 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         )}
       />
       <nav
+        ref={navRef}
+        tabIndex={-1}
         aria-label={t('shell.mainNavigation')}
         className={cn(
           'absolute inset-y-0 start-0 flex w-72 flex-col border-s border-outline-variant/60 bg-surface-container-low pb-safe-bottom shadow-2xl transition-transform duration-200',

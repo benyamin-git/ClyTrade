@@ -35,21 +35,25 @@ export function TextField({
       hideLabel={hideLabel}
       className={className}
     >
-      <input
-        id={id}
-        type="text"
-        autoComplete="off"
-        spellCheck={false}
-        disabled={disabled}
-        value={value}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        className={cn(
-          'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary',
-          error && 'border-error focus:border-error focus:ring-error',
-          disabled && 'opacity-50',
-        )}
-      />
+      {({ describedBy, invalid }) => (
+        <input
+          id={id}
+          type="text"
+          autoComplete="off"
+          spellCheck={false}
+          disabled={disabled}
+          value={value}
+          placeholder={placeholder}
+          aria-describedby={describedBy}
+          aria-invalid={invalid ? true : undefined}
+          onChange={(event) => onChange(event.target.value)}
+          className={cn(
+            'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-1 focus:ring-primary',
+            invalid && 'border-error focus:border-error focus:ring-error',
+            disabled && 'opacity-50',
+          )}
+        />
+      )}
     </Field>
   )
 }

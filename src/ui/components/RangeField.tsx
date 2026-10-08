@@ -68,26 +68,32 @@ export function RangeField({
 
   return (
     <Field label={label} hint={hintText} className={className}>
-      <div className={cn('flex gap-2', isDisabled && 'opacity-50')}>
-        <NumberField
-          key={`min-${minKey}`}
-          label={t('filters.min')}
-          value={lower}
-          onChange={changeMin}
-          disabled={isDisabled}
-          placeholder={minPlaceholder}
-          className="flex-1"
-        />
-        <NumberField
-          key={`max-${maxKey}`}
-          label={t('filters.max')}
-          value={upper}
-          onChange={changeMax}
-          disabled={isDisabled}
-          placeholder={maxPlaceholder}
-          className="flex-1"
-        />
-      </div>
+      {({ labelId }) => (
+        <div
+          role="group"
+          aria-labelledby={labelId}
+          className={cn('flex gap-2', isDisabled && 'opacity-50')}
+        >
+          <NumberField
+            key={`min-${minKey}`}
+            label={t('filters.min')}
+            value={lower}
+            onChange={changeMin}
+            disabled={isDisabled}
+            placeholder={minPlaceholder}
+            className="flex-1"
+          />
+          <NumberField
+            key={`max-${maxKey}`}
+            label={t('filters.max')}
+            value={upper}
+            onChange={changeMax}
+            disabled={isDisabled}
+            placeholder={maxPlaceholder}
+            className="flex-1"
+          />
+        </div>
+      )}
     </Field>
   )
 }

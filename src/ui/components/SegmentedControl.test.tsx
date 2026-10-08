@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { SegmentedControl } from './SegmentedControl'
 
@@ -7,6 +8,19 @@ const options = [
   { value: 'all', label: 'All' },
   { value: 'win', label: 'Win' },
 ] as const
+
+const threeOptions = [
+  { value: 'all', label: 'All' },
+  { value: 'win', label: 'Win' },
+  { value: 'loss', label: 'Loss' },
+] as const
+
+function OutcomeControl() {
+  const [value, setValue] = useState<'all' | 'win'>('all')
+  return (
+    <SegmentedControl value={value} options={options} onChange={setValue} ariaLabel="Outcome" />
+  )
+}
 
 describe('SegmentedControl', () => {
   it('renders options and reports the selected value', async () => {
@@ -55,6 +69,55 @@ describe('SegmentedControl', () => {
 
     await user.click(screen.getByRole('button', { name: 'All' }))
     expect(onChange).toHaveBeenCalledWith('all')
+  })
+
+  it('keeps one tab in the tab order and moves selection with arrow keys', async () => {
+    const user = userEvent.setup()
+    render(<OutcomeControl />)
+
+    const all = screen.getByRole('tab', { name: 'All' })
+    const win = screen.getByRole('tab', { name: 'Win' })
+    expect(all).toHaveAttribute('tabindex', '0')
+    expect(win).toHaveAttribute('tabindex', '-1')
+
+    all.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(win).toHaveFocus()
+    expect(win).toHaveAttribute('aria-selected', 'true')
+    expect(win).toHaveAttribute('tabindex', '0')
+    expect(all).toHaveAttribute('tabindex', '-1')
+
+    await user.keyboard('{ArrowRight}')
+    expect(all).toHaveFocus()
+
+    await user.keyboard('{End}')
+    expect(win).toHaveFocus()
+
+    await user.keyboard('{Home}')
+    expect(all).toHaveFocus()
+  })
+
+  it('reverses the arrow direction in right-to-left layouts', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <div dir="rtl">
+        <SegmentedControl
+          value="all"
+          options={threeOptions}
+          onChange={onChange}
+          ariaLabel="Outcome"
+        />
+      </div>,
+    )
+
+    screen.getByRole('tab', { name: 'All' }).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(onChange).toHaveBeenLastCalledWith('loss')
+
+    screen.getByRole('tab', { name: 'Loss' }).focus()
+    await user.keyboard('{ArrowLeft}')
+    expect(onChange).toHaveBeenLastCalledWith('all')
   })
 
   it('ignores full width for the separated variant', () => {

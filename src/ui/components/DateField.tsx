@@ -13,13 +13,16 @@ export function DateField({ label, value, onChange, hint, className }: DateField
   const id = useId()
   return (
     <Field label={label} htmlFor={id} hint={hint} className={className}>
-      <input
-        id={id}
-        type="date"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-      />
+      {({ describedBy }) => (
+        <input
+          id={id}
+          type="date"
+          value={value}
+          aria-describedby={describedBy}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      )}
     </Field>
   )
 }

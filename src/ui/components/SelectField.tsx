@@ -29,22 +29,25 @@ export function SelectField<T extends string>({
   const id = useId()
   return (
     <Field label={label} htmlFor={id} hint={hint} className={className}>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value as T)}
-        className={cn(
-          'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none focus:border-primary focus:ring-1 focus:ring-primary',
-          disabled && 'opacity-50',
-        )}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {({ describedBy }) => (
+        <select
+          id={id}
+          value={value}
+          disabled={disabled}
+          aria-describedby={describedBy}
+          onChange={(event) => onChange(event.target.value as T)}
+          className={cn(
+            'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none focus:border-primary focus:ring-1 focus:ring-primary',
+            disabled && 'opacity-50',
+          )}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
     </Field>
   )
 }

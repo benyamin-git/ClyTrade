@@ -25,6 +25,12 @@ describe('RangeField', () => {
     expect(screen.queryByRole('slider')).not.toBeInTheDocument()
   })
 
+  it('labels the min/max group with the field label', () => {
+    renderField(base)
+
+    expect(screen.getByRole('group', { name: 'Price' })).toBeInTheDocument()
+  })
+
   it('reports a typed minimum and maximum', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

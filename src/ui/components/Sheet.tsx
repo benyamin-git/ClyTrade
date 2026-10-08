@@ -1,8 +1,10 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { IconButton } from './IconButton'
+import { useFocusTrap } from './useFocusTrap'
 
 export interface SheetProps {
   open: boolean
@@ -13,21 +15,36 @@ export interface SheetProps {
   className?: string
 }
 
+let openSheetCount = 0
+let previousBodyOverflow = ''
+
 export function Sheet({ open, onClose, title, children, footer, className }: SheetProps) {
   const { t } = useI18n()
+  const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+    const appRoot = document.getElementById('root')
+    if (openSheetCount === 0) {
+      previousBodyOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      appRoot?.setAttribute('inert', '')
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
+    openSheetCount += 1
+    return () => {
+      openSheetCount -= 1
+      if (openSheetCount === 0) {
+        document.body.style.overflow = previousBodyOverflow
+        document.getElementById('root')?.removeAttribute('inert')
+      }
+    }
+  }, [open])
+
+  useFocusTrap(open, panelRef, onClose)
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -36,11 +53,14 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
     >
       <button
         type="button"
+        tabIndex={-1}
         aria-label={t('common.closeDialog')}
         onClick={onClose}
         className="absolute inset-0 bg-scrim/50 backdrop-blur-[2px]"
       />
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className={cn(
           'relative flex max-h-[88dvh] w-full max-w-2xl flex-col rounded-t-app-lg border border-outline-variant/60 bg-surface-container-high pb-safe-bottom shadow-2xl sm:rounded-app-lg',
           className,
@@ -59,6 +79,7 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
           </footer>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -39,6 +39,23 @@ describe('NumberField', () => {
     expect(screen.getAllByRole('textbox')).toHaveLength(1)
   })
 
+  it('associates an error with the input', () => {
+    render(
+      <NumberField
+        label="Risk"
+        value={1}
+        onChange={() => {}}
+        error="Must be at least 10"
+        min={10}
+      />,
+      { wrapper: I18nProvider },
+    )
+
+    const input = screen.getByLabelText('Risk')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAccessibleDescription('Must be at least 10')
+  })
+
   it('reports the selected unit', async () => {
     const user = userEvent.setup()
     const onUnitChange = vi.fn()

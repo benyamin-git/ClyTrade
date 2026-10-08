@@ -54,10 +54,22 @@ export function DataTable<T>({
           {rows.map((row) => (
             <tr
               key={getRowKey(row)}
+              tabIndex={onRowClick ? 0 : undefined}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
+              onKeyDown={
+                onRowClick
+                  ? (event) => {
+                      if (event.target !== event.currentTarget) return
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        onRowClick(row)
+                      }
+                    }
+                  : undefined
+              }
               className={cn(
                 'border-b border-outline-variant/30 last:border-0',
-                onRowClick && 'cursor-pointer hover:bg-on-surface/5',
+                onRowClick && 'cursor-pointer hover:bg-on-surface/5 focus-visible:bg-on-surface/5',
               )}
             >
               {columns.map((column) => (
