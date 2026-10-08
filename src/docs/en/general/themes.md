@@ -6,8 +6,11 @@
 - **Material Dark** — Material Design 3 dark.
 - **Black Night** — pure-black OLED theme for night sessions.
 
-Pick one in Settings → Themes. The theme is stored locally and applied before
-the first paint, so there is no flash of the wrong theme when the app opens.
+Pick one in Settings → Themes. Until you pick one, the app follows the
+operating system's light or dark setting and reacts when it changes while the
+app is open. Once you pick a theme it is stored locally and always wins. Either
+way the theme is applied before the first paint, so there is no flash of the
+wrong theme when the app opens.
 
 ## Accent colors
 

@@ -12,8 +12,20 @@ import {
 } from './accents'
 
 const accentsCss = readFileSync(resolve(process.cwd(), 'src/theme/accents.css'), 'utf8')
+const generatorSource = readFileSync(resolve(process.cwd(), 'scripts/generate-accents.mjs'), 'utf8')
 
 const PRESET_ACCENTS = ACCENTS.filter((accent) => accent !== THEME_NATIVE_ACCENT)
+
+const GOLDEN_PRIMARY = {
+  teal: { light: '#007171', dark: '#90d8d7' },
+  blue: { light: '#1561b4', dark: '#a5ccff' },
+  green: { light: '#26742e', dark: '#a3daa3' },
+  lime: { light: '#606900', dark: '#c6d184' },
+  amber: { light: '#805a00', dark: '#e9c382' },
+  orange: { light: '#a04000', dark: '#ffb594' },
+  rose: { light: '#a63346', dark: '#ffb1b6' },
+  violet: { light: '#6f4ba4', dark: '#d2bbff' },
+} as const
 
 function paletteBlock(accentId: string, themeId: string): string {
   const start = accentsCss.indexOf(`[data-theme='${themeId}'][data-accent='${accentId}']`)
@@ -21,6 +33,14 @@ function paletteBlock(accentId: string, themeId: string): string {
   const open = accentsCss.indexOf('{', start)
   const close = accentsCss.indexOf('}', open)
   return accentsCss.slice(open, close)
+}
+
+function paletteRole(accentId: string, themeId: string, role: string): string {
+  const match = new RegExp(`--md-sys-color-${role}: (#[0-9a-f]{6})`).exec(
+    paletteBlock(accentId, themeId),
+  )
+  if (!match?.[1]) throw new Error(`missing --md-sys-color-${role} for ${accentId}/${themeId}`)
+  return match[1]
 }
 
 describe('accent storage', () => {
@@ -100,4 +120,30 @@ describe('generated accent palettes', () => {
     expect(block).not.toContain('--md-sys-color-surface-container')
     expect(block).not.toContain('--md-sys-color-background')
   })
+})
+
+describe('accent generator seeds', () => {
+  const seedIds = [...generatorSource.matchAll(/\{ id: '([a-z]+)'/g)].map((match) => match[1])
+
+  it('seeds exactly the preset accent ids', () => {
+    expect(new Set(seedIds)).toEqual(new Set(PRESET_ACCENTS))
+  })
+
+  it('leaves the theme-native accent to the base theme', () => {
+    expect(seedIds).not.toContain(THEME_NATIVE_ACCENT)
+  })
+})
+
+describe('generated accent values', () => {
+  it('covers every preset accent', () => {
+    expect(Object.keys(GOLDEN_PRIMARY).sort()).toEqual([...PRESET_ACCENTS].sort())
+  })
+
+  it.each(Object.entries(GOLDEN_PRIMARY))(
+    'generates the expected primary tones for %s',
+    (id, expected) => {
+      expect(paletteRole(id, 'md3-light', 'primary')).toBe(expected.light)
+      expect(paletteRole(id, 'md3-dark', 'primary')).toBe(expected.dark)
+    },
+  )
 })

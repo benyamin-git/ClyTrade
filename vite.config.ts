@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { injectThemeInit } from './src/theme/themeInit.ts'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
   version: string
@@ -22,6 +23,15 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'clytrade-theme-init',
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html: string) {
+          return injectThemeInit(html)
+        },
+      },
+    },
     VitePWA({
       disable: isNativeBuild,
       registerType: 'autoUpdate',

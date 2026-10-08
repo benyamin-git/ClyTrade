@@ -122,16 +122,17 @@ function toHex(rgb) {
 }
 
 function oklchToHex(L, C, H) {
-  let chroma = C
-  let rgb = oklchToLinear(L, chroma, H)
   let low = 0
   let high = C
-  for (let i = 0; i < 40 && !inGamut(rgb); i += 1) {
-    high = chroma
-    chroma = (low + high) / 2
-    rgb = oklchToLinear(L, chroma, H)
+  for (let i = 0; i < 40; i += 1) {
+    const mid = (low + high) / 2
+    if (inGamut(oklchToLinear(L, mid, H))) {
+      low = mid
+    } else {
+      high = mid
+    }
   }
-  return toHex(rgb)
+  return toHex(oklchToLinear(L, low, H))
 }
 
 function hexToOklch(hex) {

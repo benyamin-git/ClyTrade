@@ -18,31 +18,34 @@
     <script>
       ;(function () {
         try {
+          var config = __THEME_INIT__
           var stored = localStorage.getItem('clytrade.theme')
-          var valid = stored === 'md3-light' || stored === 'md3-dark' || stored === 'black-night'
-          var theme = valid
-            ? stored
-            : window.matchMedia('(prefers-color-scheme: light)').matches
-              ? 'md3-light'
-              : 'md3-dark'
+          var theme =
+            config.themes.indexOf(stored) === -1
+              ? window.matchMedia('(prefers-color-scheme: light)').matches
+                ? config.lightTheme
+                : config.darkTheme
+              : stored
+          var dark = config.darkThemes.indexOf(theme) !== -1
           document.documentElement.dataset.theme = theme
           if (window.ClyTradeNative) {
-            window.ClyTradeNative.setDarkTheme(theme !== 'md3-light')
+            window.ClyTradeNative.setDarkTheme(dark)
           }
           var statusBar = document.querySelector(
             'meta[name="apple-mobile-web-app-status-bar-style"]',
           )
           if (statusBar) {
-            statusBar.setAttribute(
-              'content',
-              theme === 'md3-light' ? 'default' : 'black-translucent',
-            )
+            statusBar.setAttribute('content', dark ? 'black-translucent' : 'default')
+          }
+          var surface = config.surfaces[theme]
+          if (surface) {
+            var themeColor = document.querySelector('meta[name="theme-color"]')
+            if (themeColor) themeColor.setAttribute('content', surface)
           }
           var accent = localStorage.getItem('clytrade.accent')
-          var accents = ['blue', 'teal', 'green', 'lime', 'amber', 'orange', 'rose', 'violet']
-          if (accent !== 'purple') {
+          if (accent !== config.nativeAccent) {
             document.documentElement.dataset.accent =
-              accents.indexOf(accent) === -1 ? 'blue' : accent
+              config.accents.indexOf(accent) === -1 ? config.defaultAccent : accent
           }
           var language = localStorage.getItem('clytrade.language')
           if (language !== 'en' && language !== 'fa') {

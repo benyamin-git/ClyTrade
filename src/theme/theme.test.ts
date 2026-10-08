@@ -1,5 +1,20 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isDarkTheme, syncIosStatusBar, syncNativeSystemBar } from './theme'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  isDarkTheme,
+  readExplicitTheme,
+  syncIosStatusBar,
+  syncNativeSystemBar,
+  THEME_SURFACE_COLORS,
+  type ThemeId,
+} from './theme'
+
+const THEME_CSS: Record<ThemeId, string> = {
+  'md3-light': 'src/theme/themes/md3-light.css',
+  'md3-dark': 'src/theme/themes/md3-dark.css',
+  'black-night': 'src/theme/themes/black-night.css',
+}
 
 describe('native system bar bridge', () => {
   afterEach(() => {
@@ -54,5 +69,38 @@ describe('ios status bar', () => {
 
   it('does nothing when the meta tag is absent', () => {
     expect(() => syncIosStatusBar('md3-light')).not.toThrow()
+  })
+})
+
+describe('explicit theme storage', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    delete document.documentElement.dataset.theme
+  })
+
+  it('returns the stored theme', () => {
+    localStorage.setItem('clytrade.theme', 'black-night')
+    expect(readExplicitTheme()).toBe('black-night')
+  })
+
+  it('returns null when nothing is stored', () => {
+    expect(readExplicitTheme()).toBeNull()
+  })
+
+  it('returns null for an unknown stored value', () => {
+    localStorage.setItem('clytrade.theme', 'md3-sepia')
+    expect(readExplicitTheme()).toBeNull()
+  })
+
+  it('ignores the theme applied pre-paint', () => {
+    document.documentElement.dataset.theme = 'md3-light'
+    expect(readExplicitTheme()).toBeNull()
+  })
+})
+
+describe('theme surface colors', () => {
+  it.each(Object.keys(THEME_CSS) as ThemeId[])('matches the %s stylesheet surface', (themeId) => {
+    const css = readFileSync(resolve(process.cwd(), THEME_CSS[themeId]), 'utf8')
+    expect(css).toContain(`--md-sys-color-surface: ${THEME_SURFACE_COLORS[themeId]};`)
   })
 })
