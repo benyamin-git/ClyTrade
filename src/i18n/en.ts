@@ -183,7 +183,7 @@ export const en = {
       },
       themes: {
         title: 'Themes',
-        summary: 'Material Light, Material Dark and Black Night, plus preset accents.',
+        summary: 'Light, Dark and OLED, plus six preset accents.',
       },
       language: {
         title: 'Language & Direction',

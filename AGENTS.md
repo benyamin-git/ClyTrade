@@ -111,15 +111,20 @@ Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculat
 `src/i18n` may import `src/lib`; `src/lib` must never import `src/i18n` (calculations
 depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
 
+## Design
+
+- Palette: skill `design` — six accents, default blue
+- Themes: Light / Dark / OLED; first run follows prefers-color-scheme; OLED opt-in
+- Type: Roboto Variable (Latin) + Vazirmatn Variable (Persian), system fallbacks
+- Approved: 2026-10-08
+
 ## Conventions
 
 - TypeScript strict, `noUncheckedIndexedAccess`, no `exactOptionalPropertyTypes`
   (React props friction).
 - Tailwind v4 with MD3 color roles mapped in `src/theme/tokens.css`. Use semantic
   utilities (`bg-surface-container`, `text-on-surface-variant`) — never raw hex.
-- Density: 40px controls (`h-control`), 48px touch targets (`h-control-touch`),
-  36px table rows (`h-row`), 64px top bar, 48px subtab bar. Sizes live as tokens
-  in `src/theme/tokens.css` and are exposed as Tailwind spacing aliases.
+- Density: 40px controls and 40px table rows on desktop, 48px targets under `pointer: coarse`, 64px top bar, 48px subtab bar. Sizes live as tokens in `src/theme/tokens.css` and are exposed as Tailwind spacing aliases.
 - Pages scroll vertically when content needs it; long lists and tables scroll
   inside their own region so surrounding controls stay put.
 - Base styles belong inside `@layer base` in `src/styles/global.css`. Never add

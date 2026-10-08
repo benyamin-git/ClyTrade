@@ -15,6 +15,21 @@ All notable changes to ClyTrade are documented here. The format follows
 - `VITE_BASE` lets the production build run under the `/ClyTrade/` Pages path;
   local and Tauri builds keep the root base.
 
+### Changed
+
+- **Design aligned with the house style.** Themes are now Light / Dark / OLED
+  (`light`/`dark`/`oled`); stored Material Light, Material Dark and Black Night
+  choices migrate before the first paint. Accents are now exactly Blue
+  (default), Teal, Green, Orange, Rose and Violet — Lime, Amber and Purple are
+  removed and stored picks migrate to the nearest accent. Every accent palette
+  was regenerated with the house derivation rules, so accent colors shift
+  slightly. The app icon mark now uses the blue accent.
+- **Accessibility.** Desktop controls and table rows are 40px and touch targets
+  48px; compact buttons and the unit switch were raised to the floor, segmented
+  pickers use radio-group semantics, table rows are pointer-only with explicit
+  action buttons, charts expose names and hidden data tables, and placeholder
+  text meets contrast.
+
 ### Fixed
 
 - iOS: the status bar style follows the theme (`default` for the light theme,

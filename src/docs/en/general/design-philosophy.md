@@ -7,9 +7,7 @@
 - The app opens on Calculations, not a dashboard.
 - Calculators compute as you type; there is no Calculate button.
 - Numeric inputs select their content on focus so the first keystroke replaces them.
-- Layouts stay compact: 40px controls, 36px table rows, 64px top bar. Pages scroll
-  when they need to; long lists and tables scroll inside their own region so the
-  surrounding controls stay put.
+- Layouts stay compact: 40px controls and table rows on desktop, 48px targets on touch devices, 64px top bar. Pages scroll when they need to; long lists and tables scroll inside their own region so the surrounding controls stay put.
 
 ## Opinionated defaults, honest numbers
 

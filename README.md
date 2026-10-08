@@ -28,7 +28,7 @@ database.
 
 ## Screenshots
 
-Captured in the desktop layout with the sample data and the Material Dark theme,
+Captured in the desktop layout with the sample data and the Dark theme,
 at 1440×900.
 
 | Journal stats                                                                            | Portfolio stats                                                                             |
