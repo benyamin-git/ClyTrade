@@ -40,8 +40,6 @@ const PIE_COLORS = [
   'var(--md-sys-color-primary)',
   'var(--md-sys-color-tertiary)',
   'var(--md-sys-color-secondary)',
-  'var(--app-color-profit)',
-  'var(--app-color-warning)',
   'var(--md-sys-color-primary-container)',
   'var(--md-sys-color-tertiary-container)',
   'var(--md-sys-color-secondary-container)',
@@ -160,7 +158,12 @@ export function PortfolioStatsPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title={t('portfolio.stats.allocation')}>
               <div className="flex flex-col items-center gap-4 p-4 sm:flex-row">
-                <div className="h-56 w-full sm:w-1/2" dir="ltr">
+                <div
+                  className="h-56 w-full sm:w-1/2"
+                  dir="ltr"
+                  role="img"
+                  aria-label={t('portfolio.stats.allocation')}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -186,6 +189,23 @@ export function PortfolioStatsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+                <table className="sr-only">
+                  <caption>{t('portfolio.stats.allocation')}</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">{t('portfolio.columns.asset')}</th>
+                      <th scope="col">{t('portfolio.columns.value')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allocationData.map((slice) => (
+                      <tr key={slice.id}>
+                        <td>{slice.name}</td>
+                        <td>{formatCurrency(slice.value, currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 <ul className="flex w-full flex-col gap-1 sm:w-1/2">
                   {allocationData.map((slice, index) => (
                     <li key={slice.id} className="flex items-center gap-2 text-sm">
@@ -208,7 +228,12 @@ export function PortfolioStatsPage() {
             </Card>
 
             <Card title={t('portfolio.stats.pnlByAsset')}>
-              <div className="h-72 p-3" dir="ltr">
+              <div
+                className="h-72 p-3"
+                dir="ltr"
+                role="img"
+                aria-label={t('portfolio.stats.pnlByAsset')}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={pnlData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid
@@ -248,6 +273,23 @@ export function PortfolioStatsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              <table className="sr-only">
+                <caption>{t('portfolio.stats.pnlByAsset')}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{t('portfolio.columns.asset')}</th>
+                    <th scope="col">{t('portfolio.stats.pnl')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pnlData.map((entry) => (
+                    <tr key={entry.id}>
+                      <td>{entry.symbol}</td>
+                      <td>{formatCurrency(entry.pnl, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </Card>
           </div>
 

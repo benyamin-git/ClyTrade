@@ -214,7 +214,12 @@ export function JournalStatsPage() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title={t('journal.stats.equityCurve')}>
-              <div className="h-72 p-3" dir="ltr">
+              <div
+                className="h-72 p-3"
+                dir="ltr"
+                role="img"
+                aria-label={t('journal.stats.equityCurve')}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={curve} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <defs>
@@ -267,10 +272,32 @@ export function JournalStatsPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
+              <table className="sr-only">
+                <caption>{t('journal.stats.equityCurve')}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{t('journal.columns.opened')}</th>
+                    <th scope="col">{t('journal.stats.cumulativePnl')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {curve.map((point) => (
+                    <tr key={point.t}>
+                      <td>{formatDate(point.t)}</td>
+                      <td>{formatCurrency(point.equity, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </Card>
 
             <Card title={t('journal.stats.pnlPerTrade')}>
-              <div className="h-72 p-3" dir="ltr">
+              <div
+                className="h-72 p-3"
+                dir="ltr"
+                role="img"
+                aria-label={t('journal.stats.pnlPerTrade')}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={pnlBars} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid
@@ -311,6 +338,23 @@ export function JournalStatsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              <table className="sr-only">
+                <caption>{t('journal.stats.pnlPerTrade')}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{t('journal.stats.tradeNumber', { index: '' })}</th>
+                    <th scope="col">{t('calc.feesPnl.netPnl')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pnlBars.map((bar) => (
+                    <tr key={bar.index}>
+                      <td>{t('journal.stats.tradeNumber', { index: bar.index })}</td>
+                      <td>{formatCurrency(bar.pnl, currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </Card>
           </div>
         </div>
