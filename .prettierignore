@@ -1,8 +1,2 @@
-dist
-dev-dist
-coverage
-node_modules
-package-lock.json
-masterplan.md
-src-tauri/gen
-src-tauri/target
+/.superpowers/
+docs/superpowers/
