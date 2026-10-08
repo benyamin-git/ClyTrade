@@ -8,8 +8,9 @@ import { formatCurrency, formatNumber } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 
-function MarginLeverageCalculator() {
+function MarginLeverageCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [accountSize, setAccountSize] = useState<number | null>(preferences.accountSize)
@@ -42,7 +43,7 @@ function MarginLeverageCalculator() {
     <CalculatorLayout
       title={t('calc.marginLeverage.title')}
       subtitle={t('calc.marginLeverage.subtitle')}
-      docSlug="calculator-margin-leverage"
+      docSlug={docSlug}
       notices={overBudget ? [t('calc.marginLeverage.overBudget')] : []}
       inputs={
         <>
@@ -115,10 +116,10 @@ function MarginLeverageCalculator() {
   )
 }
 
-export function MarginLeveragePage() {
+export function MarginLeveragePage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <MarginLeverageCalculator />
+      <MarginLeverageCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

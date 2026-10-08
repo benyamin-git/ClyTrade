@@ -29,6 +29,8 @@ describe('calculateMarginLeverage', () => {
     ['zero notional', { ...base, positionNotional: 0 }],
     ['leverage below 1', { ...base, leverage: 0 }],
     ['negative maintenance margin', { ...base, maintenanceMarginPercent: -1 }],
+    ['maintenance margin at the buffer', { ...base, maintenanceMarginPercent: 10 }],
+    ['maintenance margin above the buffer', { ...base, maintenanceMarginPercent: 11 }],
   ])('returns null for %s', (_name, input) => {
     expect(calculateMarginLeverage(input)).toBeNull()
   })

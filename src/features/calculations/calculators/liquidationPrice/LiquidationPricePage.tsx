@@ -9,8 +9,9 @@ import { NumberField } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 
-function LiquidationPriceCalculator() {
+function LiquidationPriceCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
@@ -34,7 +35,7 @@ function LiquidationPriceCalculator() {
     <CalculatorLayout
       title={t('calc.liquidationPrice.title')}
       subtitle={t('calc.liquidationPrice.subtitle')}
-      docSlug="calculator-liquidation-price"
+      docSlug={docSlug}
       inputs={
         <>
           <NumberField
@@ -99,10 +100,10 @@ function LiquidationPriceCalculator() {
   )
 }
 
-export function LiquidationPricePage() {
+export function LiquidationPricePage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <LiquidationPriceCalculator />
+      <LiquidationPriceCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

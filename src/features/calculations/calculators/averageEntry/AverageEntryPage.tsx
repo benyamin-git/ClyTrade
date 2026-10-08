@@ -6,8 +6,9 @@ import { formatNumber, formatPrice } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 
-function AverageEntryCalculator() {
+function AverageEntryCalculator({ docSlug }: CalculatorPageProps) {
   const { t } = useI18n()
   const [existingSize, setExistingSize] = useState<number | null>(null)
   const [existingEntryPrice, setExistingEntryPrice] = useState<number | null>(null)
@@ -30,7 +31,7 @@ function AverageEntryCalculator() {
     <CalculatorLayout
       title={t('calc.averageEntry.title')}
       subtitle={t('calc.averageEntry.subtitle')}
-      docSlug="calculator-average-entry"
+      docSlug={docSlug}
       inputs={
         <>
           <NumberField
@@ -91,10 +92,10 @@ function AverageEntryCalculator() {
   )
 }
 
-export function AverageEntryPage() {
+export function AverageEntryPage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <AverageEntryCalculator />
+      <AverageEntryCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

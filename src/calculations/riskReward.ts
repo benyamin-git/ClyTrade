@@ -57,7 +57,10 @@ export function calculateRiskReward(input: RiskRewardInput): RiskRewardResult | 
   if (entryPrice <= 0 || stopPrice <= 0 || targetPrice <= 0) return null
   if (entryFeePercent < 0 || exitFeePercent < 0) return null
   if (entryPrice === stopPrice) return null
-  if (winRatePercent !== null && (!Number.isFinite(winRatePercent) || winRatePercent < 0)) {
+  if (
+    winRatePercent !== null &&
+    (!Number.isFinite(winRatePercent) || winRatePercent < 0 || winRatePercent > 100)
+  ) {
     return null
   }
 

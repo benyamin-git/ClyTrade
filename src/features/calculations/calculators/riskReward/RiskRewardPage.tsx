@@ -7,8 +7,9 @@ import { formatNumber, formatPrice } from '@/lib/format'
 import { NumberField } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 
-function RiskRewardCalculator() {
+function RiskRewardCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
@@ -59,7 +60,7 @@ function RiskRewardCalculator() {
     <CalculatorLayout
       title={t('calc.riskReward.title')}
       subtitle={t('calc.riskReward.subtitle')}
-      docSlug="calculator-risk-reward"
+      docSlug={docSlug}
       notices={notices}
       inputs={
         <>
@@ -158,10 +159,10 @@ function RiskRewardCalculator() {
   )
 }
 
-export function RiskRewardPage() {
+export function RiskRewardPage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <RiskRewardCalculator />
+      <RiskRewardCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

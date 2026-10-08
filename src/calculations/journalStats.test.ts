@@ -40,6 +40,32 @@ describe('calculateJournalStats', () => {
     expect(stats.bestTrade).toBeNull()
   })
 
+  it('counts a row as closed only when it has a PnL and a close time', () => {
+    const mixed: JournalStatsRow[] = [
+      { netPnl: 10, rMultiple: 1, closedAt: 1_000 },
+      { netPnl: 20, rMultiple: 2, closedAt: null },
+      { netPnl: null, rMultiple: null, closedAt: 2_000 },
+    ]
+    const stats = calculateJournalStats(mixed)
+    expect(stats.closed).toBe(1)
+    expect(stats.open).toBe(2)
+    expect(stats.netPnl).toBeCloseTo(10, 10)
+    expect(stats.bestTrade).toBeCloseTo(10, 10)
+    expect(buildEquityCurve(mixed)).toEqual([{ t: 1_000, equity: 10, pnl: 10 }])
+  })
+
+  it('aggregates journals larger than the spread argument limit', () => {
+    const large: JournalStatsRow[] = Array.from({ length: 150_000 }, (_, index) => ({
+      netPnl: index - 75_000,
+      rMultiple: null,
+      closedAt: index,
+    }))
+    const stats = calculateJournalStats(large)
+    expect(stats.closed).toBe(150_000)
+    expect(stats.bestTrade).toBe(74_999)
+    expect(stats.worstTrade).toBe(-75_000)
+  })
+
   it('returns a null profit factor without losses', () => {
     const stats = calculateJournalStats([{ netPnl: 10, rMultiple: 1, closedAt: 1 }])
     expect(stats.profitFactor).toBeNull()

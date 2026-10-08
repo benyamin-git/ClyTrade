@@ -69,10 +69,16 @@ describe('calculateRiskReward', () => {
     expect(result?.breakEvenWinRatePercent).toBeCloseTo(100, 10)
   })
 
+  it('accepts a 100% win rate', () => {
+    const result = calculateRiskReward({ ...base, winRatePercent: 100 })
+    expect(result?.expectancyR).toBeCloseTo(3, 10)
+  })
+
   it.each([
     ['zero entry', { ...base, entryPrice: 0 }],
     ['entry equals stop', { ...base, stopPrice: 100 }],
     ['negative win rate', { ...base, winRatePercent: -5 }],
+    ['win rate above 100', { ...base, winRatePercent: 101 }],
     ['negative entry fee', { ...base, entryFeePercent: -0.1 }],
     ['negative exit fee', { ...base, exitFeePercent: -0.1 }],
     ['non-finite entry fee', { ...base, entryFeePercent: Number.NaN }],

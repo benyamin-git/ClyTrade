@@ -8,12 +8,16 @@ import { FeesPnlPage } from './calculators/feesPnl/FeesPnlPage'
 import { AverageEntryPage } from './calculators/averageEntry/AverageEntryPage'
 import { SpotFuturesPage } from './calculators/spotFutures/SpotFuturesPage'
 
+export interface CalculatorPageProps {
+  docSlug: string
+}
+
 export interface CalculatorDef {
   id: string
   labelKey: TranslationKey
   path: string
   docSlug: string
-  Page: ComponentType
+  Page: ComponentType<CalculatorPageProps>
 }
 
 export const calculators: readonly CalculatorDef[] = [

@@ -37,7 +37,7 @@ export function calculateLiquidationPrice(
   if (buffer <= 0) return null
   const liquidationPrice =
     direction === 'long' ? entryPrice * (1 - buffer) : entryPrice * (1 + buffer)
-  if (!Number.isFinite(liquidationPrice) || liquidationPrice <= 0) return null
+  if (!Number.isFinite(liquidationPrice) || liquidationPrice < 0) return null
 
   const distanceAbsolute = Math.abs(entryPrice - liquidationPrice)
   return {

@@ -34,6 +34,7 @@ export function calculateMarginLeverage(input: MarginLeverageInput): MarginLever
   }
   if (accountSize <= 0 || positionNotional <= 0) return null
   if (leverage < 1 || maintenanceMarginPercent < 0) return null
+  if (maintenanceMarginPercent >= 100 / leverage) return null
 
   const requiredMargin = positionNotional / leverage
   return {

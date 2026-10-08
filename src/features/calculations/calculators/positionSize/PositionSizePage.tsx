@@ -8,9 +8,10 @@ import { formatCurrency, formatNumber, formatPrice } from '@/lib/format'
 import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
 
-function PositionSizeCalculator() {
+function PositionSizeCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [accountSize, setAccountSize] = useState<number | null>(preferences.accountSize)
@@ -72,7 +73,8 @@ function PositionSizeCalculator() {
   function switchFeeUnit(next: string) {
     const mode = next as UnitMode
     if (mode === feeUnit) return
-    setFee(convertUnit(fee, feeUnit, mode, result?.positionNotional ?? null))
+    const base = result?.positionNotional ?? null
+    setFee(base === null ? fee : convertUnit(fee, feeUnit, mode, base))
     setFeeUnit(mode)
   }
 
@@ -85,7 +87,7 @@ function PositionSizeCalculator() {
     <CalculatorLayout
       title={t('calc.positionSize.title')}
       subtitle={t('calc.positionSize.subtitle')}
-      docSlug="calculator-position-size"
+      docSlug={docSlug}
       notices={notices}
       inputs={
         <>
@@ -185,10 +187,10 @@ function PositionSizeCalculator() {
   )
 }
 
-export function PositionSizePage() {
+export function PositionSizePage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <PositionSizeCalculator />
+      <PositionSizeCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

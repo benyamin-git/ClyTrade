@@ -65,6 +65,12 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('button', { name: 'All' })).toHaveClass('h-control')
   })
 
+  it('sizes the compact control above the minimum target', () => {
+    render(<SegmentedControl value="all" options={options} onChange={() => {}} size="xs" />)
+
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass('h-8')
+  })
+
   it('renders separated options as pressed buttons in a group', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

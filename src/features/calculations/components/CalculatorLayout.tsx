@@ -47,7 +47,9 @@ export function CalculatorLayout({
           </div>
         </Card>
         <Card title={t('calc.results')}>
-          <div className="p-4">{results}</div>
+          <div role="status" aria-live="polite" className="p-4">
+            {results}
+          </div>
         </Card>
       </div>
     </ViewportPage>

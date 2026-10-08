@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { Calculator, NotebookPen, Settings, Wallet } from 'lucide-react'
 import { lazyPage } from '@/app/lazyPage'
 import { calculators } from '@/features/calculations/registry'
@@ -67,7 +68,7 @@ export const tabs: readonly TabDef[] = [
       id: calculator.id,
       labelKey: calculator.labelKey,
       path: calculator.path,
-      element: calculator.Page,
+      element: () => createElement(calculator.Page, { docSlug: calculator.docSlug }),
     })),
   },
   {

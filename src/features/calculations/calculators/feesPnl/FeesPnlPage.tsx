@@ -10,9 +10,10 @@ import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
 
-function FeesPnlCalculator() {
+function FeesPnlCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
@@ -105,7 +106,7 @@ function FeesPnlCalculator() {
     <CalculatorLayout
       title={t('calc.feesPnl.title')}
       subtitle={t('calc.feesPnl.subtitle')}
-      docSlug="calculator-fees-pnl"
+      docSlug={docSlug}
       inputs={
         <>
           <NumberField
@@ -236,10 +237,10 @@ function FeesPnlCalculator() {
   )
 }
 
-export function FeesPnlPage() {
+export function FeesPnlPage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <FeesPnlCalculator />
+      <FeesPnlCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

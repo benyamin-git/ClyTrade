@@ -27,6 +27,18 @@ describe('calculateLiquidationPrice', () => {
     expect(result?.liquidationPrice).toBeCloseTo(98.5, 10)
   })
 
+  it('liquidates a 1x long at zero', () => {
+    const result = calculateLiquidationPrice({
+      entryPrice: 100,
+      leverage: 1,
+      direction: 'long',
+      maintenanceMarginPercent: 0,
+    })
+    expect(result?.liquidationPrice).toBe(0)
+    expect(result?.distanceAbsolute).toBeCloseTo(100, 10)
+    expect(result?.distancePercent).toBeCloseTo(100, 10)
+  })
+
   it.each([
     ['zero entry', { ...base, entryPrice: 0 }],
     ['leverage below 1', { ...base, leverage: 0.5 }],

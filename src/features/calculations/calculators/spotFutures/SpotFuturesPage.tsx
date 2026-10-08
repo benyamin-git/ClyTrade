@@ -8,9 +8,10 @@ import { formatCurrency, formatNumber } from '@/lib/format'
 import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
+import type { CalculatorPageProps } from '../../registry'
 import type { UnitMode } from '../../logic/units'
 
-function SpotFuturesCalculator() {
+function SpotFuturesCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [capital, setCapital] = useState<number | null>(preferences.accountSize)
@@ -56,7 +57,7 @@ function SpotFuturesCalculator() {
     <CalculatorLayout
       title={t('calc.spotFutures.title')}
       subtitle={t('calc.spotFutures.subtitle')}
-      docSlug="calculator-spot-futures"
+      docSlug={docSlug}
       inputs={
         <>
           <NumberField
@@ -158,10 +159,10 @@ function SpotFuturesCalculator() {
   )
 }
 
-export function SpotFuturesPage() {
+export function SpotFuturesPage({ docSlug }: CalculatorPageProps) {
   return (
     <PreferencesGate>
-      <SpotFuturesCalculator />
+      <SpotFuturesCalculator docSlug={docSlug} />
     </PreferencesGate>
   )
 }

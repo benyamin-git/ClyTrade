@@ -30,18 +30,23 @@ export interface EquityPoint {
   pnl: number
 }
 
+function isClosedRow(
+  row: JournalStatsRow,
+): row is JournalStatsRow & { netPnl: number; closedAt: number } {
+  return row.netPnl !== null && row.closedAt !== null
+}
+
 /**
  * Aggregate statistics over closed journal trades.
  *
- * Only rows with a `netPnl` count toward performance statistics; open trades
- * are counted separately. `profitFactor` is gross profit over gross loss and
- * is `null` when there are no losses (undefined rather than infinite).
- * `expectancyR` is the average R across rows that have one.
+ * Only rows with both a `netPnl` and a `closedAt` count toward performance
+ * statistics; open trades are counted separately. `profitFactor` is gross
+ * profit over gross loss and is `null` when there are no losses (undefined
+ * rather than infinite). `expectancyR` is the average R across rows that have
+ * one.
  */
 export function calculateJournalStats(rows: readonly JournalStatsRow[]): JournalStats {
-  const closedRows = rows.filter(
-    (row): row is JournalStatsRow & { netPnl: number } => row.netPnl !== null,
-  )
+  const closedRows = rows.filter(isClosedRow)
   const pnls = closedRows.map((row) => row.netPnl)
   const rValues = closedRows
     .map((row) => row.rMultiple)
@@ -77,8 +82,8 @@ export function calculateJournalStats(rows: readonly JournalStatsRow[]): Journal
       rValues.length === 0
         ? null
         : rValues.reduce((total, value) => total + value, 0) / rValues.length,
-    bestTrade: pnls.length === 0 ? null : Math.max(...pnls),
-    worstTrade: pnls.length === 0 ? null : Math.min(...pnls),
+    bestTrade: pnls.length === 0 ? null : pnls.reduce((best, pnl) => (pnl > best ? pnl : best)),
+    worstTrade: pnls.length === 0 ? null : pnls.reduce((worst, pnl) => (pnl < worst ? pnl : worst)),
   }
 }
 
@@ -90,12 +95,7 @@ export function buildEquityCurve(
   rows: readonly JournalStatsRow[],
   initialEquity = 0,
 ): EquityPoint[] {
-  const closed = rows
-    .filter(
-      (row): row is JournalStatsRow & { netPnl: number; closedAt: number } =>
-        row.netPnl !== null && row.closedAt !== null,
-    )
-    .sort((a, b) => a.closedAt - b.closedAt)
+  const closed = rows.filter(isClosedRow).sort((a, b) => a.closedAt - b.closedAt)
 
   let equity = initialEquity
   return closed.map((row) => {
