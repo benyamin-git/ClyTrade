@@ -8,6 +8,7 @@ import {
   assetNumericBounds,
   filterAssets,
   toAssetRows,
+  toPortfolioInputs,
   type AssetFilters,
   type AssetRow,
 } from './assetFilters'
@@ -86,6 +87,32 @@ describe('toAssetRows', () => {
     expect(metrics?.value).toBe(200)
     expect(metrics?.pnl).toBe(0)
     expect(metrics?.hasCurrentPrice).toBe(false)
+  })
+})
+
+describe('toPortfolioInputs', () => {
+  it('keeps valid rows and carries their asset ids', () => {
+    const rows = [
+      makeRow({ id: 'a', symbol: 'BTC', quantity: 2, averageCost: 100, currentPrice: 120 }),
+      makeRow({ id: 'b', symbol: 'BTC', quantity: 1, averageCost: 50, currentPrice: 60 }),
+    ]
+
+    expect(toPortfolioInputs(rows)).toEqual([
+      { id: 'a', symbol: 'BTC', quantity: 2, averageCost: 100, currentPrice: 120 },
+      { id: 'b', symbol: 'BTC', quantity: 1, averageCost: 50, currentPrice: 60 },
+    ])
+  })
+
+  it('drops rows whose metrics are invalid', () => {
+    const rows = [
+      makeRow({ id: 'valid', quantity: 1, averageCost: 100, currentPrice: 100 }),
+      makeRow({ id: 'negative', quantity: -1, averageCost: 100, currentPrice: 100 }),
+    ]
+
+    expect(rows[1]?.metrics).toBeNull()
+    expect(toPortfolioInputs(rows)).toEqual([
+      { id: 'valid', symbol: 'BTC', quantity: 1, averageCost: 100, currentPrice: 100 },
+    ])
   })
 })
 

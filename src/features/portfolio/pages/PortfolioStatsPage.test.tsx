@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import type { AssetDraft } from '@/data/models/asset'
 import { clearAssets, createAsset } from '@/data/repositories/assets.repo'
@@ -74,6 +74,40 @@ describe('PortfolioStatsPage filters', () => {
 
     expect(await screen.findByText('$900.00')).toBeInTheDocument()
     expect(screen.queryByText('$850.00')).not.toBeInTheDocument()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('counts only holdings with valid metrics', async () => {
+    await createAsset(draft({ symbol: 'BTC', quantity: 1, averageCost: 100, currentPrice: 100 }))
+    await createAsset(
+      draft({ symbol: 'BROKEN', quantity: -1, averageCost: 100, currentPrice: 100 }),
+    )
+
+    renderPage()
+
+    expect(await screen.findByText('1 asset')).toBeInTheDocument()
+    expect(screen.queryByText('2 assets')).not.toBeInTheDocument()
+  })
+
+  it('renders two same-symbol holdings without duplicate-key warnings', async () => {
+    await createAsset(
+      draft({ symbol: 'BTC', market: 'crypto', quantity: 1, averageCost: 100, currentPrice: 100 }),
+    )
+    await createAsset(
+      draft({ symbol: 'BTC', market: 'forex', quantity: 1, averageCost: 50, currentPrice: 50 }),
+    )
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    renderPage()
+
+    expect(await screen.findByText('2 assets')).toBeInTheDocument()
+    const duplicateKeyWarnings = errorSpy.mock.calls.filter((call) =>
+      call.some((argument) => typeof argument === 'string' && argument.includes('same key')),
+    )
+    expect(duplicateKeyWarnings).toEqual([])
   })
 
   it('keeps the nothing-to-analyze state when there are no assets', async () => {

@@ -123,6 +123,11 @@ depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
   transforms; never physical `left`/`right`. Charts are wrapped in `dir="ltr"`.
 - Data changes go through `src/data/repositories/*`; components read with
   `useLiveQuery`.
+- `listTrades`/`listAssets` are deliberately whole-store reads ordered by the
+  existing `openedAt`/`symbol` Dexie indexes; the pages filter and chart in
+  memory. This accepted scale keeps the local-first app free of paging; revisit
+  it with paged queries, not a schema migration, if a store outgrows a personal
+  journal.
 - Journal and Portfolio filtering lives in `src/features/*/logic/*Filters.ts`
   (`tradeFilters.ts`, `assetFilters.ts`), with shared primitives in
   `src/features/filters/`. A page shows only a filters button (with an active

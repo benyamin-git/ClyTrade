@@ -12,11 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import {
-  buildAllocation,
-  calculateAssetMetrics,
-  calculatePortfolioTotals,
-} from '@/calculations/portfolioMetrics'
+import { buildAllocation, calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
 import { listAssets } from '@/data/repositories/assets.repo'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
@@ -36,6 +32,7 @@ import {
   assetNumericBounds,
   filterAssets,
   toAssetRows,
+  toPortfolioInputs,
   type AssetRow,
 } from '../logic/assetFilters'
 
@@ -76,37 +73,31 @@ export function PortfolioStatsPage() {
   const activeCount = activeGroupCount(filters, ASSET_FILTER_GROUPS)
   const bounds = useMemo(() => assetNumericBounds(rows), [rows])
 
-  const inputs = useMemo(
-    () =>
-      filteredRows.map(({ asset }) => ({
-        symbol: asset.symbol,
-        quantity: asset.quantity,
-        averageCost: asset.averageCost,
-        currentPrice: asset.currentPrice,
-      })),
-    [filteredRows],
-  )
+  const inputs = useMemo(() => toPortfolioInputs(filteredRows), [filteredRows])
 
   const totals = useMemo(() => calculatePortfolioTotals(inputs), [inputs])
   const allocation = useMemo(() => buildAllocation(inputs), [inputs])
 
   const allocationData = useMemo(
     () =>
-      allocation.map((slice) => ({
-        name: inputs[slice.index]?.symbol ?? '—',
-        value: slice.value,
-        sharePercent: slice.sharePercent,
-      })),
+      allocation.map((slice) => {
+        const input = inputs[slice.index]
+        return {
+          id: input?.id ?? '',
+          name: input?.symbol ?? '—',
+          value: slice.value,
+          sharePercent: slice.sharePercent,
+        }
+      }),
     [allocation, inputs],
   )
 
   const pnlData = useMemo(
     () =>
-      inputs.map((asset) => {
-        const metrics = calculateAssetMetrics(asset)
-        return { symbol: asset.symbol, pnl: metrics?.pnl ?? 0 }
-      }),
-    [inputs],
+      filteredRows.flatMap(({ asset, metrics }) =>
+        metrics === null ? [] : [{ id: asset.id, symbol: asset.symbol, pnl: metrics.pnl }],
+      ),
+    [filteredRows],
   )
 
   const filterBar = <FilterBar activeCount={activeCount} onOpenFilters={() => setSheetOpen(true)} />
@@ -182,7 +173,7 @@ export function PortfolioStatsPage() {
                         stroke="none"
                       >
                         {allocationData.map((entry, index) => (
-                          <Cell key={entry.name} fill={pieColor(index)} />
+                          <Cell key={entry.id} fill={pieColor(index)} />
                         ))}
                       </Pie>
                       <Tooltip
@@ -197,7 +188,7 @@ export function PortfolioStatsPage() {
                 </div>
                 <ul className="flex w-full flex-col gap-1 sm:w-1/2">
                   {allocationData.map((slice, index) => (
-                    <li key={slice.name} className="flex items-center gap-2 text-sm">
+                    <li key={slice.id} className="flex items-center gap-2 text-sm">
                       <span
                         aria-hidden
                         className="size-2.5 shrink-0 rounded-full"
@@ -247,7 +238,7 @@ export function PortfolioStatsPage() {
                     <Bar dataKey="pnl" radius={[2, 2, 0, 0]}>
                       {pnlData.map((entry) => (
                         <Cell
-                          key={entry.symbol}
+                          key={entry.id}
                           fill={
                             entry.pnl >= 0 ? 'var(--app-color-profit)' : 'var(--app-color-loss)'
                           }

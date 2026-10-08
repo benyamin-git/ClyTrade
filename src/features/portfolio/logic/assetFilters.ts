@@ -1,4 +1,4 @@
-import { calculateAssetMetrics } from '@/calculations/portfolioMetrics'
+import { calculateAssetMetrics, type PortfolioAssetInput } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
 import type { Market } from '@/data/models/market'
 import type { FilterGroupDescriptor, Range, TriState } from '@/features/filters/filterTypes'
@@ -16,6 +16,8 @@ export interface AssetRow {
   asset: Asset
   metrics: ReturnType<typeof calculateAssetMetrics>
 }
+
+export type PortfolioInput = PortfolioAssetInput & { id: string; symbol: string }
 
 export interface AssetFilters {
   search: string
@@ -63,6 +65,21 @@ export function toAssetRows(assets: readonly Asset[]): AssetRow[] {
       currentPrice: asset.currentPrice,
     }),
   }))
+}
+
+export function toPortfolioInputs(rows: readonly AssetRow[]): PortfolioInput[] {
+  const inputs: PortfolioInput[] = []
+  for (const { asset, metrics } of rows) {
+    if (!metrics) continue
+    inputs.push({
+      id: asset.id,
+      symbol: asset.symbol,
+      quantity: asset.quantity,
+      averageCost: asset.averageCost,
+      currentPrice: asset.currentPrice,
+    })
+  }
+  return inputs
 }
 
 export function filterAssets(rows: readonly AssetRow[], filters: AssetFilters): AssetRow[] {

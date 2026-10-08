@@ -3,6 +3,7 @@ import {
   DEFAULT_PREFERENCES,
   PREFERENCES_KEY,
   parsePreferences,
+  preferencesSchema,
   type Preferences,
   type SettingRow,
 } from '../models/settings'
@@ -27,9 +28,13 @@ export async function setPreferences(preferences: Preferences): Promise<void> {
 }
 
 export async function updatePreferences(patch: Partial<Preferences>): Promise<void> {
+  if (Object.values(patch).some((value) => value === undefined)) {
+    throw new Error('preferences patch contains undefined')
+  }
   await db.transaction('rw', db.settings, async () => {
     const current = await getPreferences()
-    await setPreferences({ ...current, ...patch })
+    const parsed = preferencesSchema.parse({ ...current, ...patch })
+    await setPreferences(parsed)
   })
 }
 
