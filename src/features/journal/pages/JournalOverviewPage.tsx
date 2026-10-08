@@ -87,12 +87,12 @@ export function JournalOverviewPage() {
         <span
           className={cn(
             'rounded-app-full px-1.5 py-0.5 text-2xs font-medium',
-            row.trade.closedAt === null
+            row.trade.exitPrice === null
               ? 'bg-primary-container text-on-primary-container'
               : 'bg-surface-container-high text-on-surface-variant',
           )}
         >
-          {row.trade.closedAt === null ? t('status.open') : t('status.closed')}
+          {row.trade.exitPrice === null ? t('status.open') : t('status.closed')}
         </span>
       ),
     },

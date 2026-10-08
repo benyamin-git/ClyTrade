@@ -394,6 +394,13 @@ export const en = {
       leverageMin: 'Leverage must be at least 1.',
       openedRequired: 'Opened date is required.',
       closedInvalid: 'Closed date is not valid.',
+      exitPricePositive: 'Exit price must be greater than 0.',
+      stopPricePositive: 'Stop price must be greater than 0.',
+      targetPricePositive: 'Target price must be greater than 0.',
+      feesNegative: 'Fees cannot be negative.',
+      exitRequiresClosed: 'A closed date is required when an exit price is set.',
+      closedRequiresExit: 'An exit price is required when a closed date is set.',
+      closedBeforeOpened: 'Closed date cannot be before the opened date.',
       saveFailed: 'Could not save this trade. Check the values and try again.',
     },
     stats: {

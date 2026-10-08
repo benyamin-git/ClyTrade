@@ -56,11 +56,24 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
       return setError(t('journal.validation.entryPricePositive'))
     if (size === null || size <= 0) return setError(t('journal.validation.sizePositive'))
     if (leverage === null || leverage < 1) return setError(t('journal.validation.leverageMin'))
+    if (exitPrice !== null && exitPrice <= 0)
+      return setError(t('journal.validation.exitPricePositive'))
+    if (stopPrice !== null && stopPrice <= 0)
+      return setError(t('journal.validation.stopPricePositive'))
+    if (targetPrice !== null && targetPrice <= 0)
+      return setError(t('journal.validation.targetPricePositive'))
+    if (fees !== null && fees < 0) return setError(t('journal.validation.feesNegative'))
 
     const openedDate = fromDateInputValue(openedAt)
     if (!openedDate) return setError(t('journal.validation.openedRequired'))
     const closedDate = closedAt === '' ? null : fromDateInputValue(closedAt)
     if (closedAt !== '' && !closedDate) return setError(t('journal.validation.closedInvalid'))
+    if (exitPrice !== null && closedDate === null)
+      return setError(t('journal.validation.exitRequiresClosed'))
+    if (exitPrice === null && closedDate !== null)
+      return setError(t('journal.validation.closedRequiresExit'))
+    if (closedDate !== null && closedDate.getTime() < openedDate.getTime())
+      return setError(t('journal.validation.closedBeforeOpened'))
 
     const draft: TradeDraft = {
       symbol: trimmedSymbol,

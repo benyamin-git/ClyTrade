@@ -87,8 +87,8 @@ function matchesTrade(row: TradeRow, filters: TradeFilters): boolean {
   }
   if (filters.markets.length > 0 && !filters.markets.includes(trade.market)) return false
   if (filters.direction !== 'all' && trade.direction !== filters.direction) return false
-  if (filters.status === 'open' && trade.closedAt !== null) return false
-  if (filters.status === 'closed' && trade.closedAt === null) return false
+  if (filters.status === 'open' && trade.exitPrice !== null) return false
+  if (filters.status === 'closed' && trade.exitPrice === null) return false
   if (filters.tags.length > 0 && !filters.tags.some((tag) => trade.tags.includes(tag))) return false
   if (
     filters.strategies.length > 0 &&

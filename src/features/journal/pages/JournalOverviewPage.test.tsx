@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
@@ -81,5 +81,24 @@ describe('JournalOverviewPage market filter', () => {
 
     expect(screen.getByText('BTCUSDT')).toBeInTheDocument()
     expect(screen.getByText('AAPL')).toBeInTheDocument()
+  })
+
+  it('shows status from the exit price, not the closed date', async () => {
+    await createTrade(
+      draft({ symbol: 'EXITONLY', status: 'closed', exitPrice: 110, closedAt: null }),
+    )
+    await createTrade(
+      draft({ symbol: 'CLOSEONLY', status: 'open', exitPrice: null, closedAt: Date.now() }),
+    )
+
+    renderPage()
+
+    const exitRow = (await screen.findByText('EXITONLY')).closest('tr')
+    expect(exitRow).not.toBeNull()
+    expect(within(exitRow as HTMLElement).getByText('Closed')).toBeInTheDocument()
+
+    const closeRow = screen.getByText('CLOSEONLY').closest('tr')
+    expect(closeRow).not.toBeNull()
+    expect(within(closeRow as HTMLElement).getByText('Open')).toBeInTheDocument()
   })
 })

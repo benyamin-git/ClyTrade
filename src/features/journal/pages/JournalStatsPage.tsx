@@ -59,21 +59,37 @@ export function JournalStatsPage() {
     [trades, preferences.feesInRisk],
   )
 
-  const rows = useMemo(() => {
-    const filtered = filterTrades(allRows, { ...filters, status: 'all' })
-    return filtered.filter(
-      (row) => row.trade.closedAt !== null && isWithinRange(row.trade.closedAt, range),
-    )
-  }, [allRows, filters, range])
+  const filteredRows = useMemo(
+    () => filterTrades(allRows, { ...filters, status: 'all' }),
+    [allRows, filters],
+  )
+
+  const rows = useMemo(
+    () =>
+      filteredRows.filter(
+        (row) =>
+          row.trade.exitPrice !== null &&
+          row.trade.closedAt !== null &&
+          isWithinRange(row.trade.closedAt, range),
+      ),
+    [filteredRows, range],
+  )
+
+  const openRows = useMemo(
+    () => filteredRows.filter((row) => row.trade.exitPrice === null),
+    [filteredRows],
+  )
 
   const statsRows = useMemo(
-    () =>
-      rows.map((row) => ({
+    () => [
+      ...rows.map((row) => ({
         netPnl: row.metrics?.netPnl ?? null,
         rMultiple: row.metrics?.rMultiple ?? null,
         closedAt: row.trade.closedAt,
       })),
-    [rows],
+      ...openRows.map(() => ({ netPnl: null, rMultiple: null, closedAt: null })),
+    ],
+    [rows, openRows],
   )
 
   const stats = useMemo(() => calculateJournalStats(statsRows), [statsRows])

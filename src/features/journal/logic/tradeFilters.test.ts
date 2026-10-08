@@ -118,13 +118,36 @@ describe('filterTrades', () => {
     expect(ids(filterTrades(rows, withFilters({ direction: 'all' })))).toEqual(['long', 'short'])
   })
 
-  it('filters status by closedAt', () => {
+  it('filters status by exit price, matching the form-derived status', () => {
     const open = makeRow({ id: 'open', status: 'open', exitPrice: null, closedAt: null })
     const closed = makeRow({ id: 'closed' })
-    const rows = [open, closed]
-    expect(ids(filterTrades(rows, withFilters({ status: 'open' })))).toEqual(['open'])
-    expect(ids(filterTrades(rows, withFilters({ status: 'closed' })))).toEqual(['closed'])
-    expect(ids(filterTrades(rows, withFilters({ status: 'all' })))).toEqual(['open', 'closed'])
+    const exitWithoutClose = makeRow({
+      id: 'exit-without-close',
+      status: 'closed',
+      exitPrice: 120,
+      closedAt: null,
+    })
+    const closeWithoutExit = makeRow({
+      id: 'close-without-exit',
+      status: 'open',
+      exitPrice: null,
+      closedAt: 2_000,
+    })
+    const rows = [open, closed, exitWithoutClose, closeWithoutExit]
+    expect(ids(filterTrades(rows, withFilters({ status: 'open' })))).toEqual([
+      'open',
+      'close-without-exit',
+    ])
+    expect(ids(filterTrades(rows, withFilters({ status: 'closed' })))).toEqual([
+      'closed',
+      'exit-without-close',
+    ])
+    expect(ids(filterTrades(rows, withFilters({ status: 'all' })))).toEqual([
+      'open',
+      'closed',
+      'exit-without-close',
+      'close-without-exit',
+    ])
   })
 
   it('matches any selected tag', () => {

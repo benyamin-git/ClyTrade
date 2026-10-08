@@ -30,6 +30,27 @@ function closedDraft(symbol: string, market: TradeDraft['market'], exitPrice = 1
   }
 }
 
+function openDraft(symbol: string, market: TradeDraft['market']): TradeDraft {
+  return {
+    symbol,
+    market,
+    direction: 'long',
+    status: 'open',
+    entryPrice: 100,
+    exitPrice: null,
+    size: 1,
+    leverage: 10,
+    stopPrice: null,
+    targetPrice: null,
+    fees: 0,
+    openedAt: Date.now(),
+    closedAt: null,
+    strategy: null,
+    notes: null,
+    tags: [],
+  }
+}
+
 function renderPage() {
   render(
     <SettingsProvider>
@@ -89,6 +110,15 @@ describe('JournalStatsPage filters', () => {
 
     expect(await screen.findByText('No trades match your filters')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Clear all' }).length).toBeGreaterThan(0)
+  })
+
+  it('counts open trades in the header', async () => {
+    await createTrade(closedDraft('BTCUSDT', 'crypto'))
+    await createTrade(openDraft('ETHUSDT', 'crypto'))
+
+    renderPage()
+
+    expect(await screen.findByText('1 closed · 1 open')).toBeInTheDocument()
   })
 
   it('resets the time range to the preference default with Clear all', async () => {

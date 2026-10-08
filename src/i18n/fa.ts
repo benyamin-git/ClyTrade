@@ -397,6 +397,13 @@ export const fa = {
       leverageMin: 'اهرم باید حداقل 1 باشد.',
       openedRequired: 'تاریخ ورود الزامی است.',
       closedInvalid: 'تاریخ خروج معتبر نیست.',
+      exitPricePositive: 'قیمت خروج باید بزرگ‌تر از 0 باشد.',
+      stopPricePositive: 'قیمت استاپ باید بزرگ‌تر از 0 باشد.',
+      targetPricePositive: 'قیمت تارگت باید بزرگ‌تر از 0 باشد.',
+      feesNegative: 'کارمزد نمی‌تواند منفی باشد.',
+      exitRequiresClosed: 'با ثبت قیمت خروج، تاریخ خروج الزامی است.',
+      closedRequiresExit: 'با ثبت تاریخ خروج، قیمت خروج الزامی است.',
+      closedBeforeOpened: 'تاریخ خروج نمی‌تواند پیش از تاریخ ورود باشد.',
       saveFailed: 'ذخیرهٔ این معامله ممکن نشد. مقادیر را بررسی و دوباره تلاش کنید.',
     },
     stats: {
