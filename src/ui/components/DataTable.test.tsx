@@ -64,8 +64,7 @@ describe('DataTable', () => {
     expect(onRowClick).toHaveBeenCalledWith(rows[0])
   })
 
-  it('activates a focused row with Enter and Space', async () => {
-    const user = userEvent.setup()
+  it('renders rows without a tabindex', () => {
     const onRowClick = vi.fn()
     render(
       <DataTable
@@ -76,17 +75,12 @@ describe('DataTable', () => {
       />,
     )
 
-    await user.tab()
-    expect(bodyRows()[0]).toHaveFocus()
-
-    await user.keyboard('{Enter}')
-    expect(onRowClick).toHaveBeenCalledWith(rows[0])
-
-    await user.keyboard(' ')
-    expect(onRowClick).toHaveBeenCalledTimes(2)
+    for (const row of bodyRows()) {
+      expect(row).not.toHaveAttribute('tabindex')
+    }
   })
 
-  it('does not activate the row when an in-cell control handles the key', async () => {
+  it('moves tab focus to the row action button', async () => {
     const user = userEvent.setup()
     const onRowClick = vi.fn()
     render(
@@ -98,19 +92,8 @@ describe('DataTable', () => {
       />,
     )
 
-    await user.tab()
     await user.tab()
     expect(screen.getByRole('button', { name: 'Edit AAPL' })).toHaveFocus()
-
-    await user.keyboard('{Enter}')
-    expect(onRowClick).not.toHaveBeenCalled()
-  })
-
-  it('leaves rows out of the tab order without a row action', async () => {
-    const user = userEvent.setup()
-    render(<DataTable columns={columns} rows={rows} getRowKey={(row) => row.id} />)
-
-    await user.tab()
     expect(bodyRows()[0]).not.toHaveFocus()
   })
 })
