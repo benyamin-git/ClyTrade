@@ -19,7 +19,15 @@ export async function createAsset(draft: AssetDraft): Promise<Asset> {
 }
 
 export async function updateAsset(id: string, patch: Partial<AssetDraft>): Promise<void> {
-  await db.assets.update(id, { ...patch, updatedAt: Date.now() })
+  if (Object.values(patch).some((value) => value === undefined)) {
+    throw new Error('asset patch contains undefined')
+  }
+  const existing = await db.assets.get(id)
+  if (!existing) {
+    throw new Error('asset not found')
+  }
+  const parsed = assetDraftSchema.parse({ ...existing, ...patch })
+  await db.assets.update(id, { ...parsed, updatedAt: Date.now() })
 }
 
 export async function deleteAsset(id: string): Promise<void> {

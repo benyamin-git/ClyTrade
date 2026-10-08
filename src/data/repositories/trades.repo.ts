@@ -19,7 +19,15 @@ export async function createTrade(draft: TradeDraft): Promise<Trade> {
 }
 
 export async function updateTrade(id: string, patch: Partial<TradeDraft>): Promise<void> {
-  await db.trades.update(id, { ...patch, updatedAt: Date.now() })
+  if (Object.values(patch).some((value) => value === undefined)) {
+    throw new Error('trade patch contains undefined')
+  }
+  const existing = await db.trades.get(id)
+  if (!existing) {
+    throw new Error('trade not found')
+  }
+  const parsed = tradeDraftSchema.parse({ ...existing, ...patch })
+  await db.trades.update(id, { ...parsed, updatedAt: Date.now() })
 }
 
 export async function deleteTrade(id: string): Promise<void> {
