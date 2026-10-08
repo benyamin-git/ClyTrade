@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 @import '../theme/tokens.css';
-@import '../theme/themes/md3-light.css';
-@import '../theme/themes/md3-dark.css';
-@import '../theme/themes/black-night.css';
+@import '../theme/themes/light.css';
+@import '../theme/themes/dark.css';
+@import '../theme/themes/oled.css';
 @import '../theme/accents.css';
 
 @layer base {

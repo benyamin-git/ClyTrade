@@ -87,10 +87,10 @@ describe('ThemeProvider system color scheme', () => {
         <div />
       </ThemeProvider>,
     )
-    expect(document.documentElement.dataset.theme).toBe('md3-light')
+    expect(document.documentElement.dataset.theme).toBe('light')
 
     act(() => setSystemLight(false))
-    expect(document.documentElement.dataset.theme).toBe('md3-dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
   })
 
   it('does not persist the system-resolved theme', () => {
@@ -104,17 +104,17 @@ describe('ThemeProvider system color scheme', () => {
   })
 
   it('keeps a stored theme regardless of system changes', () => {
-    localStorage.setItem('clytrade.theme', 'md3-light')
+    localStorage.setItem('clytrade.theme', 'light')
     const setSystemLight = stubSystemScheme(false)
     render(
       <ThemeProvider>
         <div />
       </ThemeProvider>,
     )
-    expect(document.documentElement.dataset.theme).toBe('md3-light')
+    expect(document.documentElement.dataset.theme).toBe('light')
 
     act(() => setSystemLight(false))
-    expect(document.documentElement.dataset.theme).toBe('md3-light')
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 
   it('stops following the system after an explicit choice', () => {
@@ -123,7 +123,7 @@ describe('ThemeProvider system color scheme', () => {
     function PickLightTheme() {
       const { setTheme } = useTheme()
       return (
-        <button type="button" onClick={() => setTheme('md3-light')}>
+        <button type="button" onClick={() => setTheme('light')}>
           light
         </button>
       )
@@ -134,13 +134,13 @@ describe('ThemeProvider system color scheme', () => {
         <PickLightTheme />
       </ThemeProvider>,
     )
-    expect(document.documentElement.dataset.theme).toBe('md3-dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
 
     fireEvent.click(screen.getByRole('button', { name: 'light' }))
-    expect(localStorage.getItem('clytrade.theme')).toBe('md3-light')
-    expect(document.documentElement.dataset.theme).toBe('md3-light')
+    expect(localStorage.getItem('clytrade.theme')).toBe('light')
+    expect(document.documentElement.dataset.theme).toBe('light')
 
     act(() => setSystemLight(false))
-    expect(document.documentElement.dataset.theme).toBe('md3-light')
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 })

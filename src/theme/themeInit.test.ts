@@ -87,9 +87,9 @@ describe('pre-paint script', () => {
 
     runInThisContext(prepaintScript())
 
-    expect(document.documentElement.dataset.theme).toBe('black-night')
+    expect(document.documentElement.dataset.theme).toBe('oled')
     expect(document.documentElement.dataset.accent).toBe('rose')
-    expect(themeColor.getAttribute('content')).toBe(THEME_SURFACE_COLORS['black-night'])
+    expect(themeColor.getAttribute('content')).toBe(THEME_SURFACE_COLORS['oled'])
     expect(statusBar.getAttribute('content')).toBe('black-translucent')
   })
 
@@ -110,16 +110,16 @@ describe('pre-paint script', () => {
   })
 
   it('falls back to the system theme for an unknown stored value', () => {
-    localStorage.setItem('clytrade.theme', 'md3-sepia')
+    localStorage.setItem('clytrade.theme', 'sepia')
     stubMatchMedia(false)
 
     runInThisContext(prepaintScript())
 
-    expect(document.documentElement.dataset.theme).toBe('md3-dark')
+    expect(document.documentElement.dataset.theme).toBe('dark')
   })
 
   it('reports the resolved darkness to the native bridge', () => {
-    localStorage.setItem('clytrade.theme', 'black-night')
+    localStorage.setItem('clytrade.theme', 'oled')
     const setDarkTheme = vi.fn()
     window.ClyTradeNative = { setDarkTheme }
 

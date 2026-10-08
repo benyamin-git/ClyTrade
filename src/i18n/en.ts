@@ -471,12 +471,9 @@ export const en = {
     },
   },
   theme: {
-    'black-night': {
-      label: 'Black Night',
-      description: 'Pure-black OLED theme for night sessions',
-    },
-    'md3-dark': { label: 'Material Dark', description: 'Material Design 3 dark theme' },
-    'md3-light': { label: 'Material Light', description: 'Material Design 3 light theme' },
+    dark: { label: 'Dark', description: 'Dark theme' },
+    light: { label: 'Light', description: 'Light theme' },
+    oled: { label: 'OLED', description: 'Pure-black OLED theme for night sessions' },
   },
   themes: {
     accent: 'Accent',

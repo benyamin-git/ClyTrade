@@ -182,8 +182,8 @@ function palette(tones, hue, chroma) {
   ]
 }
 
-const lightColors = readThemeColors(new URL('../src/theme/themes/md3-light.css', import.meta.url))
-const darkColors = readThemeColors(new URL('../src/theme/themes/md3-dark.css', import.meta.url))
+const lightColors = readThemeColors(new URL('../src/theme/themes/light.css', import.meta.url))
+const darkColors = readThemeColors(new URL('../src/theme/themes/dark.css', import.meta.url))
 
 const blocks = ACCENTS.map((accent) => {
   const light = [
@@ -212,7 +212,7 @@ const blocks = ACCENTS.map((accent) => {
     neutralDeclarations(darkColors, accent.hue),
   ].join('\n\n')
 
-  const blackNight = palette(
+  const oled = palette(
     {
       primary: PRIMARY_TONES.dark,
       secondary: SECONDARY_TONES.dark,
@@ -223,9 +223,9 @@ const blocks = ACCENTS.map((accent) => {
   ).join('\n\n')
 
   return [
-    `[data-theme='md3-light'][data-accent='${accent.id}'] {\n${light}\n}`,
-    `[data-theme='md3-dark'][data-accent='${accent.id}'] {\n${dark}\n}`,
-    `[data-theme='black-night'][data-accent='${accent.id}'] {\n${blackNight}\n}`,
+    `[data-theme='light'][data-accent='${accent.id}'] {\n${light}\n}`,
+    `[data-theme='dark'][data-accent='${accent.id}'] {\n${dark}\n}`,
+    `[data-theme='oled'][data-accent='${accent.id}'] {\n${oled}\n}`,
   ].join('\n\n')
 })
 

@@ -20,6 +20,9 @@
         try {
           var config = __THEME_INIT__
           var stored = localStorage.getItem('clytrade.theme')
+          if (stored !== null && Object.hasOwn(config.themeMigrations, stored)) {
+            stored = config.themeMigrations[stored]
+          }
           var theme =
             config.themes.indexOf(stored) === -1
               ? window.matchMedia('(prefers-color-scheme: light)').matches
@@ -54,7 +57,7 @@
           document.documentElement.lang = language
           document.documentElement.dir = language === 'fa' ? 'rtl' : 'ltr'
         } catch (error) {
-          document.documentElement.dataset.theme = 'md3-dark'
+          document.documentElement.dataset.theme = 'dark'
           document.documentElement.dataset.accent = 'blue'
         }
       })()

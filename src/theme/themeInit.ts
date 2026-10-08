@@ -3,6 +3,7 @@ import {
   DEFAULT_DARK_THEME,
   DEFAULT_LIGHT_THEME,
   isDarkTheme,
+  LEGACY_THEME_MIGRATIONS,
   THEMES,
   THEME_SURFACE_COLORS,
 } from './theme.ts'
@@ -15,6 +16,7 @@ export function injectThemeInit(html: string): string {
     defaultAccent: DEFAULT_ACCENT,
     nativeAccent: THEME_NATIVE_ACCENT,
     themes: THEMES,
+    themeMigrations: LEGACY_THEME_MIGRATIONS,
     darkThemes: THEMES.filter(isDarkTheme),
     lightTheme: DEFAULT_LIGHT_THEME,
     darkTheme: DEFAULT_DARK_THEME,

@@ -474,12 +474,9 @@ export const fa = {
     },
   },
   theme: {
-    'black-night': {
-      label: 'متریال AMOLED',
-      description: 'تم مشکی خالص AMOLED برای سشن‌های شبانه',
-    },
-    'md3-dark': { label: 'متریال تیره', description: 'تم تیره Material Design 3' },
-    'md3-light': { label: 'متریال روشن', description: 'تم روشن Material Design 3' },
+    dark: { label: 'تیره', description: 'تم تیره' },
+    light: { label: 'روشن', description: 'تم روشن' },
+    oled: { label: 'مشکی', description: 'تم مشکی خالص OLED برای سشن‌های شبانه' },
   },
   themes: {
     accent: 'رنگ اصلی',

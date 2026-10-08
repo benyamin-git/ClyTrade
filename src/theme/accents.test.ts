@@ -99,7 +99,7 @@ describe('accent storage', () => {
 
 describe('generated accent palettes', () => {
   it.each(PRESET_ACCENTS)('ships a full light and dark palette for %s', (id) => {
-    for (const theme of ['md3-light', 'md3-dark']) {
+    for (const theme of ['light', 'dark']) {
       const block = paletteBlock(id, theme)
       for (const role of [
         '--md-sys-color-primary',
@@ -112,8 +112,8 @@ describe('generated accent palettes', () => {
     }
   })
 
-  it.each(PRESET_ACCENTS)('keeps the pure-black surfaces of black-night for %s', (id) => {
-    const block = paletteBlock(id, 'black-night')
+  it.each(PRESET_ACCENTS)('keeps the pure-black surfaces of oled for %s', (id) => {
+    const block = paletteBlock(id, 'oled')
     expect(block).toContain('--md-sys-color-primary')
     expect(block).toContain('--md-sys-color-secondary-container')
     expect(block).toContain('--md-sys-color-tertiary-container')
@@ -142,8 +142,8 @@ describe('generated accent values', () => {
   it.each(Object.entries(GOLDEN_PRIMARY))(
     'generates the expected primary tones for %s',
     (id, expected) => {
-      expect(paletteRole(id, 'md3-light', 'primary')).toBe(expected.light)
-      expect(paletteRole(id, 'md3-dark', 'primary')).toBe(expected.dark)
+      expect(paletteRole(id, 'light', 'primary')).toBe(expected.light)
+      expect(paletteRole(id, 'dark', 'primary')).toBe(expected.dark)
     },
   )
 })

@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import {
   isDarkTheme,
+  LEGACY_THEME_MIGRATIONS,
   readExplicitTheme,
   syncIosStatusBar,
   syncNativeSystemBar,
@@ -11,9 +12,9 @@ import {
 } from './theme'
 
 const THEME_CSS: Record<ThemeId, string> = {
-  'md3-light': 'src/theme/themes/md3-light.css',
-  'md3-dark': 'src/theme/themes/md3-dark.css',
-  'black-night': 'src/theme/themes/black-night.css',
+  light: 'src/theme/themes/light.css',
+  dark: 'src/theme/themes/dark.css',
+  oled: 'src/theme/themes/oled.css',
 }
 
 describe('native system bar bridge', () => {
@@ -22,9 +23,9 @@ describe('native system bar bridge', () => {
   })
 
   it.each([
-    ['md3-light', false],
-    ['md3-dark', true],
-    ['black-night', true],
+    ['light', false],
+    ['dark', true],
+    ['oled', true],
   ] as const)('reports %s as dark: %s', (theme, dark) => {
     expect(isDarkTheme(theme)).toBe(dark)
   })
@@ -33,15 +34,15 @@ describe('native system bar bridge', () => {
     const setDarkTheme = vi.fn()
     window.ClyTradeNative = { setDarkTheme }
 
-    syncNativeSystemBar('md3-light')
+    syncNativeSystemBar('light')
     expect(setDarkTheme).toHaveBeenCalledWith(false)
 
-    syncNativeSystemBar('black-night')
+    syncNativeSystemBar('oled')
     expect(setDarkTheme).toHaveBeenLastCalledWith(true)
   })
 
   it('does nothing when the native bridge is absent', () => {
-    expect(() => syncNativeSystemBar('md3-dark')).not.toThrow()
+    expect(() => syncNativeSystemBar('dark')).not.toThrow()
   })
 })
 
@@ -58,9 +59,9 @@ describe('ios status bar', () => {
   })
 
   it.each([
-    ['md3-light', 'default'],
-    ['md3-dark', 'black-translucent'],
-    ['black-night', 'black-translucent'],
+    ['light', 'default'],
+    ['dark', 'black-translucent'],
+    ['oled', 'black-translucent'],
   ] as const)('sets the %s theme to %s', (theme, expected) => {
     const meta = statusBarMeta()
     syncIosStatusBar(theme)
@@ -68,7 +69,7 @@ describe('ios status bar', () => {
   })
 
   it('does nothing when the meta tag is absent', () => {
-    expect(() => syncIosStatusBar('md3-light')).not.toThrow()
+    expect(() => syncIosStatusBar('light')).not.toThrow()
   })
 })
 
@@ -79,21 +80,33 @@ describe('explicit theme storage', () => {
   })
 
   it('returns the stored theme', () => {
-    localStorage.setItem('clytrade.theme', 'black-night')
-    expect(readExplicitTheme()).toBe('black-night')
+    localStorage.setItem('clytrade.theme', 'oled')
+    expect(readExplicitTheme()).toBe('oled')
   })
 
   it('returns null when nothing is stored', () => {
     expect(readExplicitTheme()).toBeNull()
   })
 
-  it('returns null for an unknown stored value', () => {
-    localStorage.setItem('clytrade.theme', 'md3-sepia')
-    expect(readExplicitTheme()).toBeNull()
-  })
+  it.each(Object.entries(LEGACY_THEME_MIGRATIONS))(
+    'migrates the legacy %s theme to %s and rewrites it',
+    (legacy, expected) => {
+      localStorage.setItem('clytrade.theme', legacy)
+      expect(readExplicitTheme()).toBe(expected)
+      expect(localStorage.getItem('clytrade.theme')).toBe(expected)
+    },
+  )
+
+  it.each(['sepia', 'constructor', 'toString'])(
+    'returns null for the unknown stored value %s',
+    (value) => {
+      localStorage.setItem('clytrade.theme', value)
+      expect(readExplicitTheme()).toBeNull()
+    },
+  )
 
   it('ignores the theme applied pre-paint', () => {
-    document.documentElement.dataset.theme = 'md3-light'
+    document.documentElement.dataset.theme = 'light'
     expect(readExplicitTheme()).toBeNull()
   })
 })

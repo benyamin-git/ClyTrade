@@ -1,4 +1,4 @@
-[data-theme='md3-light'][data-accent='teal'] {
+[data-theme='light'][data-accent='teal'] {
   --md-sys-color-primary: #007171;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #c9eceb;
@@ -33,7 +33,7 @@
   --md-sys-color-surface-container-highest: #d9e6e5;
 }
 
-[data-theme='md3-dark'][data-accent='teal'] {
+[data-theme='dark'][data-accent='teal'] {
   --md-sys-color-primary: #90d8d7;
   --md-sys-color-on-primary: #003d3d;
   --md-sys-color-primary-container: #005656;
@@ -68,7 +68,7 @@
   --md-sys-color-surface-container-highest: #2e3737;
 }
 
-[data-theme='black-night'][data-accent='teal'] {
+[data-theme='oled'][data-accent='teal'] {
   --md-sys-color-primary: #90d8d7;
   --md-sys-color-on-primary: #003d3d;
   --md-sys-color-primary-container: #005656;
@@ -87,7 +87,7 @@
   --md-sys-color-on-tertiary-container: #d5e6fc;
 }
 
-[data-theme='md3-light'][data-accent='blue'] {
+[data-theme='light'][data-accent='blue'] {
   --md-sys-color-primary: #1561b4;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #d3e6ff;
@@ -122,7 +122,7 @@
   --md-sys-color-surface-container-highest: #dde3ec;
 }
 
-[data-theme='md3-dark'][data-accent='blue'] {
+[data-theme='dark'][data-accent='blue'] {
   --md-sys-color-primary: #a5ccff;
   --md-sys-color-on-primary: #003369;
   --md-sys-color-primary-container: #004991;
@@ -157,7 +157,7 @@
   --md-sys-color-surface-container-highest: #31363c;
 }
 
-[data-theme='black-night'][data-accent='blue'] {
+[data-theme='oled'][data-accent='blue'] {
   --md-sys-color-primary: #a5ccff;
   --md-sys-color-on-primary: #003369;
   --md-sys-color-primary-container: #004991;
@@ -176,7 +176,7 @@
   --md-sys-color-on-tertiary-container: #f2dafd;
 }
 
-[data-theme='md3-light'][data-accent='green'] {
+[data-theme='light'][data-accent='green'] {
   --md-sys-color-primary: #26742e;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #d1edd1;
@@ -211,7 +211,7 @@
   --md-sys-color-surface-container-highest: #dde5dd;
 }
 
-[data-theme='md3-dark'][data-accent='green'] {
+[data-theme='dark'][data-accent='green'] {
   --md-sys-color-primary: #a3daa3;
   --md-sys-color-on-primary: #00410b;
   --md-sys-color-primary-container: #005b14;
@@ -246,7 +246,7 @@
   --md-sys-color-surface-container-highest: #313731;
 }
 
-[data-theme='black-night'][data-accent='green'] {
+[data-theme='oled'][data-accent='green'] {
   --md-sys-color-primary: #a3daa3;
   --md-sys-color-on-primary: #00410b;
   --md-sys-color-primary-container: #005b14;
@@ -265,7 +265,7 @@
   --md-sys-color-on-tertiary-container: #c2edf2;
 }
 
-[data-theme='md3-light'][data-accent='lime'] {
+[data-theme='light'][data-accent='lime'] {
   --md-sys-color-primary: #606900;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #e2e9c3;
@@ -300,7 +300,7 @@
   --md-sys-color-surface-container-highest: #e2e4da;
 }
 
-[data-theme='md3-dark'][data-accent='lime'] {
+[data-theme='dark'][data-accent='lime'] {
   --md-sys-color-primary: #c6d184;
   --md-sys-color-on-primary: #333800;
   --md-sys-color-primary-container: #495000;
@@ -335,7 +335,7 @@
   --md-sys-color-surface-container-highest: #35362f;
 }
 
-[data-theme='black-night'][data-accent='lime'] {
+[data-theme='oled'][data-accent='lime'] {
   --md-sys-color-primary: #c6d184;
   --md-sys-color-on-primary: #333800;
   --md-sys-color-primary-container: #495000;
@@ -354,7 +354,7 @@
   --md-sys-color-on-tertiary-container: #c3efe2;
 }
 
-[data-theme='md3-light'][data-accent='amber'] {
+[data-theme='light'][data-accent='amber'] {
   --md-sys-color-primary: #805a00;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #f5e1c2;
@@ -389,7 +389,7 @@
   --md-sys-color-surface-container-highest: #e7e2d9;
 }
 
-[data-theme='md3-dark'][data-accent='amber'] {
+[data-theme='dark'][data-accent='amber'] {
   --md-sys-color-primary: #e9c382;
   --md-sys-color-on-primary: #462f00;
   --md-sys-color-primary-container: #624400;
@@ -424,7 +424,7 @@
   --md-sys-color-surface-container-highest: #39352e;
 }
 
-[data-theme='black-night'][data-accent='amber'] {
+[data-theme='oled'][data-accent='amber'] {
   --md-sys-color-primary: #e9c382;
   --md-sys-color-on-primary: #462f00;
   --md-sys-color-primary-container: #624400;
@@ -443,7 +443,7 @@
   --md-sys-color-on-tertiary-container: #d5ecd0;
 }
 
-[data-theme='md3-light'][data-accent='orange'] {
+[data-theme='light'][data-accent='orange'] {
   --md-sys-color-primary: #a04000;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #ffdbcc;
@@ -478,7 +478,7 @@
   --md-sys-color-surface-container-highest: #ebe0db;
 }
 
-[data-theme='md3-dark'][data-accent='orange'] {
+[data-theme='dark'][data-accent='orange'] {
   --md-sys-color-primary: #ffb594;
   --md-sys-color-on-primary: #592000;
   --md-sys-color-primary-container: #7b3000;
@@ -513,7 +513,7 @@
   --md-sys-color-surface-container-highest: #3b3330;
 }
 
-[data-theme='black-night'][data-accent='orange'] {
+[data-theme='oled'][data-accent='orange'] {
   --md-sys-color-primary: #ffb594;
   --md-sys-color-on-primary: #592000;
   --md-sys-color-primary-container: #7b3000;
@@ -532,7 +532,7 @@
   --md-sys-color-on-tertiary-container: #e9e7bf;
 }
 
-[data-theme='md3-light'][data-accent='rose'] {
+[data-theme='light'][data-accent='rose'] {
   --md-sys-color-primary: #a63346;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #ffd9db;
@@ -567,7 +567,7 @@
   --md-sys-color-surface-container-highest: #ecdfe0;
 }
 
-[data-theme='md3-dark'][data-accent='rose'] {
+[data-theme='dark'][data-accent='rose'] {
   --md-sys-color-primary: #ffb1b6;
   --md-sys-color-on-primary: #66001d;
   --md-sys-color-primary-container: #8a102e;
@@ -602,7 +602,7 @@
   --md-sys-color-surface-container-highest: #3c3333;
 }
 
-[data-theme='black-night'][data-accent='rose'] {
+[data-theme='oled'][data-accent='rose'] {
   --md-sys-color-primary: #ffb1b6;
   --md-sys-color-on-primary: #66001d;
   --md-sys-color-primary-container: #8a102e;
@@ -621,7 +621,7 @@
   --md-sys-color-on-tertiary-container: #f9e0be;
 }
 
-[data-theme='md3-light'][data-accent='violet'] {
+[data-theme='light'][data-accent='violet'] {
   --md-sys-color-primary: #6f4ba4;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #e8deff;
@@ -656,7 +656,7 @@
   --md-sys-color-surface-container-highest: #e4e1eb;
 }
 
-[data-theme='md3-dark'][data-accent='violet'] {
+[data-theme='dark'][data-accent='violet'] {
   --md-sys-color-primary: #d2bbff;
   --md-sys-color-on-primary: #421571;
   --md-sys-color-primary-container: #58318b;
@@ -691,7 +691,7 @@
   --md-sys-color-surface-container-highest: #36343b;
 }
 
-[data-theme='black-night'][data-accent='violet'] {
+[data-theme='oled'][data-accent='violet'] {
   --md-sys-color-primary: #d2bbff;
   --md-sys-color-on-primary: #421571;
   --md-sys-color-primary-container: #58318b;
