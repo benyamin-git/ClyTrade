@@ -13,3 +13,5 @@ release
 .worktrees
 
 .playwright-cli/
+
+.ai-state
