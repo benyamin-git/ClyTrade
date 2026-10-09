@@ -32,8 +32,9 @@ version appears in the Windows file properties and in the Android app info, so
 
 ## Where builds come from
 
-The PWA needs no download: it updates itself in the background. It is served
-from <https://benyamin-git.github.io/ClyTrade/> and redeployed whenever a
+The PWA needs no download: it checks for a new version in the background and
+offers a reload when one is ready. It is served from
+<https://benyamin-git.github.io/ClyTrade/> and redeployed whenever a
 version tag is pushed. Windows and Android builds are attached to
 [GitHub Releases](https://github.com/benyamin-git/ClyTrade/releases) as:
 
@@ -66,7 +67,9 @@ from a newer build than the one importing it.
 
 ## Updates
 
-- **PWA** — updates silently when a new version is deployed.
+- **PWA** — a banner appears when a new version is deployed; choose
+  **Reload** to switch to it. Dismissing keeps the current version until you
+  reload or reopen.
 - **Windows** — download the newer release and install it over the old one;
   your data is kept.
 - **Android** — in-place updates fail. Each CI build is signed with a freshly

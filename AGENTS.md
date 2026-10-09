@@ -96,7 +96,7 @@ large changes.
 
 | Layer         | Location            | Notes                                                                               |
 | ------------- | ------------------- | ----------------------------------------------------------------------------------- |
-| App shell     | `src/app/`          | Router (hash), providers, top bar, drawer, subtab bar                               |
+| App shell     | `src/app/`          | Router (hash), providers, top bar, drawer, subtab bar, update banner                |
 | Features      | `src/features/`     | UI + application logic per tab (`journal`, `portfolio`, `calculations`, `settings`) |
 | Calculations  | `src/calculations/` | Pure, protected math layer                                                          |
 | Data          | `src/data/`         | Dexie schema (v2), zod models incl. `market.ts`, repositories, backup               |
@@ -163,5 +163,11 @@ depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
   ids, dark themes, accents and surface colors from `src/theme/accents.ts` and
   `src/theme/theme.ts` — update those modules, never the inline script in
   `index.html`.
+- PWA updates are prompt-mode: `vite.config.ts` sets `registerType: 'prompt'` and
+  `injectRegister: false`, and `src/app/UpdateBanner.tsx` — mounted once in
+  `AppRoot` — registers the service worker and offers the reload. With
+  `injectRegister: false`, unmounting the banner silently stops the PWA from
+  updating at all. Native builds disable the plugin, so the banner never shows
+  there.
 - User-facing documentation lives in `src/docs/**` and must explain the _why_ behind
   opinionated decisions, not just the how.

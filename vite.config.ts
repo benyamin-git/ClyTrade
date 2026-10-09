@@ -34,7 +34,8 @@ export default defineConfig({
     },
     VitePWA({
       disable: isNativeBuild,
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
         name: 'ClyTrade',

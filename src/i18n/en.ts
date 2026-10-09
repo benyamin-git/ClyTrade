@@ -552,6 +552,11 @@ export const en = {
     loadFailed: 'Could not load preferences.',
     riskPerTrade: 'Risk per trade',
   },
+  update: {
+    available: 'New version available.',
+    dismiss: 'Dismiss',
+    reload: 'Reload',
+  },
 }
 
 export type Dictionary = typeof en

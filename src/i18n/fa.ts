@@ -556,4 +556,9 @@ export const fa = {
     loadFailed: 'بارگذاری تنظیمات ممکن نشد.',
     riskPerTrade: 'ریسک هر معامله',
   },
+  update: {
+    available: 'نسخهٔ جدید در دسترس است.',
+    dismiss: 'بستن',
+    reload: 'بارگذاری مجدد',
+  },
 } satisfies Dictionary
