@@ -14,6 +14,8 @@ All notable changes to ClyTrade are documented here. The format follows
   share sheet so the file can be saved to Files.
 - `VITE_BASE` lets the production build run under the `/ClyTrade/` Pages path;
   local and Tauri builds keep the root base.
+- **Persian documentation** — every in-app documentation page now has a Persian
+  body; English stays the fallback for future locales.
 
 ### Changed
 
@@ -29,9 +31,15 @@ All notable changes to ClyTrade are documented here. The format follows
   pickers use radio-group semantics, table rows are pointer-only with explicit
   action buttons, charts expose names and hidden data tables, and placeholder
   text meets contrast.
+- **Persian terminology** — the interface and the docs now say «حد ضرر» for
+  stop loss (previously «استاپ»), «تارگت» for the target filter (previously
+  «حد سود»), and R / «میانگین R» for R multiples (previously «RR»), plus a few
+  Persian spelling and consistency fixes.
 
 ### Fixed
 
+- Documentation: fenced code blocks and inline code render left-to-right inside
+  the Persian right-to-left layout, so formula alignment is preserved.
 - iOS: the status bar style follows the theme (`default` for the light theme,
   translucent dark for the dark themes) instead of staying translucent and
   turning white-on-white in the light theme.

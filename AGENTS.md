@@ -53,9 +53,12 @@ large changes.
 - Persian-specific behavior is deliberate: Latin digits, Gregorian dates with
   Persian labels, left-to-right charts and a right-to-left layout. Read
   `src/docs/en/general/language.md` before changing any of it.
-- Documentation bodies live in `src/docs/<locale>/` and fall back to English when
-  a locale is missing a file. Registry titles and summaries live in the i18n
-  dictionaries, not in the markdown.
+- Documentation bodies live in `src/docs/<locale>/` (complete for `en` and `fa`;
+  a missing file falls back to English, and `src/docs/registry.test.ts` asserts
+  every registered doc ships a distinct Persian body, so add both when adding a
+  doc). Registry titles and summaries live in the i18n dictionaries, not in the
+  markdown; fenced code blocks render `dir="ltr"` so formulas stay aligned under
+  RTL.
 - Never hand-edit generated files (`public/icons/`, `src/theme/accents.css`).
   Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
   live in `src/theme/accents.ts` and must stay in sync with the seed table in

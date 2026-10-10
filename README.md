@@ -161,8 +161,9 @@ Unspecified. Backups are schema version 2; version 1 files still import.
 ## Documentation
 
 The full user documentation is inside the app under **Settings →
-Documentation**, with its source in `src/docs/**`. Product direction, scope and
-the reasoning behind the major decisions live in [`masterplan.md`](./masterplan.md).
+Documentation**, with its source in `src/docs/**` — complete in English and
+Persian. Product direction, scope and the reasoning behind the major decisions
+live in [`masterplan.md`](./masterplan.md).
 User-facing text is in typed dictionaries in `src/i18n/`, in English and Persian
 (Persian runs right-to-left).
 

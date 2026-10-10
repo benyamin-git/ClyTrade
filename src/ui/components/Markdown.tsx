@@ -28,12 +28,14 @@ export function Markdown({ children }: { children: string }) {
           ),
           code: (props) => (
             <code
+              dir="ltr"
               className="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-xs"
               {...props}
             />
           ),
           pre: (props) => (
             <pre
+              dir="ltr"
               className="overflow-x-auto rounded-app-sm bg-surface-container-high p-3 font-mono text-xs leading-relaxed"
               {...props}
             />

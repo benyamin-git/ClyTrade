@@ -32,6 +32,15 @@ function indexBodies(modules: Record<string, string>): Record<string, string> {
 const EN_BODIES = indexBodies(enBodies)
 const FA_BODIES = indexBodies(localizedBodies)
 
+export function pickBody(
+  slug: string,
+  locale: Locale,
+  faBodies: Record<string, string> = FA_BODIES,
+  enBodies: Record<string, string> = EN_BODIES,
+): string {
+  return (locale === 'fa' ? faBodies[slug] : enBodies[slug]) ?? enBodies[slug] ?? ''
+}
+
 export interface DocMeta {
   slug: string
   groupKey: TranslationKey
@@ -169,8 +178,7 @@ function resolveDoc(meta: DocMeta, locale: Locale, t: Translator): DocEntry {
     group: t(meta.groupKey),
     title: t(meta.titleKey),
     summary: t(meta.summaryKey),
-    body:
-      (locale === 'fa' ? FA_BODIES[meta.slug] : EN_BODIES[meta.slug]) ?? EN_BODIES[meta.slug] ?? '',
+    body: pickBody(meta.slug, locale),
   }
 }
 
