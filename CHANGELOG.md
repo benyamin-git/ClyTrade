@@ -6,6 +6,8 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-10
+
 ### Added
 
 - **Install on iPhone** — the PWA is deployed to GitHub Pages on every `v*`
@@ -102,6 +104,7 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.1.0

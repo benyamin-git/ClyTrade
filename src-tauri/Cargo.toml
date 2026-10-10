@@ -1,6 +1,6 @@
 [package]
 name = "clytrade"
-version = "0.2.0"
+version = "0.3.0"
 description = "Fast, local-first trading journal, portfolio tracker and calculator suite."
 authors = ["benyamin-git"]
 license = "GPL-3.0-only"
