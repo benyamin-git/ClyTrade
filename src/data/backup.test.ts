@@ -5,6 +5,7 @@ import {
   BackupError,
   backupFilename,
   downloadBackup,
+  exportBackup,
   importBackup,
   parseBackup,
   type BackupFile,
@@ -162,6 +163,31 @@ describe('parseBackup', () => {
     ).toBe('duplicate-id')
   })
 
+  it('accepts a backup with a theme and accent', () => {
+    const backup = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        data: { ...validBackup.data, ui: { theme: 'light', accent: 'rose' } },
+      }),
+    )
+
+    expect(backup.data.ui).toEqual({ theme: 'light', accent: 'rose' })
+  })
+
+  it.each([
+    ['theme', { theme: 'sepia', accent: 'rose' }],
+    ['accent', { theme: 'light', accent: 'rainbow' }],
+  ])('rejects an unknown %s', (_name, ui) => {
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, ui },
+        }),
+      ),
+    ).toBe('invalid-backup')
+  })
+
   it('builds a timestamped filename', () => {
     expect(backupFilename(new Date('2026-01-02T03:04:05.000Z'))).toBe(
       'clytrade-backup-2026-01-02-03-04-05.json',
@@ -207,6 +233,17 @@ function makeAsset(id: string): Asset {
     updatedAt: 2,
   }
 }
+
+describe('exportBackup', () => {
+  it('includes the stored theme and accent', async () => {
+    localStorage.setItem('clytrade.theme', 'light')
+    localStorage.setItem('clytrade.accent', 'rose')
+
+    const backup = await exportBackup()
+
+    expect(backup.data.ui).toEqual({ theme: 'light', accent: 'rose' })
+  })
+})
 
 describe('importBackup', () => {
   beforeEach(async () => {

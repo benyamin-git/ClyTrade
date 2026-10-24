@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { isIos } from '@/lib/platform'
+import { isAccentId, readStoredAccent, type AccentId } from '@/theme/accents'
+import { isThemeId, readStoredTheme, type ThemeId } from '@/theme/theme'
 import { db } from './db'
 import { assetSchema } from './models/asset'
 import { settingRowSchema } from './models/backup-schemas'
@@ -16,12 +18,18 @@ export const backupEnvelopeSchema = z.object({
   schemaVersion: z.number().int().positive(),
 })
 
+export const backupUiSchema = z.object({
+  theme: z.custom<ThemeId>(isThemeId),
+  accent: z.custom<AccentId>(isAccentId),
+})
+
 export const backupSchema = backupEnvelopeSchema.extend({
   exportedAt: z.string(),
   data: z.object({
     trades: z.array(tradeSchema),
     assets: z.array(assetSchema),
     settings: z.array(settingRowSchema),
+    ui: backupUiSchema.optional(),
   }),
 })
 
@@ -34,7 +42,12 @@ export async function exportBackup(): Promise<BackupFile> {
     app: BACKUP_APP_ID,
     schemaVersion: BACKUP_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
-    data: { trades, assets, settings },
+    data: {
+      trades,
+      assets,
+      settings,
+      ui: { theme: readStoredTheme(), accent: readStoredAccent() },
+    },
   }
 }
 

@@ -12,6 +12,7 @@ import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
 import type { CalculatorPageProps } from '../../registry'
 import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
+import { UNIT_MODE_KEYS, useUnitMode } from '../../logic/useUnitMode'
 
 function FeesPnlCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
@@ -21,12 +22,16 @@ function FeesPnlCalculator({ docSlug }: CalculatorPageProps) {
   const [size, setSize] = useState<number | null>(null)
   const [direction, setDirection] = useState<Direction>('long')
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
-  const [entryFee, setEntryFee] = useState<number | null>(preferences.feePercent)
-  const [entryFeeUnit, setEntryFeeUnit] = useState<UnitMode>('percent')
-  const [exitFee, setExitFee] = useState<number | null>(preferences.feePercent)
-  const [exitFeeUnit, setExitFeeUnit] = useState<UnitMode>('percent')
+  const [entryFeeUnit, setEntryFeeUnit] = useUnitMode(UNIT_MODE_KEYS.feesPnlEntryFee)
+  const [entryFee, setEntryFee] = useState<number | null>(() =>
+    entryFeeUnit === 'percent' ? preferences.feePercent : null,
+  )
+  const [exitFeeUnit, setExitFeeUnit] = useUnitMode(UNIT_MODE_KEYS.feesPnlExitFee)
+  const [exitFee, setExitFee] = useState<number | null>(() =>
+    exitFeeUnit === 'percent' ? preferences.feePercent : null,
+  )
+  const [fundingUnit, setFundingUnit] = useUnitMode(UNIT_MODE_KEYS.feesPnlFunding)
   const [funding, setFunding] = useState<number | null>(0)
-  const [fundingUnit, setFundingUnit] = useState<UnitMode>('percent')
 
   const unitOptions: readonly NumberUnitOption[] = [
     { value: 'percent', label: '%' },

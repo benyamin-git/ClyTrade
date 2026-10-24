@@ -29,6 +29,9 @@ Like the theme, the accent is stored locally and applied before the first
 paint. Removed accents migrate: Purple becomes Violet, Lime becomes Green and
 Amber becomes Orange.
 
+The theme and accent are included in backups (`data.ui`), so restoring on
+another device keeps the same look.
+
 ## Why it works this way
 
 - **Color roles, not hex values.** Every component uses Material Design 3 roles

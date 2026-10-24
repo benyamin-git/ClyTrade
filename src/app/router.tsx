@@ -4,16 +4,22 @@ import { DEFAULT_CALCULATOR_PATH } from '@/features/calculations/registry'
 import { tabs } from '@/navigation/tabs'
 import { AppShell } from './shell/AppShell'
 
-const childRoutes = tabs.flatMap((tab) => [
-  {
-    path: tab.path.replace(/^\//, ''),
-    element: <Navigate to={tab.subtabs[0]?.path ?? tab.path} replace />,
-  },
-  ...tab.subtabs.map((subtab) => ({
+const childRoutes = tabs.flatMap((tab) => {
+  const subtabRoutes = tab.subtabs.map((subtab) => ({
     path: subtab.path.replace(/^\//, ''),
     element: createElement(subtab.element),
-  })),
-])
+  }))
+  const firstSubtab = tab.subtabs[0]
+  if (!firstSubtab) return subtabRoutes
+
+  return [
+    {
+      path: tab.path.replace(/^\//, ''),
+      element: <Navigate to={firstSubtab.path} replace />,
+    },
+    ...subtabRoutes,
+  ]
+})
 
 export const routes: RouteObject[] = [
   {

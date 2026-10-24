@@ -58,6 +58,7 @@ function LiquidationPriceCalculator({ docSlug }: CalculatorPageProps) {
             <SegmentedControl
               value={direction}
               onChange={setDirection}
+              ariaLabel={t('fields.direction')}
               options={[
                 { value: 'long', label: t('direction.long') },
                 { value: 'short', label: t('direction.short') },

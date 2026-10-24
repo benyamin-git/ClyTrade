@@ -9,19 +9,24 @@ import { NumberField, type NumberUnitOption } from '@/ui/components/NumberField'
 import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
 import type { CalculatorPageProps } from '../../registry'
-import { convertUnit, toPercent, type UnitMode } from '../../logic/units'
+import { convertUnit, toAmount, toPercent, type UnitMode } from '../../logic/units'
+import { UNIT_MODE_KEYS, useUnitMode } from '../../logic/useUnitMode'
 
 function PositionSizeCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [accountSize, setAccountSize] = useState<number | null>(preferences.accountSize)
-  const [risk, setRisk] = useState<number | null>(preferences.riskPercent)
-  const [riskUnit, setRiskUnit] = useState<UnitMode>('percent')
+  const [riskUnit, setRiskUnit] = useUnitMode(UNIT_MODE_KEYS.positionSizeRisk)
+  const [risk, setRisk] = useState<number | null>(() =>
+    riskUnit === 'currency'
+      ? toAmount(preferences.riskPercent, preferences.accountSize)
+      : preferences.riskPercent,
+  )
   const [entryPrice, setEntryPrice] = useState<number | null>(null)
   const [stopPrice, setStopPrice] = useState<number | null>(null)
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
+  const [feeUnit, setFeeUnit] = useUnitMode(UNIT_MODE_KEYS.positionSizeFee)
   const [fee, setFee] = useState<number | null>(preferences.feePercent)
-  const [feeUnit, setFeeUnit] = useState<UnitMode>('percent')
 
   const unitOptions: readonly NumberUnitOption[] = [
     { value: 'percent', label: '%' },

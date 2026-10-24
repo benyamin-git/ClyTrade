@@ -16,6 +16,12 @@ function renderPage(docSlug = 'calculator-liquidation-price') {
 }
 
 describe('LiquidationPricePage', () => {
+  it('names the direction control', async () => {
+    renderPage()
+
+    expect(await screen.findByRole('radiogroup', { name: 'Direction' })).toBeInTheDocument()
+  })
+
   it('estimates a 10x long liquidation below entry', async () => {
     const user = userEvent.setup()
     renderPage()

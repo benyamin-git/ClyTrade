@@ -6,6 +6,35 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Theme and accent in backups** — exports include the current theme and accent
+  under `data.ui`, and imports apply them, so a restore looks the same on another
+  device. Backups stay schema version 2; older files without `ui` still import.
+- **Apple splash screens** — generated `apple-touch-startup-image` links cover
+  current iPhone and iPad sizes in both orientations.
+- The app asks the browser for persistent storage (`navigator.storage.persist()`)
+  where supported, reducing the chance that the local database is evicted.
+
+### Changed
+
+- Sample strategies, notes and asset names follow the interface language.
+- Calculator unit toggles (percent or currency) are remembered per field between
+  visits.
+- Pinch and double-tap zoom are disabled and the viewport scale is locked, so an
+  accidental gesture cannot zoom the interface.
+- GitHub Actions were updated to Node 24-compatible majors, clearing the runner
+  deprecation warnings.
+
+### Fixed
+
+- **Android in-place updates** — release APKs are signed with a stable project
+  keystore from CI secrets, so newer release-key APKs install over each other
+  without uninstalling the app or losing local data. Builds up to 0.3.0 used
+  per-run debug keys, so the first release-key install from one of those needs a
+  one-time backup, uninstall and restore. `./scripts/android-signing.sh --setup`
+  provisions the keystore and the four repository secrets.
+
 ## [0.3.0] - 2026-10-10
 
 ### Added

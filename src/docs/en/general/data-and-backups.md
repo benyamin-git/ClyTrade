@@ -3,7 +3,9 @@
 ## Where data lives
 
 All data is stored in IndexedDB on your device, in a database named `clytrade`.
-Nothing is sent anywhere.
+Nothing is sent anywhere. Where the browser supports it, ClyTrade asks for
+persistent storage so the database is less likely to be evicted under disk
+pressure. That protection is not a backup — keep exporting files.
 
 ## Export
 
@@ -17,13 +19,19 @@ directly:
   "app": "clytrade",
   "schemaVersion": 2,
   "exportedAt": "…",
-  "data": { "trades": [], "assets": [], "settings": [] }
+  "data": {
+    "trades": [],
+    "assets": [],
+    "settings": [],
+    "ui": { "theme": "dark", "accent": "blue" }
+  }
 }
 ```
 
 Keep this file somewhere safe. It is the only copy of your data outside the
 browser. The `settings` array includes your defaults and your interface
-language, so a restore brings the app back the way you left it.
+language; `ui` carries the theme and accent, and importing applies them. Older
+backups without `ui` still import.
 
 ## Import
 
@@ -39,8 +47,10 @@ or not a ClyTrade backup is rejected with a message and no changes.
 
 **Load sample data** adds a fixed set of example trades and assets to the
 journal and portfolio so you can explore the stats, charts and calculators
-without entering data by hand. Your own records are kept, and loading again
-refreshes the samples instead of duplicating them. Reset removes everything.
+without entering data by hand. Strategies, notes and asset names follow the
+interface language when the samples are loaded. Your own records are kept, and
+loading again refreshes the samples instead of duplicating them. Reset removes
+everything.
 
 ## Reset
 

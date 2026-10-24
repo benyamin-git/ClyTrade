@@ -1,3 +1,5 @@
+import type { TranslationKey } from '@/i18n/types'
+import type { Translator } from '@/i18n/translate'
 import type { Asset } from './models/asset'
 import type { Market } from './models/market'
 import type { Trade } from './models/trade'
@@ -20,8 +22,8 @@ interface SampleTradeSpec {
   fees: number
   openedDaysAgo: number
   holdHours: number
-  strategy: string | null
-  notes: string | null
+  strategy: TranslationKey | null
+  notes: TranslationKey | null
   tags: readonly string[]
 }
 
@@ -39,8 +41,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.9,
     openedDaysAgo: 118,
     holdHours: 52,
-    strategy: 'Breakout',
-    notes: 'Daily close above the range high.',
+    strategy: 'sampleData.strategy.breakout',
+    notes: 'sampleData.notes.dailyCloseAboveRange',
     tags: ['swing', 'btc'],
   },
   {
@@ -55,7 +57,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 5.47,
     openedDaysAgo: 112,
     holdHours: 30,
-    strategy: 'Mean reversion',
+    strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['eth', 'fade'],
   },
@@ -71,8 +73,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 5.36,
     openedDaysAgo: 104,
     holdHours: 78,
-    strategy: 'Trend',
-    notes: 'Stopped near the low of the range.',
+    strategy: 'sampleData.strategy.trend',
+    notes: 'sampleData.notes.stoppedNearRangeLow',
     tags: ['sol'],
   },
   {
@@ -87,7 +89,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 3.51,
     openedDaysAgo: 96,
     holdHours: 120,
-    strategy: 'Breakout',
+    strategy: 'sampleData.strategy.breakout',
     notes: null,
     tags: ['btc', 'swing'],
   },
@@ -103,7 +105,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.68,
     openedDaysAgo: 89,
     holdHours: 42,
-    strategy: 'Mean reversion',
+    strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['xrp'],
   },
@@ -119,7 +121,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.17,
     openedDaysAgo: 81,
     holdHours: 96,
-    strategy: 'Trend',
+    strategy: 'sampleData.strategy.trend',
     notes: null,
     tags: ['eth'],
   },
@@ -135,7 +137,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.28,
     openedDaysAgo: 74,
     holdHours: 64,
-    strategy: 'Mean reversion',
+    strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['bnb', 'fade'],
   },
@@ -151,8 +153,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 3.35,
     openedDaysAgo: 66,
     holdHours: 26,
-    strategy: 'Breakout',
-    notes: 'Failed breakdown, cut quickly.',
+    strategy: 'sampleData.strategy.breakout',
+    notes: 'sampleData.notes.failedBreakdown',
     tags: ['btc'],
   },
   {
@@ -167,7 +169,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 3.98,
     openedDaysAgo: 58,
     holdHours: 150,
-    strategy: 'Trend',
+    strategy: 'sampleData.strategy.trend',
     notes: null,
     tags: ['sol', 'swing'],
   },
@@ -184,7 +186,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.11,
     openedDaysAgo: 51,
     holdHours: 88,
-    strategy: 'Breakout',
+    strategy: 'sampleData.strategy.breakout',
     notes: null,
     tags: ['link'],
   },
@@ -200,8 +202,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.22,
     openedDaysAgo: 44,
     holdHours: 20,
-    strategy: 'Mean reversion',
-    notes: 'News spike against the position.',
+    strategy: 'sampleData.strategy.meanReversion',
+    notes: 'sampleData.notes.newsSpike',
     tags: ['eth'],
   },
   {
@@ -216,7 +218,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 2.88,
     openedDaysAgo: 36,
     holdHours: 140,
-    strategy: 'Trend',
+    strategy: 'sampleData.strategy.trend',
     notes: null,
     tags: ['btc', 'swing'],
   },
@@ -232,7 +234,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.23,
     openedDaysAgo: 27,
     holdHours: 72,
-    strategy: 'Mean reversion',
+    strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['sol'],
   },
@@ -248,8 +250,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.58,
     openedDaysAgo: 19,
     holdHours: 34,
-    strategy: 'Breakout',
-    notes: 'Stop run before the move.',
+    strategy: 'sampleData.strategy.breakout',
+    notes: 'sampleData.notes.stopRun',
     tags: ['xrp'],
   },
   {
@@ -264,7 +266,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 3.56,
     openedDaysAgo: 12,
     holdHours: 110,
-    strategy: 'Trend',
+    strategy: 'sampleData.strategy.trend',
     notes: null,
     tags: ['bnb'],
   },
@@ -280,7 +282,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 4.3,
     openedDaysAgo: 6,
     holdHours: 58,
-    strategy: 'Breakout',
+    strategy: 'sampleData.strategy.breakout',
     notes: null,
     tags: ['eth', 'swing'],
   },
@@ -296,8 +298,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 2.73,
     openedDaysAgo: 3,
     holdHours: 0,
-    strategy: 'Trend',
-    notes: 'Still holding above the breakout level.',
+    strategy: 'sampleData.strategy.trend',
+    notes: 'sampleData.notes.stillHolding',
     tags: ['btc'],
   },
   {
@@ -312,7 +314,7 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     fees: 3.62,
     openedDaysAgo: 1,
     holdHours: 0,
-    strategy: 'Mean reversion',
+    strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['sol'],
   },
@@ -321,25 +323,25 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
 interface SampleAssetSpec {
   symbol: string
   market?: Market
-  name: string
+  name: TranslationKey
   quantity: number
   averageCost: number
   currentPrice: number | null
-  notes: string | null
+  notes: TranslationKey | null
 }
 
 const ASSET_SPECS: readonly SampleAssetSpec[] = [
   {
     symbol: 'BTC',
-    name: 'Bitcoin',
+    name: 'sampleData.assetName.bitcoin',
     quantity: 0.15,
     averageCost: 52000,
     currentPrice: 68200,
-    notes: 'Core holding, added on dips.',
+    notes: 'sampleData.notes.coreHolding',
   },
   {
     symbol: 'ETH',
-    name: 'Ethereum',
+    name: 'sampleData.assetName.ethereum',
     quantity: 2.5,
     averageCost: 2800,
     currentPrice: 3410,
@@ -347,7 +349,7 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
   },
   {
     symbol: 'SOL',
-    name: 'Solana',
+    name: 'sampleData.assetName.solana',
     quantity: 40,
     averageCost: 120,
     currentPrice: 181.2,
@@ -355,7 +357,7 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
   },
   {
     symbol: 'LINK',
-    name: 'Chainlink',
+    name: 'sampleData.assetName.chainlink',
     quantity: 150,
     averageCost: 14.5,
     currentPrice: 19.2,
@@ -364,24 +366,24 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
   {
     symbol: 'USDT',
     market: 'forex',
-    name: 'Tether',
+    name: 'sampleData.assetName.tether',
     quantity: 500,
     averageCost: 1,
     currentPrice: 1,
-    notes: 'Dry powder.',
+    notes: 'sampleData.notes.dryPowder',
   },
   {
     symbol: 'ARB',
     market: 'stocks',
-    name: 'Arbitrum',
+    name: 'sampleData.assetName.arbitrum',
     quantity: 800,
     averageCost: 1.2,
     currentPrice: null,
-    notes: 'No price set — valued at cost.',
+    notes: 'sampleData.notes.noPrice',
   },
 ]
 
-export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[] } {
+export function buildSampleData(now: number, t: Translator): { trades: Trade[]; assets: Asset[] } {
   const trades = TRADE_SPECS.map((spec, index) => {
     const openedAt = now - spec.openedDaysAgo * DAY
     const closedAt = spec.exitPrice === null ? null : openedAt + spec.holdHours * HOUR
@@ -400,8 +402,8 @@ export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[]
       fees: spec.fees,
       openedAt,
       closedAt,
-      strategy: spec.strategy,
-      notes: spec.notes,
+      strategy: spec.strategy === null ? null : t(spec.strategy),
+      notes: spec.notes === null ? null : t(spec.notes),
       tags: [...spec.tags],
       createdAt: openedAt,
       updatedAt: closedAt ?? openedAt,
@@ -414,11 +416,11 @@ export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[]
         id: `sample-asset-${String(index + 1).padStart(2, '0')}`,
         symbol: spec.symbol,
         market: spec.market ?? 'crypto',
-        name: spec.name,
+        name: t(spec.name),
         quantity: spec.quantity,
         averageCost: spec.averageCost,
         currentPrice: spec.currentPrice,
-        notes: spec.notes,
+        notes: spec.notes === null ? null : t(spec.notes),
         createdAt: now,
         updatedAt: now,
       }) satisfies Asset,
@@ -427,8 +429,8 @@ export function buildSampleData(now: number): { trades: Trade[]; assets: Asset[]
   return { trades, assets }
 }
 
-export async function loadSampleData(now = Date.now()): Promise<void> {
-  const { trades, assets } = buildSampleData(now)
+export async function loadSampleData(t: Translator, now = Date.now()): Promise<void> {
+  const { trades, assets } = buildSampleData(now, t)
   await mergeTrades(trades)
   await mergeAssets(assets)
 }

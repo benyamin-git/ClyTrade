@@ -42,16 +42,20 @@ version tag is pushed. Windows and Android builds are attached to
 - `ClyTrade-<version>-windows-x64-setup.exe` — installer
 - `ClyTrade-<version>-android-universal.apk` — install on Android
 
-These are test builds and are not code-signed. Windows SmartScreen warns about
-the unknown publisher the first time (choose **More info → Run anyway**), and
-Android asks you to allow installing apps from your browser or file manager.
+These are test builds. Windows builds are not code-signed, so SmartScreen warns
+about the unknown publisher the first time (choose **More info → Run anyway**).
+Android builds are signed with ClyTrade's release key, so Android treats a newer
+release-key APK as an update to the same app. Builds up to 0.3.0 were signed
+with per-run debug keys, so the first release-key install from one of those
+needs a one-time backup, uninstall and restore. Android still asks you to allow
+installing apps from your browser or file manager.
 
 ### Install on iPhone or iPad
 
-There is no APK-style install on iOS. The PWA is the supported way: open
-<https://benyamin-git.github.io/ClyTrade/> in **Safari** — Home Screen installs
-are Safari-only — tap **Share**, then **Add to Home Screen**. The icon runs
-standalone and offline like a native app.
+There is no native iOS build and none is planned. The PWA is the supported way:
+open <https://benyamin-git.github.io/ClyTrade/> in **Safari** — Home Screen
+installs are Safari-only — tap **Share**, then **Add to Home Screen**. The icon
+runs standalone and offline like a native app.
 
 ## Data is per install
 
@@ -61,9 +65,9 @@ its own storage sandbox. This is intentional: an app that cannot reach across
 sandboxes cannot leak your trades to another one.
 
 To move data, use **Export backup** in Settings → Data Controls on the source
-install and **Import** on the target. The backup includes your trades, assets
-and settings, with a schema version so a restore can tell you if the file came
-from a newer build than the one importing it.
+install and **Import** on the target. The backup includes your trades, assets,
+settings, theme and accent, with a schema version so a restore can tell you if
+the file came from a newer build than the one importing it.
 
 ## Updates
 
@@ -72,16 +76,10 @@ from a newer build than the one importing it.
   reload or reopen.
 - **Windows** — download the newer release and install it over the old one;
   your data is kept.
-- **Android** — in-place updates fail. Each CI build is signed with a freshly
-  generated debug keystore, so Android sees a different signing certificate and
-  refuses to install over the existing app ("App not installed"). Uninstalling
-  first is the only workaround, and it wipes the local data, so export a backup
-  before updating.
-
-Android in-place updates are the one place where these test builds fall short of
-the PWA. A stable release keystore (planned before `1.0.0`) will remove the
-uninstall step; until then, treat every Android update as a fresh install with
-an import afterwards.
+- **Android** — download the newer APK and install it over the old one; your
+  data is kept. Do not uninstall the app first. If Android refuses the update,
+  the signing key has changed: export a backup before uninstalling. This is
+  expected once when moving from a build up to 0.3.0 to a release-key build.
 
 Export a backup before updating if you want a safety net, especially before
 switching between major versions.

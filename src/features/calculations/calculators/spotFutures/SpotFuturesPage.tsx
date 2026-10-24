@@ -10,6 +10,7 @@ import { Stat } from '@/ui/components/Stat'
 import { CalculatorLayout, ResultsGrid } from '../../components/CalculatorLayout'
 import type { CalculatorPageProps } from '../../registry'
 import type { UnitMode } from '../../logic/units'
+import { UNIT_MODE_KEYS, useUnitMode } from '../../logic/useUnitMode'
 
 function SpotFuturesCalculator({ docSlug }: CalculatorPageProps) {
   const { preferences } = usePreferences()
@@ -18,8 +19,10 @@ function SpotFuturesCalculator({ docSlug }: CalculatorPageProps) {
   const [price, setPrice] = useState<number | null>(null)
   const [leverage, setLeverage] = useState<number | null>(preferences.leverage)
   const [contractSize, setContractSize] = useState<number | null>(1)
-  const [fee, setFee] = useState<number | null>(preferences.feePercent)
-  const [feeUnit, setFeeUnit] = useState<UnitMode>('percent')
+  const [feeUnit, setFeeUnit] = useUnitMode(UNIT_MODE_KEYS.spotFuturesFee)
+  const [fee, setFee] = useState<number | null>(() =>
+    feeUnit === 'percent' ? preferences.feePercent : null,
+  )
 
   const unitOptions: readonly NumberUnitOption[] = [
     { value: 'percent', label: '%' },

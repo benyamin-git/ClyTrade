@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { en } from '@/i18n/en'
+import { fa } from '@/i18n/fa'
+import { createTranslator } from '@/i18n/translate'
 import { assetSchema } from './models/asset'
 import { tradeSchema } from './models/trade'
 import { clearAssets, listAssets } from './repositories/assets.repo'
@@ -7,9 +10,10 @@ import { buildSampleData, loadSampleData } from './sampleData'
 
 const NOW = Date.UTC(2026, 8, 23, 12)
 const DAY = 86_400_000
+const t = createTranslator(en)
 
 describe('buildSampleData', () => {
-  const { trades, assets } = buildSampleData(NOW)
+  const { trades, assets } = buildSampleData(NOW, t)
 
   it('produces records that pass their schemas', () => {
     for (const trade of trades) {
@@ -57,6 +61,17 @@ describe('buildSampleData', () => {
     expect(new Set(trades.map((trade) => trade.market)).size).toBeGreaterThanOrEqual(3)
     expect(new Set(assets.map((asset) => asset.market)).size).toBeGreaterThanOrEqual(3)
   })
+
+  it('localizes strategies, notes and asset names', () => {
+    const persian = buildSampleData(NOW, createTranslator(fa))
+
+    expect(persian.trades[0]?.strategy).toBe('شکست')
+    expect(persian.trades[0]?.notes).toBe('بسته شدن روزانه بالای سقف رِنج.')
+    expect(persian.assets[0]?.name).toBe('بیت‌کوین')
+    expect(persian.assets[0]?.notes).toBe('دارایی اصلی؛ در افت‌ها اضافه شد.')
+    expect(trades[0]?.strategy).toBe('Breakout')
+    expect(assets[0]?.name).toBe('Bitcoin')
+  })
 })
 
 describe('loadSampleData', () => {
@@ -66,10 +81,10 @@ describe('loadSampleData', () => {
   })
 
   it('loads sample data and is idempotent', async () => {
-    await loadSampleData(NOW)
+    await loadSampleData(t, NOW)
     const firstTrades = await listTrades()
     const firstAssets = await listAssets()
-    await loadSampleData(NOW)
+    await loadSampleData(t, NOW)
     expect((await listTrades()).length).toBe(firstTrades.length)
     expect((await listAssets()).length).toBe(firstAssets.length)
     expect(firstTrades.length).toBeGreaterThan(0)

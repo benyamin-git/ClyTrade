@@ -53,7 +53,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           {tabs.map((tab) => (
             <li key={tab.id}>
               <NavLink
-                to={tab.subtabs[0]?.path ?? tab.path}
+                to={tab.path}
                 onClick={onClose}
                 className={({ isActive }) =>
                   cn(

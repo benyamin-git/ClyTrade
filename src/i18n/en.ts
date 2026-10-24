@@ -138,6 +138,32 @@ export const en = {
       failed: 'Could not load sample data.',
     },
   },
+  sampleData: {
+    strategy: {
+      breakout: 'Breakout',
+      meanReversion: 'Mean reversion',
+      trend: 'Trend',
+    },
+    notes: {
+      dailyCloseAboveRange: 'Daily close above the range high.',
+      stoppedNearRangeLow: 'Stopped near the low of the range.',
+      failedBreakdown: 'Failed breakdown, cut quickly.',
+      newsSpike: 'News spike against the position.',
+      stopRun: 'Stop run before the move.',
+      stillHolding: 'Still holding above the breakout level.',
+      coreHolding: 'Core holding, added on dips.',
+      dryPowder: 'Dry powder.',
+      noPrice: 'No price set — valued at cost.',
+    },
+    assetName: {
+      bitcoin: 'Bitcoin',
+      ethereum: 'Ethereum',
+      solana: 'Solana',
+      chainlink: 'Chainlink',
+      tether: 'Tether',
+      arbitrum: 'Arbitrum',
+    },
+  },
   docs: {
     groups: {
       basics: 'Basics',

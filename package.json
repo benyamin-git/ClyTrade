@@ -35,6 +35,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "icons": "node scripts/generate-icons.mjs",
+    "splash": "node scripts/generate-splash.mjs",
     "icons:native": "tauri icon public/icons/icon-512.png",
     "accents": "node scripts/generate-accents.mjs",
     "screenshots": "node scripts/screenshots.mjs",

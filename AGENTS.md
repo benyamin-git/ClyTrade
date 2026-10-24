@@ -11,26 +11,28 @@ Node 22 is required (installed via nvm). Prefix commands in non-interactive shel
 export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
 ```
 
-| Command                            | Purpose                                                                                                                                                                   |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm run dev`                      | Vite dev server                                                                                                                                                           |
-| `npm run dev:lan`                  | Vite dev server on `0.0.0.0:7401` (strict) for LAN/phone testing                                                                                                          |
-| `./scripts/live.sh`                | Background live server on `0.0.0.0:7401` (strict); `LIVE_SERVER_PORT` overrides, log `/tmp/clytrade-liveserver.log`, stop with `kill $(cat /tmp/clytrade-liveserver.pid)` |
-| `npm run build`                    | Typecheck + production build + PWA service worker                                                                                                                         |
-| `npm run preview`                  | Serve the production build                                                                                                                                                |
-| `npm run typecheck`                | `tsc -b` across app and node configs                                                                                                                                      |
-| `npm run lint`                     | ESLint (flat config)                                                                                                                                                      |
-| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                                                                                                                        |
-| `npm run format`                   | Prettier write                                                                                                                                                            |
-| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                                                                                                                 |
-| `npm run icons:native`             | Regenerate Tauri/Android icons from `public/icons/icon-512.png`                                                                                                           |
-| `npm run accents`                  | Regenerate accent palettes into `src/theme/accents.css`                                                                                                                   |
-| `npm run a11y`                     | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical)                                                                                             |
-| `npm run screenshots`              | Capture desktop screenshots of the key pages into `screenshots/desktop/`                                                                                                  |
-| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs (first run only)                                                                                                                |
-| `npm run tauri:build`              | Windows desktop build (needs Windows + Rust)                                                                                                                              |
-| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK, Rust)                                                                                                                 |
-| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `Cargo.toml`                                                                                                       |
+| Command                                | Purpose                                                                                                                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`                          | Vite dev server                                                                                                                                                           |
+| `npm run dev:lan`                      | Vite dev server on `0.0.0.0:7401` (strict) for LAN/phone testing                                                                                                          |
+| `./scripts/live.sh`                    | Background live server on `0.0.0.0:7401` (strict); `LIVE_SERVER_PORT` overrides, log `/tmp/clytrade-liveserver.log`, stop with `kill $(cat /tmp/clytrade-liveserver.pid)` |
+| `npm run build`                        | Typecheck + production build + PWA service worker                                                                                                                         |
+| `npm run preview`                      | Serve the production build                                                                                                                                                |
+| `npm run typecheck`                    | `tsc -b` across app and node configs                                                                                                                                      |
+| `npm run lint`                         | ESLint (flat config)                                                                                                                                                      |
+| `npm test`                             | Vitest run (jsdom, fake-indexeddb)                                                                                                                                        |
+| `npm run format`                       | Prettier write                                                                                                                                                            |
+| `npm run icons`                        | Regenerate PWA icons into `public/icons/`                                                                                                                                 |
+| `npm run splash`                       | Regenerate Apple touch splash screens into `public/splash/`                                                                                                               |
+| `npm run icons:native`                 | Regenerate Tauri/Android icons from `public/icons/icon-512.png`                                                                                                           |
+| `npm run accents`                      | Regenerate accent palettes into `src/theme/accents.css`                                                                                                                   |
+| `npm run a11y`                         | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical)                                                                                             |
+| `npm run screenshots`                  | Capture desktop screenshots of the key pages into `screenshots/desktop/`                                                                                                  |
+| `npm run screenshots:install`          | Fetch the Chromium build Playwright needs (first run only)                                                                                                                |
+| `npm run tauri:build`                  | Windows desktop build (needs Windows + Rust)                                                                                                                              |
+| `npm run android:apk`                  | Android release APK (needs JDK 17, Android SDK/NDK, Rust)                                                                                                                 |
+| `./scripts/android-signing.sh --setup` | Create/verify the Android release keystore and set the four GitHub secrets                                                                                                |
+| `npm run version:set -- <version>`     | Bump the version in `package.json`, both lockfiles and `Cargo.toml`                                                                                                       |
 
 Always run `npm run typecheck`, `npm run lint` and `npm test` before finishing work.
 
@@ -49,7 +51,9 @@ large changes.
 - Do not commit unless asked.
 - User-facing text lives in `src/i18n/en.ts`; `fa.ts` must implement the same keys
   (enforced by TypeScript and by `dictionaries.test.ts`). Add both dictionaries
-  when adding UI text. `src/calculations/**` must never import `src/i18n`.
+  when adding UI text. The sample journals and holdings take their strategies,
+  notes and asset names from the `sampleData` dictionary section.
+  `src/calculations/**` must never import `src/i18n`.
 - Persian-specific behavior is deliberate: Latin digits, Gregorian dates with
   Persian labels, left-to-right charts and a right-to-left layout. Read
   `src/docs/en/general/language.md` before changing any of it.
@@ -59,19 +63,26 @@ large changes.
   doc). Registry titles and summaries live in the i18n dictionaries, not in the
   markdown; fenced code blocks render `dir="ltr"` so formulas stay aligned under
   RTL.
-- Never hand-edit generated files (`public/icons/`, `src/theme/accents.css`).
-  Regenerate them with `npm run icons` / `npm run accents`. Accent ids and labels
-  live in `src/theme/accents.ts` and must stay in sync with the seed table in
+- Never hand-edit generated files (`public/icons/`, `public/splash/`,
+  `src/theme/accents.css`). Regenerate them with `npm run icons` /
+  `npm run splash` / `npm run accents`. Accent ids and labels live in
+  `src/theme/accents.ts` and must stay in sync with the seed table in
   `scripts/generate-accents.mjs`; a test fails if the generated CSS drifts.
+  Splash device sizes live in `src/pwa/splash-screens.json`; the generator writes
+  both orientations, the Vite plugin injects the `apple-touch-startup-image`
+  links, and a test fails if an image is missing.
 - `screenshots/**` is generated but committed for the README. Never hand-edit the
   PNGs; regenerate them with `npm run screenshots` after UI changes that affect
   the captured pages.
 - Never hand-edit generated native files: `src-tauri/icons/**` (regenerate with
   `npm run icons:native`) and the generated parts of `src-tauri/gen/android/**`
   listed in its own `.gitignore`. `gen/android` is a committed Tauri project and
-  may be customized — the release build type intentionally signs with the debug
-  keystore for test builds — so keep such edits minimal and documented here.
-  Current customizations: `MainActivity.kt` keeps `enableEdgeToEdge()`, seeds
+  may be customized, so keep such edits minimal and documented here. The release
+  build type signs with the release keystore supplied through CI secrets and
+  falls back to the debug keystore when those secrets are absent, which keeps
+  local builds working. Current customizations: `app/build.gradle.kts` reads the
+  signing values from the environment and selects the release signing config
+  when they are present; `MainActivity.kt` keeps `enableEdgeToEdge()`, seeds
   the system bar icon contrast from the current `uiMode` so it is correct before
   the web app loads, and adds the `ClyTradeNative.setDarkTheme` JS bridge that
   syncs the Android status and navigation bar icon colors with the in-app theme
@@ -91,9 +102,38 @@ large changes.
   also deploy the PWA to GitHub Pages via `.github/workflows/pages.yml` (base
   `/ClyTrade/`); that base belongs in the workflow, never in `vite.config.ts`.
   CI (`.github/workflows/ci.yml`) runs lint, typecheck, test, format:check and
-  build on every branch push and PR; `pages.yml` reuses it and gates the deploy
-  on it, and `release.yml` asserts the tag matches `package.json` before
-  building.
+  build on every branch push and PR; `pages.yml` and `release.yml` reuse it, and
+  `release.yml` asserts the tag matches `package.json` before building. Node
+  setup and `npm ci` live in `.github/actions/setup/action.yml`.
+- Android release signing uses four repository secrets:
+  `ANDROID_KEYSTORE_BASE64` (the base64-encoded PKCS#12 keystore),
+  `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`.
+  CI decodes the keystore into `$RUNNER_TEMP`, fails if any secret is missing,
+  and passes the path and passwords to Gradle. PKCS#12 keystores use one
+  password, so set `ANDROID_KEYSTORE_PASSWORD` and `ANDROID_KEY_PASSWORD` to the
+  same value. Run `./scripts/android-signing.sh --setup` once; it prompts for
+  the password, creates `~/clytrade-signing/clytrade-release.keystore`, and
+  sets the four secrets. Use `--verify` to check an existing keystore without
+  changing secrets. The manual equivalent is:
+
+  ```bash
+  mkdir -p ~/clytrade-signing
+  keytool -genkeypair -v -keystore ~/clytrade-signing/clytrade-release.keystore \
+    -alias clytrade -keyalg RSA -keysize 4096 -validity 10000 -storetype PKCS12 \
+    -dname "CN=ClyTrade"
+  base64 -w0 ~/clytrade-signing/clytrade-release.keystore \
+    > ~/clytrade-signing/clytrade-release.keystore.b64
+  gh secret set ANDROID_KEYSTORE_BASE64 \
+    < ~/clytrade-signing/clytrade-release.keystore.b64
+  gh secret set ANDROID_KEYSTORE_PASSWORD
+  gh secret set ANDROID_KEY_ALIAS --body clytrade
+  gh secret set ANDROID_KEY_PASSWORD
+  ```
+
+  Back up `~/clytrade-signing` and both passwords outside the repository. Losing
+  them means future APKs cannot update installed apps. Never commit the keystore;
+  the root and Android `.gitignore` files ignore `*.jks`, `*.keystore` and
+  `*.keystore.b64`.
 
 ## Architecture
 

@@ -7,9 +7,9 @@ import { I18nProvider } from '@/i18n/I18nProvider'
 import { tabs } from '@/navigation/tabs'
 import { NavDrawer } from './NavDrawer'
 
-function renderDrawer(open: boolean, onClose = () => {}) {
+function renderDrawer(open: boolean, onClose = () => {}, initialPath = '/') {
   const { container } = render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialPath]}>
       <NavDrawer open={open} onClose={onClose} />
     </MemoryRouter>,
     { wrapper: I18nProvider },
@@ -34,6 +34,13 @@ describe('NavDrawer', () => {
     expect(root).not.toHaveAttribute('inert')
     expect(screen.getByRole('navigation', { name: 'Main navigation' })).toBeInTheDocument()
     expect(screen.getAllByRole('link')).toHaveLength(tabs.length)
+  })
+
+  it('marks the tab active on a non-first subtab', () => {
+    renderDrawer(true, () => {}, '/settings/data')
+
+    expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Journal' })).not.toHaveAttribute('aria-current')
   })
 
   it('moves focus into the drawer and traps tab focus', async () => {

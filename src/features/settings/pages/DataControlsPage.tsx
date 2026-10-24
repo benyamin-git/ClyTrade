@@ -12,6 +12,7 @@ import {
 import { loadSampleData } from '@/data/sampleData'
 import { useInstallPrompt } from '@/features/settings/logic/useInstallPrompt'
 import { useI18n } from '@/i18n/I18nContext'
+import { useTheme } from '@/theme/ThemeContext'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
@@ -22,6 +23,7 @@ type Message = { tone: 'ok' | 'error'; text: string } | null
 
 export function DataControlsPage() {
   const { t } = useI18n()
+  const { setTheme, setAccent } = useTheme()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [mode, setMode] = useState<ImportMode>('merge')
   const [message, setMessage] = useState<Message>(null)
@@ -57,6 +59,10 @@ export function DataControlsPage() {
       const text = await file.text()
       const backup = parseBackup(text)
       await importBackup(backup, mode)
+      if (backup.data.ui) {
+        setTheme(backup.data.ui.theme)
+        setAccent(backup.data.ui.accent)
+      }
       setMessage({
         tone: 'ok',
         text: t('data.import.imported', {
@@ -80,7 +86,7 @@ export function DataControlsPage() {
   async function handleLoadSample() {
     setBusy(true)
     try {
-      await loadSampleData()
+      await loadSampleData(t)
       setConfirmSample(false)
       setMessage({ tone: 'ok', text: t('data.sample.loaded') })
     } catch {

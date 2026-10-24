@@ -6,7 +6,7 @@ import { I18nProvider } from '@/i18n/I18nProvider'
 import { PositionSizePage } from './PositionSizePage'
 
 function renderPage(docSlug = 'calculator-position-size') {
-  render(
+  return render(
     <SettingsProvider>
       <I18nProvider>
         <PositionSizePage docSlug={docSlug} />
@@ -43,6 +43,21 @@ describe('PositionSizePage', () => {
     await user.click(feeToggle)
 
     expect(screen.getByLabelText('Fee per side')).toHaveValue('0.05')
+  })
+
+  it('remembers the risk unit on the next visit', async () => {
+    const user = userEvent.setup()
+    const first = renderPage()
+
+    expect(await screen.findByLabelText('Risk')).toHaveValue('1')
+    await user.click(screen.getByRole('button', { name: 'Switch Risk unit (currently %)' }))
+    first.unmount()
+
+    renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Switch Risk unit (currently $)' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Risk')).toHaveValue('10')
   })
 
   it('renders the help target supplied by the registry', async () => {

@@ -68,40 +68,51 @@ The service worker is disabled in the dev server.
 
 Other commands:
 
-| Command                            | Purpose                                                                       |
-| ---------------------------------- | ----------------------------------------------------------------------------- |
-| `npm run build`                    | Typecheck, production build and PWA service worker                            |
-| `npm run preview`                  | Serve the production build                                                    |
-| `npm test`                         | Vitest run (jsdom, fake-indexeddb)                                            |
-| `npm run typecheck`                | `tsc -b` across the app and node configs                                      |
-| `npm run lint`                     | ESLint (flat config)                                                          |
-| `npm run format`                   | Prettier write                                                                |
-| `npm run icons`                    | Regenerate PWA icons into `public/icons/`                                     |
-| `npm run icons:native`             | Regenerate Tauri and Android icons from `public/icons/icon-512.png`           |
-| `npm run accents`                  | Regenerate the accent palettes into `src/theme/accents.css`                   |
-| `npm run a11y`                     | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical) |
-| `npm run screenshots`              | Capture desktop screenshots into `screenshots/desktop/`                       |
-| `npm run screenshots:install`      | Fetch the Chromium build Playwright needs                                     |
-| `npm run tauri:build`              | Windows desktop build (needs Windows and Rust)                                |
-| `npm run android:apk`              | Android release APK (needs JDK 17, Android SDK/NDK and Rust)                  |
-| `npm run version:set -- <version>` | Bump the version in `package.json`, both lockfiles and `src-tauri/Cargo.toml` |
+| Command                                | Purpose                                                                       |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run build`                        | Typecheck, production build and PWA service worker                            |
+| `npm run preview`                      | Serve the production build                                                    |
+| `npm test`                             | Vitest run (jsdom, fake-indexeddb)                                            |
+| `npm run typecheck`                    | `tsc -b` across the app and node configs                                      |
+| `npm run lint`                         | ESLint (flat config)                                                          |
+| `npm run format`                       | Prettier write                                                                |
+| `npm run icons`                        | Regenerate PWA icons into `public/icons/`                                     |
+| `npm run splash`                       | Regenerate Apple touch splash screens into `public/splash/`                   |
+| `npm run icons:native`                 | Regenerate Tauri and Android icons from `public/icons/icon-512.png`           |
+| `npm run accents`                      | Regenerate the accent palettes into `src/theme/accents.css`                   |
+| `npm run a11y`                         | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical) |
+| `npm run screenshots`                  | Capture desktop screenshots into `screenshots/desktop/`                       |
+| `npm run screenshots:install`          | Fetch the Chromium build Playwright needs                                     |
+| `npm run tauri:build`                  | Windows desktop build (needs Windows and Rust)                                |
+| `npm run android:apk`                  | Android release APK (needs JDK 17, Android SDK/NDK and Rust)                  |
+| `./scripts/android-signing.sh --setup` | Create/verify the Android release keystore and set the four GitHub secrets    |
+| `npm run version:set -- <version>`     | Bump the version in `package.json`, both lockfiles and `src-tauri/Cargo.toml` |
 
 ### Platforms and native builds
 
 The Windows and Android wrappers are Tauri v2 projects in `src-tauri/` and reuse
 the same frontend build. `npm run build` always produces the PWA; when Tauri runs
 the build it sets `TAURI_ENV_PLATFORM`, which disables the service worker for the
-native bundle. The PWA remains the reference platform.
+native bundle. The PWA remains the reference platform. Native iOS builds are not
+planned; the PWA is the supported iOS path.
 
 `.github/workflows/release.yml` produces the artifacts for both platforms. Run
 the workflow from the Actions tab to download test builds, or push a `v*` tag to
-get a draft GitHub Release. The builds are not code-signed. Artifact names are:
+get a draft GitHub Release. Windows builds are not code-signed. Android builds
+are signed with ClyTrade's release key, so newer release-key APKs install in
+place without uninstalling the app or losing local data. Builds up to 0.3.0 used
+per-run debug keys, so the first release-key install from one of those needs a
+one-time backup, uninstall and restore. Artifact names are:
 
 | Platform            | Artifact                                   |
 | ------------------- | ------------------------------------------ |
 | Windows (portable)  | `ClyTrade-<version>-windows-x64.exe`       |
 | Windows (installer) | `ClyTrade-<version>-windows-x64-setup.exe` |
 | Android             | `ClyTrade-<version>-android-universal.apk` |
+
+The Android release keystore and its passwords must be stored in repository
+secrets. Run `./scripts/android-signing.sh --setup` once to create the keystore
+and upload them; see the release-signing notes in [`AGENTS.md`](./AGENTS.md).
 
 ### Install on iPhone and iPad
 
@@ -128,8 +139,11 @@ until you pick a theme, the app follows the system light or dark setting.
 
 Settings → Data Controls **Export backup** writes a single JSON file containing
 the journal, portfolio and settings (including the interface language and default
-market). **Import** offers a merge or a replace, and validates the file before
-writing. The theme and accent are not part of the backup.
+market), plus the current theme and accent under `data.ui`. **Import** offers a
+merge or a replace, validates the file before writing, and applies the saved
+theme and accent. Where the browser supports it, ClyTrade also asks for
+persistent storage so the local database is less likely to be evicted; that is
+not a backup, so keep exporting files.
 
 Trades and holdings each carry a market (Crypto, Forex, Stocks, Futures,
 Commodities, Indices, Bonds, Options or Unspecified). In Overview and Stats, both
@@ -196,11 +210,9 @@ Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
 - Calculations are estimates based on the inputs and the assumptions documented
   in the in-app documentation. Exchange formulas, fees and funding rates can
   differ, so verify numbers against your exchange before acting on them.
-- The native builds are unsigned test builds. Windows SmartScreen warns about the
-  unknown publisher on first run.
-- Android in-place updates fail because each CI build is signed with a fresh
-  keystore. Uninstalling first is the only workaround, and it wipes the local
-  data, so export a backup before updating.
+- The native builds are test builds. Windows builds are unsigned, so SmartScreen
+  warns about the unknown publisher on first run. Android builds are signed with
+  ClyTrade's release key, so a newer APK installs in place and keeps local data.
 - Each install has its own storage sandbox, so the browser PWA, the Windows build
   and the Android build do not share data. Move data with export and import.
 - There is no cloud sync or account in V1.

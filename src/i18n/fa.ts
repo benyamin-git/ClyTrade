@@ -139,6 +139,32 @@ export const fa = {
       failed: 'بارگذاری دادهٔ نمونه ممکن نشد.',
     },
   },
+  sampleData: {
+    strategy: {
+      breakout: 'شکست',
+      meanReversion: 'بازگشت به میانگین',
+      trend: 'روند',
+    },
+    notes: {
+      dailyCloseAboveRange: 'بسته شدن روزانه بالای سقف رِنج.',
+      stoppedNearRangeLow: 'نزدیک کف رِنج استاپ خورد.',
+      failedBreakdown: 'شکست ناموفق؛ سریع خارج شدم.',
+      newsSpike: 'جهش خبری خلاف پوزیشن.',
+      stopRun: 'قبل از حرکت، حد ضرر شکار شد.',
+      stillHolding: 'هنوز بالای سطح شکست هستم.',
+      coreHolding: 'دارایی اصلی؛ در افت‌ها اضافه شد.',
+      dryPowder: 'نقد آماده برای ورود.',
+      noPrice: 'قیمتی ثبت نشده — به بهای تمام‌شده ارزش‌گذاری می‌شود.',
+    },
+    assetName: {
+      bitcoin: 'بیت‌کوین',
+      ethereum: 'اتریوم',
+      solana: 'سولانا',
+      chainlink: 'چین‌لینک',
+      tether: 'تتر',
+      arbitrum: 'آربیتروم',
+    },
+  },
   docs: {
     groups: {
       basics: 'مبانی',

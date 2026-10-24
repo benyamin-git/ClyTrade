@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { injectSplashLinks } from './src/pwa/splashScreens.ts'
 import { injectThemeInit } from './src/theme/themeInit.ts'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
@@ -29,6 +30,15 @@ export default defineConfig({
         order: 'pre',
         handler(html: string) {
           return injectThemeInit(html)
+        },
+      },
+    },
+    {
+      name: 'clytrade-splash-links',
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html: string) {
+          return injectSplashLinks(html, process.env.VITE_BASE ?? '/')
         },
       },
     },
