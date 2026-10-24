@@ -6,6 +6,8 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-24
+
 ### Added
 
 - **Theme and accent in backups** — exports include the current theme and accent
@@ -133,7 +135,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.0
 [0.3.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.1.0
