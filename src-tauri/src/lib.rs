@@ -1,3 +1,7 @@
+mod background;
+mod background_eval;
+mod background_files;
+
 #[cfg(target_os = "windows")]
 mod tray;
 
@@ -33,6 +37,7 @@ fn resolve_windows_close(app: tauri::AppHandle, behavior: String) -> Result<(), 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_notification::init())
     .setup(|app| {
       #[cfg(target_os = "windows")]
       {
@@ -44,12 +49,18 @@ pub fn run() {
           }
         };
         app.manage(TrayAvailability { available });
+        background::spawn_timer(app.handle().clone());
       }
       #[cfg(not(target_os = "windows"))]
       let _ = app;
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![resolve_windows_close])
+    .invoke_handler(tauri::generate_handler![
+      resolve_windows_close,
+      background::write_background_snapshot,
+      background::read_background_events,
+      background::clear_background_events
+    ])
     .on_window_event(|window, event| {
       #[cfg(target_os = "windows")]
       if let tauri::WindowEvent::CloseRequested { api, .. } = event {
