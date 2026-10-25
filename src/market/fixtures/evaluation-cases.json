@@ -8,10 +8,11 @@
     "event": "AlertEventDraft with every field: kind, tradeId, ruleId, symbol, price, level, targetPrice, stopPrice, at, provider, status, resolution, readAt.",
     "close": "AutoCloseDraft: tradeId, level, reason, at, price.",
     "ruleUpdate": "id plus a patch containing only armed, lastPrice, lastFiredAt, enabled and referencePrice.",
-    "ordering": "events, reviews and closes preserve trade order then rule order; ruleUpdates preserve rule order.",
+    "ordering": "events and reviews preserve trade order then rule order; closes preserve trade order; ruleUpdates preserve rule order.",
     "freshness": "now - fetchedAt < staleMs is fresh; exactly staleMs is stale.",
+    "stale": "A stale crossed level emits one stale review with level null and no event or close. Stale takes precedence over gap when both trade levels are crossed. Task 13 dedupes stale reviews by trade/rule and kind.",
     "patches": "A rule patch contains only fields whose value changes.",
-    "cross-back": "An unarmed cross-back rule is evaluated for re-arming only. Above, below, range and percent re-arm when the condition is no longer true; crossing re-arms on an evaluation without a crossing."
+    "cross-back": "Above, below, range and percent re-arm when the condition is no longer true. A crossing rule re-arms on the crossing-back evaluation and does not fire on that evaluation; the next crossing back to the fired side may fire."
   },
   "cases": [
     {
@@ -433,7 +434,7 @@
             "ruleId": null,
             "symbol": "BTC",
             "price": 105,
-            "level": 100,
+            "level": null,
             "targetPrice": 100,
             "stopPrice": 90,
             "at": 1700000000000,
@@ -485,7 +486,7 @@
             "ruleId": null,
             "symbol": "BTC",
             "price": 85,
-            "level": 90,
+            "level": null,
             "targetPrice": 100,
             "stopPrice": 90,
             "at": 1700000000000,
@@ -2091,7 +2092,7 @@
             "ruleId": "r1",
             "symbol": "BTC",
             "price": 105,
-            "level": 100,
+            "level": null,
             "targetPrice": null,
             "stopPrice": null,
             "at": 1700000000000,
@@ -2152,7 +2153,7 @@
             "ruleId": "r1",
             "symbol": "BTC",
             "price": 105,
-            "level": 100,
+            "level": null,
             "targetPrice": null,
             "stopPrice": null,
             "at": 1700000000000,
@@ -2676,7 +2677,7 @@
     },
     {
       "name": "rule-crossing-cross-back-rearm",
-      "description": "A crossing cross-back rule re-arms on a run without a crossing.",
+      "description": "An unarmed crossing cross-back rule re-arms on the crossing back to the non-fired side.",
       "now": 1700000000000,
       "staleMs": 900000,
       "prices": [
@@ -2684,7 +2685,7 @@
           "key": "binance:BTCUSDT",
           "symbol": "BTCUSDT",
           "provider": "binance",
-          "price": 105,
+          "price": 95,
           "fetchedAt": 1699999999000,
           "sourceTimestamp": null
         }
@@ -2720,6 +2721,7 @@
           {
             "id": "r1",
             "patch": {
+              "lastPrice": 95,
               "armed": true
             }
           }
@@ -2728,7 +2730,7 @@
     },
     {
       "name": "rule-crossing-cross-back-unarmed-no-fire",
-      "description": "An unarmed crossing cross-back rule waits for a non-crossing run before it can fire again.",
+      "description": "An unarmed crossing cross-back rule re-arms on a crossing instead of firing.",
       "now": 1700000000000,
       "staleMs": 900000,
       "prices": [
@@ -2772,7 +2774,8 @@
           {
             "id": "r1",
             "patch": {
-              "lastPrice": 105
+              "lastPrice": 105,
+              "armed": true
             }
           }
         ]
@@ -3745,6 +3748,717 @@
       }
     },
     {
+      "name": "trade-target-only",
+      "description": "A trade with only a target emits a target event and closes at the target.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [
+        {
+          "id": "t1",
+          "symbol": "BTC",
+          "direction": "long",
+          "status": "open",
+          "targetPrice": 100,
+          "stopPrice": null,
+          "autoClose": true,
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null
+        }
+      ],
+      "rules": [],
+      "expected": {
+        "events": [
+          {
+            "kind": "target",
+            "tradeId": "t1",
+            "ruleId": null,
+            "symbol": "BTC",
+            "price": 105,
+            "level": 100,
+            "targetPrice": 100,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "closes": [
+          {
+            "tradeId": "t1",
+            "level": 100,
+            "reason": "target",
+            "at": 1700000000000,
+            "price": 105
+          }
+        ],
+        "reviews": [],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "trade-stop-only",
+      "description": "A trade with only a stop emits a stop event and closes at the stop.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 85,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [
+        {
+          "id": "t1",
+          "symbol": "BTC",
+          "direction": "long",
+          "status": "open",
+          "targetPrice": null,
+          "stopPrice": 90,
+          "autoClose": true,
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null
+        }
+      ],
+      "rules": [],
+      "expected": {
+        "events": [
+          {
+            "kind": "stop",
+            "tradeId": "t1",
+            "ruleId": null,
+            "symbol": "BTC",
+            "price": 85,
+            "level": 90,
+            "targetPrice": null,
+            "stopPrice": 90,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "closes": [
+          {
+            "tradeId": "t1",
+            "level": 90,
+            "reason": "stop",
+            "at": 1700000000000,
+            "price": 85
+          }
+        ],
+        "reviews": [],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "trade-gap-no-auto-close",
+      "description": "A gap emits a gap review and no close even when auto-close is off.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 100,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [
+        {
+          "id": "t1",
+          "symbol": "BTC",
+          "direction": "long",
+          "status": "open",
+          "targetPrice": 90,
+          "stopPrice": 110,
+          "autoClose": false,
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null
+        }
+      ],
+      "rules": [],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [
+          {
+            "kind": "gap",
+            "tradeId": "t1",
+            "ruleId": null,
+            "symbol": "BTC",
+            "price": 100,
+            "level": null,
+            "targetPrice": 90,
+            "stopPrice": 110,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "trade-short-gap",
+      "description": "A short trade with both levels hit emits one gap review.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 100,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [
+        {
+          "id": "t1",
+          "symbol": "BTC",
+          "direction": "short",
+          "status": "open",
+          "targetPrice": 110,
+          "stopPrice": 90,
+          "autoClose": true,
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null
+        }
+      ],
+      "rules": [],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [
+          {
+            "kind": "gap",
+            "tradeId": "t1",
+            "ruleId": null,
+            "symbol": "BTC",
+            "price": 100,
+            "level": null,
+            "targetPrice": 110,
+            "stopPrice": 90,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "trade-short-stale-crossed",
+      "description": "A stale short target emits a stale review with level null.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 95,
+          "fetchedAt": 1699999100000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [
+        {
+          "id": "t1",
+          "symbol": "BTC",
+          "direction": "short",
+          "status": "open",
+          "targetPrice": 100,
+          "stopPrice": 110,
+          "autoClose": true,
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null
+        }
+      ],
+      "rules": [],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [
+          {
+            "kind": "stale",
+            "tradeId": "t1",
+            "ruleId": null,
+            "symbol": "BTC",
+            "price": 95,
+            "level": null,
+            "targetPrice": 100,
+            "stopPrice": 110,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "rule-below-no-fire",
+      "description": "A below rule above the level only advances lastPrice.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "price",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": "below",
+          "level": 100,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": null,
+          "percentDirection": null,
+          "repeat": "once",
+          "cooldownMinutes": 60,
+          "referencePrice": null,
+          "lastPrice": 95,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": null
+        }
+      ],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [],
+        "ruleUpdates": [
+          {
+            "id": "r1",
+            "patch": {
+              "lastPrice": 105
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rule-above-fire-unchanged-last-price",
+      "description": "A fire with an unchanged lastPrice omits lastPrice from the patch.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 100,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "price",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": "above",
+          "level": 100,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": null,
+          "percentDirection": null,
+          "repeat": "once",
+          "cooldownMinutes": 60,
+          "referencePrice": null,
+          "lastPrice": 100,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": null
+        }
+      ],
+      "expected": {
+        "events": [
+          {
+            "kind": "level",
+            "tradeId": null,
+            "ruleId": "r1",
+            "symbol": "BTC",
+            "price": 100,
+            "level": 100,
+            "targetPrice": null,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "closes": [],
+        "reviews": [],
+        "ruleUpdates": [
+          {
+            "id": "r1",
+            "patch": {
+              "lastFiredAt": 1700000000000,
+              "enabled": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rule-crossing-cross-back-fire-after-rearm",
+      "description": "A re-armed crossing rule fires on the next crossing back to the fired side.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "price",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": "crossing",
+          "level": 100,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": null,
+          "percentDirection": null,
+          "repeat": "cross-back",
+          "cooldownMinutes": 60,
+          "referencePrice": null,
+          "lastPrice": 95,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": null
+        }
+      ],
+      "expected": {
+        "events": [
+          {
+            "kind": "level",
+            "tradeId": null,
+            "ruleId": "r1",
+            "symbol": "BTC",
+            "price": 105,
+            "level": 100,
+            "targetPrice": null,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "closes": [],
+        "reviews": [],
+        "ruleUpdates": [
+          {
+            "id": "r1",
+            "patch": {
+              "lastPrice": 105,
+              "lastFiredAt": 1700000000000,
+              "armed": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rule-percent-cooldown-blocked",
+      "description": "A percent cooldown rule does not fire before the cooldown elapses.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "percent",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": null,
+          "level": null,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": 5,
+          "percentDirection": "up",
+          "repeat": "cooldown",
+          "cooldownMinutes": 60,
+          "referencePrice": 100,
+          "lastPrice": 100,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": 1699998200000
+        }
+      ],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [],
+        "ruleUpdates": [
+          {
+            "id": "r1",
+            "patch": {
+              "lastPrice": 105
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rule-percent-cooldown-expired",
+      "description": "A percent cooldown rule fires at the cooldown boundary and resets the reference.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999999000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "percent",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": null,
+          "level": null,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": 5,
+          "percentDirection": "up",
+          "repeat": "cooldown",
+          "cooldownMinutes": 60,
+          "referencePrice": 100,
+          "lastPrice": 100,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": 1699996400000
+        }
+      ],
+      "expected": {
+        "events": [
+          {
+            "kind": "percent",
+            "tradeId": null,
+            "ruleId": "r1",
+            "symbol": "BTC",
+            "price": 105,
+            "level": null,
+            "targetPrice": null,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "closes": [],
+        "reviews": [],
+        "ruleUpdates": [
+          {
+            "id": "r1",
+            "patch": {
+              "lastPrice": 105,
+              "lastFiredAt": 1700000000000,
+              "referencePrice": 105
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "rule-stale-cooldown-blocked",
+      "description": "A stale crossed level emits a stale review even when the cooldown blocks a fire.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 105,
+          "fetchedAt": 1699999100000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "price",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": "above",
+          "level": 100,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": null,
+          "percentDirection": null,
+          "repeat": "cooldown",
+          "cooldownMinutes": 60,
+          "referencePrice": null,
+          "lastPrice": 95,
+          "armed": true,
+          "enabled": true,
+          "lastFiredAt": 1699998200000
+        }
+      ],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [
+          {
+            "kind": "stale",
+            "tradeId": null,
+            "ruleId": "r1",
+            "symbol": "BTC",
+            "price": 105,
+            "level": null,
+            "targetPrice": null,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "ruleUpdates": []
+      }
+    },
+    {
+      "name": "rule-stale-unarmed-cross-back",
+      "description": "A stale crossed level emits a stale review even when a cross-back rule is unarmed.",
+      "now": 1700000000000,
+      "staleMs": 900000,
+      "prices": [
+        {
+          "key": "binance:BTCUSDT",
+          "symbol": "BTCUSDT",
+          "provider": "binance",
+          "price": 110,
+          "fetchedAt": 1699999100000,
+          "sourceTimestamp": null
+        }
+      ],
+      "trades": [],
+      "rules": [
+        {
+          "id": "r1",
+          "kind": "price",
+          "symbol": "BTC",
+          "binanceSymbol": "BTCUSDT",
+          "coingeckoId": null,
+          "priceMode": "above",
+          "level": 100,
+          "rangeLow": null,
+          "rangeHigh": null,
+          "percent": null,
+          "percentDirection": null,
+          "repeat": "cross-back",
+          "cooldownMinutes": 60,
+          "referencePrice": null,
+          "lastPrice": 105,
+          "armed": false,
+          "enabled": true,
+          "lastFiredAt": null
+        }
+      ],
+      "expected": {
+        "events": [],
+        "closes": [],
+        "reviews": [
+          {
+            "kind": "stale",
+            "tradeId": null,
+            "ruleId": "r1",
+            "symbol": "BTC",
+            "price": 110,
+            "level": null,
+            "targetPrice": null,
+            "stopPrice": null,
+            "at": 1700000000000,
+            "provider": "binance",
+            "status": "unread",
+            "resolution": null,
+            "readAt": null
+          }
+        ],
+        "ruleUpdates": []
+      }
+    },
+    {
       "name": "mixed-trade-and-rule-events",
       "description": "Trade events precede rule events and rule updates follow rule order.",
       "now": 1700000000000,
@@ -3909,7 +4623,7 @@
             "ruleId": null,
             "symbol": "BTC",
             "price": 205,
-            "level": 100,
+            "level": null,
             "targetPrice": 100,
             "stopPrice": 90,
             "at": 1700000000000,
@@ -3924,7 +4638,7 @@
             "ruleId": "r1",
             "symbol": "BTC",
             "price": 205,
-            "level": 200,
+            "level": null,
             "targetPrice": null,
             "stopPrice": null,
             "at": 1700000000000,

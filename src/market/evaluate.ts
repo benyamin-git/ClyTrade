@@ -97,7 +97,7 @@ function tradeEvent(
     ruleId: null,
     symbol: trade.symbol,
     price: price.price,
-    level,
+    level: kind === 'stale' ? null : level,
     targetPrice: trade.targetPrice,
     stopPrice: trade.stopPrice,
     at,
@@ -164,6 +164,14 @@ function isCrossing(rule: PriceAlert, price: number): boolean {
   return (last < level && price >= level) || (last > level && price <= level)
 }
 
+function ruleConditionActive(rule: PriceAlert, price: number): boolean {
+  const mode = ruleMode(rule)
+  if (mode === null) return false
+  if (mode === 'percent') return percentActive(rule, price)
+  if (mode === 'crossing') return isCrossing(rule, price)
+  return priceActive(rule, mode, price)
+}
+
 function decideRule(rule: PriceAlert, price: number): RuleDecision {
   const mode = ruleMode(rule)
   if (mode === null) return { fire: false, rearm: false }
@@ -179,7 +187,7 @@ function decideRule(rule: PriceAlert, price: number): RuleDecision {
   if (mode === 'crossing') {
     const crossing = isCrossing(rule, price)
     if (rule.repeat === 'cross-back' && !rule.armed) {
-      return { fire: false, rearm: !crossing }
+      return { fire: false, rearm: crossing }
     }
     return { fire: crossing, rearm: false }
   }
@@ -215,7 +223,7 @@ function ruleEvent(
     ruleId: rule.id,
     symbol: rule.symbol,
     price: price.price,
-    level: ruleEventLevel(rule),
+    level: kind === 'stale' ? null : ruleEventLevel(rule),
     targetPrice: null,
     stopPrice: null,
     at,
@@ -242,8 +250,7 @@ export function evaluatePrices(input: EvaluationInput): EvaluationResult {
     const fresh = input.now - price.fetchedAt < input.staleMs
 
     if (!fresh) {
-      const level = target !== null && stop !== null ? null : (target ?? stop)
-      reviews.push(tradeEvent('stale', trade, price, input.now, level))
+      reviews.push(tradeEvent('stale', trade, price, input.now, null))
       continue
     }
 
@@ -277,16 +284,16 @@ export function evaluatePrices(input: EvaluationInput): EvaluationResult {
     if (!price) continue
 
     const fresh = input.now - price.fetchedAt < input.staleMs
-    const decision = decideRule(rule, price.price)
-    const fire = decision.fire && cooldownElapsed(rule, input.now)
 
     if (!fresh) {
-      if (fire) {
+      if (ruleConditionActive(rule, price.price)) {
         reviews.push(ruleEvent('stale', rule, price, input.now))
       }
       continue
     }
 
+    const decision = decideRule(rule, price.price)
+    const fire = decision.fire && cooldownElapsed(rule, input.now)
     const patch: AlertRulePatch = {}
     if (rule.lastPrice !== price.price) {
       patch.lastPrice = price.price

@@ -1,81 +1,147 @@
 import { describe, expect, it } from 'vitest'
-import type { AlertEventDraft, PriceAlert, PriceProviderId } from '@/data/models/price'
+import { z } from 'zod'
+import type { PriceAlert } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import evaluationCases from './fixtures/evaluation-cases.json'
-import {
-  evaluatePrices,
-  type AlertRuleUpdate,
-  type AutoCloseDraft,
-  type EvaluationInput,
-} from './evaluate'
+import { evaluatePrices, type AlertRuleUpdate, type EvaluationInput } from './evaluate'
 import type { ProviderPrice } from './types'
 
-interface FixturePrice {
-  key: string
-  symbol: string
-  provider: PriceProviderId
-  price: number
-  fetchedAt: number
-  sourceTimestamp: number | null
-}
+const providerSchema = z.enum(['binance', 'coingecko'])
 
-interface FixtureTrade {
-  id: string
-  symbol: string
-  direction: 'long' | 'short'
-  status: 'open' | 'closed'
-  targetPrice: number | null
-  stopPrice: number | null
-  autoClose: boolean
-  binanceSymbol: string | null
-  coingeckoId: string | null
-}
+const priceSchema = z
+  .object({
+    key: z.string().min(1),
+    symbol: z.string().min(1),
+    provider: providerSchema,
+    price: z.number().positive(),
+    fetchedAt: z.number(),
+    sourceTimestamp: z.number().nullable(),
+  })
+  .strict()
 
-interface FixtureRule {
-  id: string
-  kind: 'price' | 'percent'
-  symbol: string
-  binanceSymbol: string | null
-  coingeckoId: string | null
-  priceMode: 'above' | 'below' | 'crossing' | 'range' | null
-  level: number | null
-  rangeLow: number | null
-  rangeHigh: number | null
-  percent: number | null
-  percentDirection: 'up' | 'down' | 'both' | null
-  repeat: 'once' | 'cross-back' | 'cooldown'
-  cooldownMinutes: number
-  referencePrice: number | null
-  lastPrice: number | null
-  armed: boolean
-  enabled: boolean
-  lastFiredAt: number | null
-}
+const tradeSchema = z
+  .object({
+    id: z.string().min(1),
+    symbol: z.string().min(1),
+    direction: z.enum(['long', 'short']),
+    status: z.enum(['open', 'closed']),
+    targetPrice: z.number().positive().nullable(),
+    stopPrice: z.number().positive().nullable(),
+    autoClose: z.boolean(),
+    binanceSymbol: z.string().nullable(),
+    coingeckoId: z.string().nullable(),
+  })
+  .strict()
 
-interface FixtureCase {
-  name: string
-  description: string
-  now: number
-  staleMs: number
-  prices: FixturePrice[]
-  trades: FixtureTrade[]
-  rules: FixtureRule[]
-  expected: {
-    events: AlertEventDraft[]
-    closes: AutoCloseDraft[]
-    reviews: AlertEventDraft[]
-    ruleUpdates: AlertRuleUpdate[]
-  }
-}
+const ruleSchema = z
+  .object({
+    id: z.string().min(1),
+    kind: z.enum(['price', 'percent']),
+    symbol: z.string().min(1),
+    binanceSymbol: z.string().nullable(),
+    coingeckoId: z.string().nullable(),
+    priceMode: z.enum(['above', 'below', 'crossing', 'range']).nullable(),
+    level: z.number().positive().nullable(),
+    rangeLow: z.number().positive().nullable(),
+    rangeHigh: z.number().positive().nullable(),
+    percent: z.number().positive().nullable(),
+    percentDirection: z.enum(['up', 'down', 'both']).nullable(),
+    repeat: z.enum(['once', 'cross-back', 'cooldown']),
+    cooldownMinutes: z.number().int(),
+    referencePrice: z.number().nullable(),
+    lastPrice: z.number().positive().nullable(),
+    armed: z.boolean(),
+    enabled: z.boolean(),
+    lastFiredAt: z.number().nullable(),
+  })
+  .strict()
 
-interface FixtureFile {
-  version: number
-  description: string
-  schema: Record<string, string>
-  cases: FixtureCase[]
-}
+const eventSchema = z
+  .object({
+    kind: z.enum(['target', 'stop', 'level', 'percent', 'gap', 'stale', 'conflict']),
+    tradeId: z.string().nullable(),
+    ruleId: z.string().nullable(),
+    symbol: z.string().min(1),
+    price: z.number().positive(),
+    level: z.number().positive().nullable(),
+    targetPrice: z.number().positive().nullable(),
+    stopPrice: z.number().positive().nullable(),
+    at: z.number(),
+    provider: providerSchema.nullable(),
+    status: z.enum(['unread', 'read', 'resolved', 'dismissed']),
+    resolution: z.enum(['target', 'stop', 'edit', 'dismiss']).nullable(),
+    readAt: z.number().nullable(),
+  })
+  .strict()
 
-const fixture = evaluationCases as unknown as FixtureFile
+const closeSchema = z
+  .object({
+    tradeId: z.string().min(1),
+    level: z.number().positive(),
+    reason: z.enum(['target', 'stop']),
+    at: z.number(),
+    price: z.number().positive(),
+  })
+  .strict()
+
+const rulePatchSchema = z
+  .object({
+    armed: z.boolean().optional(),
+    enabled: z.boolean().optional(),
+    lastFiredAt: z.number().optional(),
+    lastPrice: z.number().positive().optional(),
+    referencePrice: z.number().positive().optional(),
+  })
+  .strict()
+
+const ruleUpdateSchema = z
+  .object({
+    id: z.string().min(1),
+    patch: rulePatchSchema,
+  })
+  .strict()
+
+const caseSchema = z
+  .object({
+    name: z.string().min(1),
+    description: z.string().min(1),
+    now: z.number(),
+    staleMs: z.number().nonnegative(),
+    prices: z.array(priceSchema),
+    trades: z.array(tradeSchema),
+    rules: z.array(ruleSchema),
+    expected: z
+      .object({
+        events: z.array(eventSchema),
+        closes: z.array(closeSchema),
+        reviews: z.array(eventSchema),
+        ruleUpdates: z.array(ruleUpdateSchema),
+      })
+      .strict(),
+  })
+  .strict()
+
+const fixtureSchema = z
+  .object({
+    version: z.literal(1),
+    description: z.string().min(1),
+    schema: z.record(z.string(), z.string()),
+    cases: z
+      .array(caseSchema)
+      .min(1)
+      .refine(
+        (cases) => new Set(cases.map((item) => item.name)).size === cases.length,
+        'case names must be unique',
+      ),
+  })
+  .strict()
+
+const fixture = fixtureSchema.parse(evaluationCases)
+
+type FixturePrice = z.infer<typeof priceSchema>
+type FixtureTrade = z.infer<typeof tradeSchema>
+type FixtureRule = z.infer<typeof ruleSchema>
+type FixtureCase = z.infer<typeof caseSchema>
 
 const EVENT_KEYS = [
   'at',
@@ -162,18 +228,39 @@ function buildInput(item: FixtureCase): EvaluationInput {
   }
 }
 
-function applyRuleUpdates(rules: readonly PriceAlert[], updates: readonly AlertRuleUpdate[]) {
+function applyRuleUpdates(
+  rules: readonly PriceAlert[],
+  updates: readonly AlertRuleUpdate[],
+): PriceAlert[] {
   return rules.map((rule) => {
     const update = updates.find((candidate) => candidate.id === rule.id)
     return update ? { ...rule, ...update.patch } : rule
   })
 }
 
+function replacePrice(
+  input: EvaluationInput,
+  key: string,
+  price: number,
+): Map<string, ProviderPrice> {
+  const existing = input.prices.get(key)
+  if (!existing) throw new Error(`missing price ${key}`)
+  return new Map([[key, { ...existing, price }]])
+}
+
 describe('evaluatePrices', () => {
-  it('loads a versioned fixture with unique named cases', () => {
+  it('parses a versioned fixture with unique named cases', () => {
     expect(fixture.version).toBe(1)
     expect(fixture.cases.length).toBeGreaterThan(0)
     expect(new Set(fixture.cases.map((item) => item.name)).size).toBe(fixture.cases.length)
+  })
+
+  it('rejects a malformed fixture', () => {
+    const first = fixture.cases[0]
+    if (!first) throw new Error('missing fixture case')
+
+    expect(() => fixtureSchema.parse({ ...fixture, cases: [{ ...first, name: '' }] })).toThrow()
+    expect(() => fixtureSchema.parse({ ...fixture, cases: [first, first] })).toThrow()
   })
 
   describe.each(fixture.cases.map((item) => [item.name, item] as const))('%s', (_name, item) => {
@@ -191,6 +278,27 @@ describe('evaluatePrices', () => {
         expect(event.resolution, item.name).toBeNull()
         expect(event.readAt, item.name).toBeNull()
       }
+    }
+  })
+
+  it('emits every stale review without a level', () => {
+    for (const item of fixture.cases) {
+      const result = evaluatePrices(buildInput(item))
+      for (const review of result.reviews.filter((event) => event.kind === 'stale')) {
+        expect(review.level, item.name).toBeNull()
+      }
+    }
+  })
+
+  it('emits stale reviews regardless of cooldown or armed state', () => {
+    for (const name of ['rule-stale-cooldown-blocked', 'rule-stale-unarmed-cross-back']) {
+      const item = fixture.cases.find((candidate) => candidate.name === name)
+      if (!item) throw new Error(`missing ${name} fixture`)
+
+      const result = evaluatePrices(buildInput(item))
+      expect(result.reviews, name).toHaveLength(1)
+      expect(result.reviews[0]?.level, name).toBeNull()
+      expect(result.ruleUpdates, name).toEqual([])
     }
   })
 
@@ -263,15 +371,7 @@ describe('evaluatePrices', () => {
     const afterRearm = applyRuleUpdates(afterFire, armed.ruleUpdates)
     const moved = evaluatePrices({
       ...firstInput,
-      prices: new Map([
-        [
-          'binance:BTCUSDT',
-          {
-            ...firstInput.prices.get('binance:BTCUSDT'),
-            price: 111,
-          } as ProviderPrice,
-        ],
-      ]),
+      prices: replacePrice(firstInput, 'binance:BTCUSDT', 111),
       rules: afterRearm,
     })
     expect(moved.events).toHaveLength(1)
@@ -283,6 +383,52 @@ describe('evaluatePrices', () => {
           lastFiredAt: firstInput.now,
           armed: false,
           referencePrice: 111,
+        },
+      },
+    ])
+  })
+
+  it('re-arms a crossing cross-back rule on the crossing back and fires on the next cross', () => {
+    const item = fixture.cases.find(
+      (candidate) => candidate.name === 'rule-crossing-cross-back-fire-after-rearm',
+    )
+    if (!item) throw new Error('missing rule-crossing-cross-back-fire-after-rearm fixture')
+
+    const base = buildInput(item)
+    const rule = base.rules[0]
+    if (!rule) throw new Error('missing crossing rule')
+
+    const fired = { ...rule, armed: false, lastPrice: 105 }
+    const crossingBack = evaluatePrices({
+      ...base,
+      prices: replacePrice(base, 'binance:BTCUSDT', 95),
+      rules: [fired],
+    })
+    expect(crossingBack.events).toEqual([])
+    expect(crossingBack.ruleUpdates).toEqual([
+      {
+        id: 'r1',
+        patch: {
+          lastPrice: 95,
+          armed: true,
+        },
+      },
+    ])
+
+    const afterRearm = applyRuleUpdates([fired], crossingBack.ruleUpdates)
+    const crossingBackToFiredSide = evaluatePrices({
+      ...base,
+      prices: replacePrice(base, 'binance:BTCUSDT', 105),
+      rules: afterRearm,
+    })
+    expect(crossingBackToFiredSide.events).toHaveLength(1)
+    expect(crossingBackToFiredSide.ruleUpdates).toEqual([
+      {
+        id: 'r1',
+        patch: {
+          lastPrice: 105,
+          lastFiredAt: base.now,
+          armed: false,
         },
       },
     ])
