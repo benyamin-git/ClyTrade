@@ -25,16 +25,19 @@ export const tradeSchema = z.object({
   strategy: z.string().nullable(),
   notes: z.string().nullable(),
   tags: z.array(z.string()),
+  autoClose: z.boolean().default(false),
+  binanceSymbol: z.string().nullable().default(null),
+  coingeckoId: z.string().nullable().default(null),
   createdAt: z.number(),
   updatedAt: z.number(),
 })
 
 export type Trade = z.infer<typeof tradeSchema>
 
-export type TradeDraft = Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>
-
 export const tradeDraftSchema = tradeSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
+
+export type TradeDraft = z.input<typeof tradeDraftSchema>

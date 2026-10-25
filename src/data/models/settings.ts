@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { DEFAULT_MARKET, marketSchema } from './market'
+import { priceProviderChoiceSchema } from './price'
 
 export const timeRangeSchema = z.enum(['7d', '30d', '90d', 'ytd', 'all'])
 
@@ -32,6 +33,11 @@ export const preferencesSchema = z.object({
   defaultTimeRange: timeRangeSchema,
   feesInRisk: z.boolean().default(true),
   language: languageSchema.nullable().default(null),
+  priceProvider: priceProviderChoiceSchema.default('auto'),
+  autoCloseByDefault: z.boolean().default(false),
+  notificationsEnabled: z.boolean().default(false),
+  backgroundMonitoring: z.boolean().default(false),
+  windowsCloseBehavior: z.enum(['unset', 'tray', 'quit']).default('unset'),
 })
 
 export type Preferences = z.infer<typeof preferencesSchema>
@@ -47,6 +53,11 @@ export const DEFAULT_PREFERENCES: Preferences = {
   defaultTimeRange: '30d',
   feesInRisk: true,
   language: null,
+  priceProvider: 'auto',
+  autoCloseByDefault: false,
+  notificationsEnabled: false,
+  backgroundMonitoring: false,
+  windowsCloseBehavior: 'unset',
 }
 
 export interface SettingRow {
@@ -56,6 +67,7 @@ export interface SettingRow {
 }
 
 export const PREFERENCES_KEY = 'preferences'
+export const MARKET_API_KEY = 'marketApiKey'
 
 export function parsePreferences(value: unknown): Preferences {
   const source =
@@ -110,6 +122,31 @@ export function parsePreferences(value: unknown): Preferences {
       preferencesSchema.shape.language,
       DEFAULT_PREFERENCES.language,
       source.language,
+    ),
+    priceProvider: repairField(
+      preferencesSchema.shape.priceProvider,
+      DEFAULT_PREFERENCES.priceProvider,
+      source.priceProvider,
+    ),
+    autoCloseByDefault: repairField(
+      preferencesSchema.shape.autoCloseByDefault,
+      DEFAULT_PREFERENCES.autoCloseByDefault,
+      source.autoCloseByDefault,
+    ),
+    notificationsEnabled: repairField(
+      preferencesSchema.shape.notificationsEnabled,
+      DEFAULT_PREFERENCES.notificationsEnabled,
+      source.notificationsEnabled,
+    ),
+    backgroundMonitoring: repairField(
+      preferencesSchema.shape.backgroundMonitoring,
+      DEFAULT_PREFERENCES.backgroundMonitoring,
+      source.backgroundMonitoring,
+    ),
+    windowsCloseBehavior: repairField(
+      preferencesSchema.shape.windowsCloseBehavior,
+      DEFAULT_PREFERENCES.windowsCloseBehavior,
+      source.windowsCloseBehavior,
     ),
   }
 }

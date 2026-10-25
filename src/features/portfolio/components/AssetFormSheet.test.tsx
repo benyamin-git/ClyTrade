@@ -19,6 +19,9 @@ function makeAsset(market: Market): Asset {
     averageCost: 100,
     currentPrice: null,
     notes: null,
+    autoPrice: false,
+    binanceSymbol: null,
+    coingeckoId: null,
     createdAt: 1,
     updatedAt: 1,
   }

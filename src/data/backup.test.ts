@@ -214,6 +214,9 @@ function makeTrade(id: string): Trade {
     strategy: null,
     notes: null,
     tags: [],
+    autoClose: false,
+    binanceSymbol: null,
+    coingeckoId: null,
     createdAt: 1,
     updatedAt: 2,
   }
@@ -229,6 +232,9 @@ function makeAsset(id: string): Asset {
     averageCost: 1,
     currentPrice: null,
     notes: null,
+    autoPrice: false,
+    binanceSymbol: null,
+    coingeckoId: null,
     createdAt: 1,
     updatedAt: 2,
   }

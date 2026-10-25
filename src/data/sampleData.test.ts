@@ -57,6 +57,15 @@ describe('buildSampleData', () => {
     expect(assets.some((asset) => asset.currentPrice !== null)).toBe(true)
   })
 
+  it('sets safe alert and price defaults on sample records', () => {
+    expect(trades.every((trade) => trade.autoClose === false)).toBe(true)
+    expect(trades.every((trade) => trade.binanceSymbol === null)).toBe(true)
+    expect(trades.every((trade) => trade.coingeckoId === null)).toBe(true)
+    expect(assets.every((asset) => asset.autoPrice === (asset.market === 'crypto'))).toBe(true)
+    expect(assets.every((asset) => asset.binanceSymbol === null)).toBe(true)
+    expect(assets.every((asset) => asset.coingeckoId === null)).toBe(true)
+  })
+
   it('spreads sample records across markets', () => {
     expect(new Set(trades.map((trade) => trade.market)).size).toBeGreaterThanOrEqual(3)
     expect(new Set(assets.map((asset) => asset.market)).size).toBeGreaterThanOrEqual(3)

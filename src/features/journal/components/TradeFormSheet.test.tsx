@@ -30,6 +30,9 @@ function makeTrade(market: Market): Trade {
     strategy: null,
     notes: null,
     tags: [],
+    autoClose: false,
+    binanceSymbol: null,
+    coingeckoId: null,
     createdAt: 1,
     updatedAt: 1,
   }

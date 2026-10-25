@@ -10,16 +10,19 @@ export const assetSchema = z.object({
   averageCost: z.number().min(0),
   currentPrice: z.number().positive().nullable(),
   notes: z.string().nullable(),
+  autoPrice: z.boolean().default(false),
+  binanceSymbol: z.string().nullable().default(null),
+  coingeckoId: z.string().nullable().default(null),
   createdAt: z.number(),
   updatedAt: z.number(),
 })
 
 export type Asset = z.infer<typeof assetSchema>
 
-export type AssetDraft = Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>
-
 export const assetDraftSchema = assetSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
+
+export type AssetDraft = z.input<typeof assetDraftSchema>

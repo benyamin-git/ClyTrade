@@ -53,6 +53,120 @@ async function seedLegacyDatabase(preferences?: Record<string, unknown>): Promis
   legacy.close()
 }
 
+async function seedV2Database(): Promise<void> {
+  const legacy = new Dexie(DB_NAME)
+  legacy.version(2).stores({
+    trades: 'id, symbol, direction, status, openedAt, closedAt, updatedAt',
+    assets: 'id, symbol, updatedAt',
+    settings: 'key, updatedAt',
+  })
+  await legacy.open()
+  await legacy.table('trades').add({
+    id: 'v2-trade',
+    symbol: 'BTCUSDT',
+    market: 'crypto',
+    direction: 'long',
+    status: 'open',
+    entryPrice: 61200,
+    exitPrice: null,
+    size: 0.08,
+    leverage: 10,
+    stopPrice: 60200,
+    targetPrice: 64500,
+    fees: 4.9,
+    openedAt: 1,
+    closedAt: null,
+    strategy: null,
+    notes: null,
+    tags: [],
+    createdAt: 1,
+    updatedAt: 2,
+  })
+  await legacy.table('assets').bulkAdd([
+    {
+      id: 'v2-crypto',
+      symbol: 'BTC',
+      market: 'crypto',
+      name: null,
+      quantity: 1,
+      averageCost: 1,
+      currentPrice: null,
+      notes: null,
+      createdAt: 1,
+      updatedAt: 2,
+    },
+    {
+      id: 'v2-forex',
+      symbol: 'EURUSD',
+      market: 'forex',
+      name: null,
+      quantity: 1,
+      averageCost: 1,
+      currentPrice: null,
+      notes: null,
+      createdAt: 1,
+      updatedAt: 2,
+    },
+  ])
+  await legacy.table('settings').add({
+    key: 'preferences',
+    value: {
+      currency: 'EUR',
+      defaultMarket: 'crypto',
+      accountSize: 5000,
+      riskPercent: 2,
+      leverage: 20,
+      feePercent: 0.1,
+      maintenanceMarginPercent: 1,
+      defaultTimeRange: '90d',
+      feesInRisk: false,
+      language: 'fa',
+    },
+    updatedAt: 1,
+  })
+  legacy.close()
+}
+
+describe('v3 price and alert migration', () => {
+  beforeEach(async () => {
+    await Dexie.delete(DB_NAME)
+  })
+
+  afterEach(async () => {
+    await Dexie.delete(DB_NAME)
+  })
+
+  it('backfills trade, asset and preference defaults from a v2 database', async () => {
+    await seedV2Database()
+
+    const trade = await db.trades.get('v2-trade')
+    const crypto = await db.assets.get('v2-crypto')
+    const forex = await db.assets.get('v2-forex')
+    const row = await db.settings.get('preferences')
+    const value = row?.value as Record<string, unknown>
+
+    expect(trade?.autoClose).toBe(false)
+    expect(trade?.binanceSymbol).toBeNull()
+    expect(trade?.coingeckoId).toBeNull()
+    expect(crypto?.autoPrice).toBe(true)
+    expect(forex?.autoPrice).toBe(false)
+    expect(value.priceProvider).toBe('auto')
+    expect(value.autoCloseByDefault).toBe(false)
+    expect(value.notificationsEnabled).toBe(false)
+    expect(value.backgroundMonitoring).toBe(false)
+    expect(value.windowsCloseBehavior).toBe('unset')
+    expect(value.currency).toBe('EUR')
+  })
+
+  it('creates the v3 tables', async () => {
+    await db.open()
+
+    expect(db.tables.map((table) => table.name)).toEqual(
+      expect.arrayContaining(['priceCache', 'marketSymbols', 'priceAlerts', 'alertEvents']),
+    )
+  })
+})
+
 describe('market backfill migration', () => {
   beforeEach(async () => {
     await Dexie.delete(DB_NAME)

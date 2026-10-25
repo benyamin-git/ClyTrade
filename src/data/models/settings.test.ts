@@ -7,7 +7,7 @@ describe('parsePreferences', () => {
     expect(parsePreferences({ currency: '' })).toEqual(DEFAULT_PREFERENCES)
   })
 
-  it('defaults feesInRisk, language and defaultMarket for stored preferences without them', () => {
+  it('defaults new fields for stored preferences without them', () => {
     const legacy = {
       currency: 'EUR',
       accountSize: 5000,
@@ -22,6 +22,11 @@ describe('parsePreferences', () => {
       feesInRisk: true,
       language: null,
       defaultMarket: 'unspecified',
+      priceProvider: 'auto',
+      autoCloseByDefault: false,
+      notificationsEnabled: false,
+      backgroundMonitoring: false,
+      windowsCloseBehavior: 'unset',
     })
   })
 
@@ -66,5 +71,35 @@ describe('parsePreferences', () => {
 
   it('accepts a zero account size to match the input minimum', () => {
     expect(parsePreferences({ ...DEFAULT_PREFERENCES, accountSize: 0 }).accountSize).toBe(0)
+  })
+
+  it('keeps explicit market, auto-close and background choices', () => {
+    const parsed = parsePreferences({
+      ...DEFAULT_PREFERENCES,
+      priceProvider: 'coingecko',
+      autoCloseByDefault: true,
+      notificationsEnabled: true,
+      backgroundMonitoring: true,
+      windowsCloseBehavior: 'tray',
+    })
+
+    expect(parsed.priceProvider).toBe('coingecko')
+    expect(parsed.autoCloseByDefault).toBe(true)
+    expect(parsed.notificationsEnabled).toBe(true)
+    expect(parsed.backgroundMonitoring).toBe(true)
+    expect(parsed.windowsCloseBehavior).toBe('tray')
+  })
+
+  it('repairs an invalid provider and close behavior without resetting other fields', () => {
+    const parsed = parsePreferences({
+      ...DEFAULT_PREFERENCES,
+      currency: 'EUR',
+      priceProvider: 'kraken',
+      windowsCloseBehavior: 'ask-every-time',
+    })
+
+    expect(parsed.priceProvider).toBe('auto')
+    expect(parsed.windowsCloseBehavior).toBe('unset')
+    expect(parsed.currency).toBe('EUR')
   })
 })
