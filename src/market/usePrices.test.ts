@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SchedulerStatus } from './scheduler'
 import type { MarketRef, ProviderPrice } from './types'
 import { usePrices } from './usePrices'
@@ -123,5 +123,126 @@ describe('usePrices', () => {
 
     expect(scheduler?.refreshNow).toHaveBeenCalledWith([btc])
     expect(result.current.prices.get(btc.key)?.price).toBe(70000)
+  })
+})
+
+const FIVE_MINUTES = 5 * 60_000
+
+function timerRequests(scheduler: FakeScheduler | undefined) {
+  return scheduler?.request.mock.calls.filter((call) => call[1] === 'timer') ?? []
+}
+
+async function flushFakeTimers(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0)
+  })
+}
+
+describe('usePrices foreground refresh', () => {
+  beforeEach(() => {
+    harness.schedulers = []
+    harness.priceProvider = 'auto'
+    harness.apiKey = null
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('requests timer prices every five minutes', async () => {
+    const btc = ref()
+    const { result } = renderHook(() => usePrices([btc], 'portfolio'))
+    await flushFakeTimers()
+    await flushFakeTimers()
+
+    const scheduler = harness.schedulers[0]
+    expect(scheduler).toBeDefined()
+    expect(timerRequests(scheduler)).toHaveLength(0)
+
+    scheduler?.request.mockResolvedValueOnce([price(btc, 69000)])
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MINUTES)
+    })
+
+    expect(timerRequests(scheduler)).toHaveLength(1)
+    expect(timerRequests(scheduler)[0]?.[0]).toEqual([btc])
+    expect(result.current.prices.get(btc.key)?.price).toBe(69000)
+  })
+
+  it('shares one timer across consumers and stops it after the last unmount', async () => {
+    const btc = ref()
+    const first = renderHook(() => usePrices([btc], 'portfolio'))
+    const second = renderHook(() => usePrices([btc], 'portfolio'))
+    await flushFakeTimers()
+    await flushFakeTimers()
+
+    const scheduler = harness.schedulers[0]
+    expect(scheduler).toBeDefined()
+    expect(scheduler?.request).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MINUTES)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(1)
+
+    first.unmount()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MINUTES)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(2)
+
+    second.unmount()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MINUTES)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(2)
+    expect(scheduler?.dispose).toHaveBeenCalledOnce()
+  })
+
+  it('pauses while hidden and refreshes on visibility resume', async () => {
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    const btc = ref()
+    renderHook(() => usePrices([btc], 'portfolio'))
+    await flushFakeTimers()
+    await flushFakeTimers()
+
+    const scheduler = harness.schedulers[0]
+    expect(scheduler?.request).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(FIVE_MINUTES)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(0)
+
+    visibility.mockReturnValue('visible')
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(1)
+  })
+
+  it('does not reset the timer on a same-content ref array identity change', async () => {
+    const btc = ref()
+    const { rerender } = renderHook(({ refs }) => usePrices(refs, 'portfolio'), {
+      initialProps: { refs: [btc] },
+    })
+    await flushFakeTimers()
+    await flushFakeTimers()
+
+    const scheduler = harness.schedulers[0]
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4 * 60_000)
+    })
+    rerender({ refs: [{ ...btc }] })
+    await flushFakeTimers()
+    expect(timerRequests(scheduler)).toHaveLength(0)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000)
+    })
+    expect(timerRequests(scheduler)).toHaveLength(1)
   })
 })

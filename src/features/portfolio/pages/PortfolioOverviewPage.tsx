@@ -136,7 +136,8 @@ export function PortfolioOverviewPage() {
       header: t('portfolio.columns.price'),
       align: 'right',
       render: (row) => {
-        const price = prices.get(priceKeyFor(row.asset))
+        const autoPriced = row.asset.market === 'crypto' && row.asset.autoPrice
+        const price = autoPriced ? prices.get(priceKeyFor(row.asset)) : undefined
         const stale = price !== undefined && now - price.fetchedAt >= STALE_MS
         return (
           <span className="flex flex-col items-end gap-0.5">

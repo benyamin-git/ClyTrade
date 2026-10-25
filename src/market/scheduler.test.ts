@@ -257,6 +257,130 @@ describe('price scheduler', () => {
     })
   })
 
+  it('continues to the next provider when the first serves no needed refs', async () => {
+    const eth = ref('coingecko:ethereum', 'ETH', null, 'ethereum')
+    const binanceFetch = vi.fn(async () => [])
+    const coingeckoFetch = vi.fn(async () => [price(eth, 2500)])
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', binanceFetch), provider('coingecko', coingeckoFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([eth], 'portfolio')
+
+    expect(binanceFetch).toHaveBeenCalledOnce()
+    expect(coingeckoFetch).toHaveBeenCalledOnce()
+    expect(coingeckoFetch).toHaveBeenCalledWith([eth])
+    expect(prices).toEqual([price(eth, 2500)])
+    expect(scheduler.getStatus()).toMatchObject({
+      activeProvider: 'coingecko',
+      error: null,
+    })
+  })
+
+  it('asks the next provider only for the refs the first one did not cover', async () => {
+    const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT', 'bitcoin')
+    const eth = ref('coingecko:ethereum', 'ETH', null, 'ethereum')
+    const binanceFetch = vi.fn(async () => [price(btc, 101)])
+    const coingeckoFetch = vi.fn(async () => [price(eth, 202)])
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', binanceFetch), provider('coingecko', coingeckoFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([btc, eth], 'portfolio')
+
+    expect(binanceFetch).toHaveBeenCalledOnce()
+    expect(coingeckoFetch).toHaveBeenCalledOnce()
+    expect(coingeckoFetch).toHaveBeenCalledWith([eth])
+    expect(prices).toEqual([price(btc, 101), price(eth, 202)])
+    expect(scheduler.getStatus()).toMatchObject({
+      activeProvider: 'coingecko',
+      error: null,
+    })
+  })
+
+  it('tries the next provider for stale cache entries the first cannot serve', async () => {
+    const eth = ref('coingecko:ethereum', 'ETH', null, 'ethereum')
+    const cache = memoryCache([cacheEntry(eth, NOW - 6 * 60_000, 2000)])
+    const binanceFetch = vi.fn(async () => [])
+    const coingeckoFetch = vi.fn(async () => [price(eth, 2500)])
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', binanceFetch), provider('coingecko', coingeckoFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([eth], 'portfolio')
+
+    expect(coingeckoFetch).toHaveBeenCalledOnce()
+    expect(prices).toEqual([price(eth, 2500)])
+    expect(scheduler.getStatus()).toMatchObject({
+      activeProvider: 'coingecko',
+      error: null,
+    })
+  })
+
+  it('reports an error when no provider can serve any needed ref', async () => {
+    const unknown = ref('symbol:XYZ', 'XYZ', null, null)
+    const binanceFetch = vi.fn(async () => [])
+    const coingeckoFetch = vi.fn(async () => [])
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', binanceFetch), provider('coingecko', coingeckoFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([unknown], 'portfolio')
+
+    expect(prices).toEqual([])
+    expect(scheduler.getStatus()).toMatchObject({
+      activeProvider: null,
+      error: 'invalid',
+    })
+  })
+
+  it('reports an error when only some needed refs are covered', async () => {
+    const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT')
+    const unknown = ref('symbol:XYZ', 'XYZ', null, null)
+    const binanceFetch = vi.fn(async () => [price(btc)])
+    const coingeckoFetch = vi.fn(async () => [])
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', binanceFetch), provider('coingecko', coingeckoFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([btc, unknown], 'portfolio')
+
+    expect(prices).toEqual([price(btc)])
+    expect(scheduler.getStatus()).toMatchObject({
+      activeProvider: 'binance',
+      error: 'invalid',
+    })
+  })
+
   it('does not fall back when a provider is pinned', async () => {
     const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT')
     const binanceFetch = vi.fn(async () => {

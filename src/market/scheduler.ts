@@ -158,7 +158,7 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
     const current = now()
     const cached = await readCached(refs)
     const ttl = TTL[reason]
-    const needed = refs.filter((ref) => force || !isFresh(cached.get(ref.key), current, ttl))
+    let needed = refs.filter((ref) => force || !isFresh(cached.get(ref.key), current, ttl))
 
     if (needed.length === 0) {
       emit({ error: null, nextAllowedAt: nextAllowedAt(current) })
@@ -166,6 +166,9 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
     }
 
     let budgetBlocked = false
+    let servedProvider: PriceProviderId | null = null
+    let servedAt: number | null = null
+    const covered = new Set<string>()
     const errors: ProviderError[] = []
 
     for (const id of order) {
@@ -199,16 +202,23 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
           await writeCache(entries)
           for (const entry of entries) {
             cached.set(entry.key, entry)
+            covered.add(entry.key)
           }
+          servedProvider = id
+          servedAt = now()
         }
-        const finishedAt = now()
-        emit({
-          activeProvider: id,
-          lastSuccessAt: finishedAt,
-          error: null,
-          nextAllowedAt: nextAllowedAt(finishedAt),
-        })
-        return [...cached.values()]
+
+        needed = needed.filter((ref) => !covered.has(ref.key))
+        if (needed.length === 0) {
+          const finishedAt = now()
+          emit({
+            activeProvider: id,
+            lastSuccessAt: finishedAt,
+            error: null,
+            nextAllowedAt: nextAllowedAt(finishedAt),
+          })
+          return [...cached.values()]
+        }
       } catch (cause) {
         const error = toProviderError(cause, id)
         errors.push(error)
@@ -237,6 +247,13 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
       emit({
         error: errors[errors.length - 1]?.kind ?? 'network',
         nextAllowedAt: nextAllowedAt(current),
+      })
+    } else if (needed.length > 0) {
+      emit({
+        activeProvider: servedProvider,
+        lastSuccessAt: servedAt,
+        error: 'invalid',
+        nextAllowedAt: nextAllowedAt(now()),
       })
     }
     return [...cached.values()]

@@ -186,7 +186,7 @@ describe('PortfolioOverviewPage automatic prices', () => {
     expect(screen.queryByText('Stale')).not.toBeInTheDocument()
   })
 
-  it('does not write prices for manual assets', async () => {
+  it('does not write or show provider timestamps for manual assets', async () => {
     await createAsset(
       draft({
         symbol: 'BTC',
@@ -195,12 +195,39 @@ describe('PortfolioOverviewPage automatic prices', () => {
         binanceSymbol: 'BTCUSDT',
       }),
     )
-    marketState.prices = new Map([['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT' })]])
+    const fetchedAt = Date.now() - 20 * 60_000
+    marketState.prices = new Map([
+      ['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT', fetchedAt })],
+    ])
 
     renderPage()
 
     expect(await screen.findByText('at cost')).toBeInTheDocument()
     expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
+    expect(screen.queryByText('Stale')).not.toBeInTheDocument()
+    expect(screen.queryByText(formatTime(fetchedAt))).not.toBeInTheDocument()
+  })
+
+  it('does not show provider timestamps for non-crypto assets', async () => {
+    await createAsset(
+      draft({
+        symbol: 'BTC',
+        market: 'forex',
+        autoPrice: true,
+        binanceSymbol: 'BTCUSDT',
+      }),
+    )
+    const fetchedAt = Date.now() - 20 * 60_000
+    marketState.prices = new Map([
+      ['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT', fetchedAt })],
+    ])
+
+    renderPage()
+
+    expect(await screen.findByText('at cost')).toBeInTheDocument()
+    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
+    expect(screen.queryByText('Stale')).not.toBeInTheDocument()
+    expect(screen.queryByText(formatTime(fetchedAt))).not.toBeInTheDocument()
   })
 
   it('leaves stale prices unwritten and badges them', async () => {
