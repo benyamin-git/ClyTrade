@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { clearTrades, createTrade, getTrade, updateTrade } from './trades.repo'
+import { applyAutoClose, clearTrades, createTrade, getTrade, updateTrade } from './trades.repo'
 import type { TradeDraft } from '../models/trade'
 
-function makeDraft(): TradeDraft {
+function makeDraft(overrides: Partial<TradeDraft> = {}): TradeDraft {
   return {
     symbol: 'BTCUSDT',
     market: 'crypto',
@@ -20,6 +20,7 @@ function makeDraft(): TradeDraft {
     strategy: null,
     notes: null,
     tags: [],
+    ...overrides,
   }
 }
 
@@ -61,5 +62,65 @@ describe('updateTrade', () => {
 
     const stored = await getTrade(trade.id)
     expect(stored?.entryPrice).toBe(50000)
+  })
+})
+
+describe('applyAutoClose', () => {
+  beforeEach(async () => {
+    await clearTrades()
+  })
+
+  afterEach(async () => {
+    await clearTrades()
+  })
+
+  it('closes an open trade at the exact level and appends the tag and note', async () => {
+    const trade = await createTrade(makeDraft({ notes: 'original', tags: ['breakout'] }))
+
+    const applied = await applyAutoClose(trade.id, {
+      level: 62000,
+      at: 1234,
+      note: 'hit target',
+    })
+
+    expect(applied).toBe(true)
+    expect(await getTrade(trade.id)).toMatchObject({
+      status: 'closed',
+      exitPrice: 62000,
+      closedAt: 1234,
+      tags: ['breakout', 'auto-closed'],
+      notes: 'original\nhit target',
+    })
+  })
+
+  it('does not duplicate the auto-closed tag or replace existing notes', async () => {
+    const trade = await createTrade(makeDraft({ notes: 'original', tags: ['auto-closed'] }))
+
+    await applyAutoClose(trade.id, { level: 62000, at: 1234, note: 'hit target' })
+
+    expect(await getTrade(trade.id)).toMatchObject({
+      tags: ['auto-closed'],
+      notes: 'original\nhit target',
+    })
+  })
+
+  it('leaves a missing or already closed trade untouched', async () => {
+    expect(await applyAutoClose('missing', { level: 62000, at: 1234, note: 'hit target' })).toBe(
+      false,
+    )
+
+    const trade = await createTrade(makeDraft())
+    await updateTrade(trade.id, { status: 'closed', exitPrice: 1, closedAt: 1 })
+
+    expect(await applyAutoClose(trade.id, { level: 62000, at: 1234, note: 'hit target' })).toBe(
+      false,
+    )
+    expect(await getTrade(trade.id)).toMatchObject({
+      status: 'closed',
+      exitPrice: 1,
+      closedAt: 1,
+      tags: [],
+      notes: null,
+    })
   })
 })

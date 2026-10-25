@@ -2,6 +2,14 @@ import { newId } from '@/lib/id'
 import { db } from '../db'
 import { tradeDraftSchema, type Trade, type TradeDraft } from '../models/trade'
 
+export const AUTO_CLOSED_TAG = 'auto-closed'
+
+export interface AutoCloseInput {
+  level: number
+  at: number
+  note: string
+}
+
 export async function listTrades(): Promise<Trade[]> {
   return db.trades.orderBy('openedAt').reverse().toArray()
 }
@@ -28,6 +36,23 @@ export async function updateTrade(id: string, patch: Partial<TradeDraft>): Promi
   }
   const parsed = tradeDraftSchema.parse({ ...existing, ...patch })
   await db.trades.update(id, { ...parsed, updatedAt: Date.now() })
+}
+
+export async function applyAutoClose(tradeId: string, input: AutoCloseInput): Promise<boolean> {
+  const existing = await db.trades.get(tradeId)
+  if (!existing || existing.status !== 'open') return false
+  const tags = existing.tags.includes(AUTO_CLOSED_TAG)
+    ? existing.tags
+    : [...existing.tags, AUTO_CLOSED_TAG]
+  const notes = existing.notes ? `${existing.notes}\n${input.note}` : input.note
+  await updateTrade(tradeId, {
+    status: 'closed',
+    exitPrice: input.level,
+    closedAt: input.at,
+    tags,
+    notes,
+  })
+  return true
 }
 
 export async function deleteTrade(id: string): Promise<void> {
