@@ -2,7 +2,7 @@ import type { AlertEvent, AlertEventKind } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import { getAlertEvent, importAlertEvent } from '@/data/repositories/alerts.repo'
 import { applyAutoClose, getTrade } from '@/data/repositories/trades.repo'
-import type { BackgroundEvent } from './background'
+import { backgroundEventSchema, type BackgroundEvent } from './background'
 
 export const QUEUED_EVENT_MAX_AGE_MS = 24 * 60 * 60_000
 
@@ -61,7 +61,11 @@ export async function importBackgroundEvents(
   let closed = 0
   let reviews = 0
 
-  for (const event of events) {
+  for (const candidate of events) {
+    const parsed = backgroundEventSchema.safeParse(candidate)
+    if (!parsed.success) continue
+    const event = parsed.data
+
     if (await getAlertEvent(event.id)) continue
 
     if (event.kind !== 'target' && event.kind !== 'stop') {
@@ -85,6 +89,8 @@ export async function importBackgroundEvents(
     const inserted = await importAlertEvent(toAlertEvent(event, event.id, event.kind))
     if (!inserted) continue
     imported += 1
+
+    if (!trade.autoClose) continue
 
     const applied = await applyAutoClose(trade.id, {
       level,

@@ -12,6 +12,7 @@ import { priceKeyFor, type MarketRef } from '@/market/types'
 import { usePrices } from '@/market/usePrices'
 import { buildAutoCloseNote } from './autoCloseNote'
 import { buildGroupedNotification, showNotification } from './notifications'
+import { waitForNativeImport } from './useBackgroundSync'
 
 interface ForegroundData {
   trades: Trade[]
@@ -96,6 +97,7 @@ export function useForegroundAlerts(): void {
 
     void (async () => {
       try {
+        await waitForNativeImport()
         const before = new Set((await listAlertEvents()).map((event) => event.id))
         await runAlertEvaluation({
           note: (input) => buildAutoCloseNote(tRef.current, input),

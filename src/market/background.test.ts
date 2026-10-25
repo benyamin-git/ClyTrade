@@ -290,6 +290,15 @@ describe('readBackgroundEvents', () => {
     expect(bridge.readBackgroundEvents).toHaveBeenCalledOnce()
   })
 
+  it('drops malformed events but keeps the valid events around them', async () => {
+    platform.current = 'windows'
+    tauri.invoke.mockResolvedValueOnce(
+      JSON.stringify([event({ id: 'before' }), { id: 'malformed' }, event({ id: 'after' })]),
+    )
+
+    expect((await readBackgroundEvents()).map((entry) => entry.id)).toEqual(['before', 'after'])
+  })
+
   it('returns an empty list for invalid JSON or a non-array payload', async () => {
     platform.current = 'windows'
 

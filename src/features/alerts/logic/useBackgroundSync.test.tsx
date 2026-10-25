@@ -8,7 +8,7 @@ import { I18nProvider } from '@/i18n/I18nProvider'
 import { STALE_MS } from '@/market/types'
 import type { BackgroundEvent, BackgroundSnapshot } from '@/market/background'
 import type { BackgroundImportSummary, BackgroundNote } from '@/market/backgroundImport'
-import { useBackgroundSync } from './useBackgroundSync'
+import { useBackgroundSync, waitForNativeImport } from './useBackgroundSync'
 
 const state = vi.hoisted(() => ({
   platform: 'android' as string,
@@ -180,7 +180,8 @@ beforeEach(() => {
   background.readBackgroundEvents.mockReset()
   background.readBackgroundEvents.mockResolvedValue([])
   background.clearBackgroundEvents.mockClear()
-  importer.importBackgroundEvents.mockClear()
+  importer.importBackgroundEvents.mockReset()
+  importer.importBackgroundEvents.mockResolvedValue({ imported: 0, closed: 0, reviews: 0 })
 })
 
 afterEach(() => {
@@ -356,6 +357,58 @@ describe('useBackgroundSync', () => {
 
     expect(background.readBackgroundEvents).toHaveBeenCalledOnce()
     expect(importer.importBackgroundEvents).not.toHaveBeenCalled()
+    expect(background.clearBackgroundEvents).toHaveBeenCalledOnce()
+  })
+
+  it('clears the queue when the batch contains a malformed event', async () => {
+    const before = event({
+      id: 'before',
+      kind: 'level',
+      tradeId: null,
+      level: 100,
+      targetPrice: null,
+      stopPrice: null,
+    })
+    const after = event({
+      id: 'after',
+      kind: 'level',
+      tradeId: null,
+      level: 200,
+      targetPrice: null,
+      stopPrice: null,
+    })
+    const malformed = { id: 'malformed' } as unknown as BackgroundEvent
+    background.readBackgroundEvents.mockResolvedValueOnce([before, malformed, after])
+    importer.importBackgroundEvents.mockResolvedValueOnce({ imported: 2, closed: 0, reviews: 0 })
+
+    renderHook(() => useBackgroundSync(), { wrapper })
+    await flushAsync()
+
+    expect(importer.importBackgroundEvents).toHaveBeenCalledWith(
+      [before, malformed, after],
+      expect.any(Number),
+      expect.any(Function),
+    )
+    expect(background.clearBackgroundEvents).toHaveBeenCalledOnce()
+  })
+
+  it('exposes a shared import promise that resolves after the queue is cleared', async () => {
+    let resolveRead: ((events: BackgroundEvent[]) => void) | undefined
+    background.readBackgroundEvents.mockReturnValueOnce(
+      new Promise<BackgroundEvent[]>((resolve) => {
+        resolveRead = resolve
+      }),
+    )
+
+    renderHook(() => useBackgroundSync(), { wrapper })
+    const waiting = waitForNativeImport()
+    expect(background.clearBackgroundEvents).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolveRead?.([])
+    })
+    await waiting
+
     expect(background.clearBackgroundEvents).toHaveBeenCalledOnce()
   })
 

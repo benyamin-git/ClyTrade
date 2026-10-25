@@ -17,6 +17,12 @@ import { buildAutoCloseNote, type AutoCloseNoteInput } from './autoCloseNote'
 
 const SNAPSHOT_DEBOUNCE_MS = 500
 
+let nativeImportInFlight: Promise<void> | null = null
+
+export function waitForNativeImport(): Promise<void> {
+  return nativeImportInFlight ?? Promise.resolve()
+}
+
 export function useBackgroundSync(): void {
   const { preferences } = usePreferences()
   const { locale, t } = useI18n()
@@ -29,7 +35,6 @@ export function useBackgroundSync(): void {
     [],
   )
   const native = isBackgroundPlatform()
-  const importingRef = useRef(false)
   const tRef = useRef(t)
 
   useEffect(() => {
@@ -42,18 +47,29 @@ export function useBackgroundSync(): void {
   )
 
   const importQueue = useCallback(async () => {
-    if (!native || importingRef.current) return
-    importingRef.current = true
-    try {
-      const events = await readBackgroundEvents()
-      if (events.length > 0) {
-        await importBackgroundEvents(events, Date.now(), note)
-      }
-      await clearBackgroundEvents()
-    } catch {
+    if (!native) return
+    if (nativeImportInFlight) {
+      await nativeImportInFlight
       return
+    }
+
+    const run = (async () => {
+      try {
+        const events = await readBackgroundEvents()
+        if (events.length > 0) {
+          await importBackgroundEvents(events, Date.now(), note)
+        }
+        await clearBackgroundEvents()
+      } catch {
+        return
+      }
+    })()
+    nativeImportInFlight = run
+
+    try {
+      await run
     } finally {
-      importingRef.current = false
+      if (nativeImportInFlight === run) nativeImportInFlight = null
     }
   }, [native, note])
 

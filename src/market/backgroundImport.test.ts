@@ -139,6 +139,52 @@ describe('importBackgroundEvents', () => {
     })
   })
 
+  it('imports a matching hit without closing when autoClose is off', async () => {
+    const trade = await createTrade(tradeDraft({ autoClose: false }))
+    const note = noteMock()
+    const queued = event({ tradeId: trade.id })
+
+    const summary = await importBackgroundEvents([queued], NOW, note)
+
+    expect(summary).toEqual({ imported: 1, closed: 0, reviews: 0 })
+    expect(note).not.toHaveBeenCalled()
+    expect(await getTrade(trade.id)).toMatchObject({
+      status: 'open',
+      exitPrice: null,
+      closedAt: null,
+    })
+    expect(await getAlertEvent(queued.id)).toMatchObject({
+      kind: 'target',
+      tradeId: trade.id,
+    })
+    expect(await getAlertEvent(`conflict:${queued.id}`)).toBeUndefined()
+  })
+
+  it('skips a malformed event and still imports the valid events around it', async () => {
+    const before = event({
+      id: 'before',
+      kind: 'level',
+      tradeId: null,
+      level: 100,
+      targetPrice: null,
+      stopPrice: null,
+    })
+    const after = event({
+      id: 'after',
+      kind: 'level',
+      tradeId: null,
+      level: 200,
+      targetPrice: null,
+      stopPrice: null,
+    })
+    const malformed = { id: 'malformed' } as unknown as BackgroundEvent
+
+    const summary = await importBackgroundEvents([before, malformed, after], NOW, noteMock())
+
+    expect(summary).toEqual({ imported: 2, closed: 0, reviews: 0 })
+    expect((await listAlertEvents()).map((row) => row.id).sort()).toEqual(['after', 'before'])
+  })
+
   it('closes a stop hit at the stop level and preserves existing notes and tags', async () => {
     const trade = await createTrade(
       tradeDraft({ notes: 'original', tags: ['breakout', AUTO_CLOSED_TAG] }),

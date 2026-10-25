@@ -59,6 +59,12 @@ const repo = vi.hoisted(() => ({
 
 vi.mock('@/data/repositories/alerts.repo', () => repo)
 
+const backgroundSync = vi.hoisted(() => ({
+  waitForNativeImport: vi.fn<() => Promise<void>>(),
+}))
+
+vi.mock('./useBackgroundSync', () => backgroundSync)
+
 const NOW = 1_700_000_000_000
 
 function trade(overrides: Partial<Trade> = {}): Trade {
@@ -245,6 +251,8 @@ beforeEach(() => {
   engine.runAlertEvaluation.mockResolvedValue({ events: 0, closes: 0, reviews: 0 })
   repo.listAlertEvents.mockReset()
   repo.listAlertEvents.mockResolvedValue([])
+  backgroundSync.waitForNativeImport.mockReset()
+  backgroundSync.waitForNativeImport.mockResolvedValue(undefined)
   stubNotification('granted')
 })
 
@@ -276,6 +284,33 @@ describe('useForegroundAlerts', () => {
     rerender()
 
     await waitFor(() => expect(engine.runAlertEvaluation).toHaveBeenCalledOnce())
+  })
+
+  it('waits for the native import before snapshotting and evaluating', async () => {
+    let resolveImport: (() => void) | undefined
+    backgroundSync.waitForNativeImport.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveImport = resolve
+        }),
+    )
+    const { rerender } = renderAlertsHook()
+    state.prices = new Map([['binance:BTCUSDT', price()]])
+    rerender()
+
+    await waitFor(() => expect(backgroundSync.waitForNativeImport).toHaveBeenCalledOnce())
+    expect(repo.listAlertEvents).not.toHaveBeenCalled()
+    expect(engine.runAlertEvaluation).not.toHaveBeenCalled()
+
+    await act(async () => {
+      resolveImport?.()
+      await Promise.resolve()
+    })
+
+    await waitFor(() => expect(engine.runAlertEvaluation).toHaveBeenCalledOnce())
+    expect(backgroundSync.waitForNativeImport.mock.invocationCallOrder[0]).toBeLessThan(
+      repo.listAlertEvents.mock.invocationCallOrder[0] ?? 0,
+    )
   })
 
   it('passes a localized auto-close note to the evaluator', async () => {
@@ -327,6 +362,19 @@ describe('useForegroundAlerts', () => {
     await waitFor(() => expect(repo.listAlertEvents).toHaveBeenCalledTimes(2))
 
     expect(FakeNotification.instances).toHaveLength(0)
+  })
+
+  it('does not notify a pre-existing unread event as new', async () => {
+    const existing = event({ id: 'existing', symbol: 'BTC', price: 130, level: 120 })
+    const fresh = event({ id: 'fresh', symbol: 'ETH', price: 3100, level: 3000 })
+    repo.listAlertEvents.mockResolvedValueOnce([existing]).mockResolvedValueOnce([existing, fresh])
+    const { rerender } = renderAlertsHook()
+    state.prices = new Map([['binance:BTCUSDT', price()]])
+    rerender()
+
+    await waitFor(() => expect(FakeNotification.instances).toHaveLength(1))
+    expect(FakeNotification.instances[0]?.options?.body).toBe('ETH · Target hit · 3,000')
+    expect(FakeNotification.instances[0]?.options?.body).not.toContain('BTC')
   })
 
   it('does not notify when permission is denied', async () => {

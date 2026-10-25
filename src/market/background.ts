@@ -1,11 +1,12 @@
-import type {
-  AlertEventKind,
-  AlertPercentDirection,
-  AlertPriceMode,
-  AlertRepeat,
-  PriceAlert,
-  PriceProviderChoice,
-  PriceProviderId,
+import { z } from 'zod'
+import {
+  alertEventKindSchema,
+  priceProviderSchema,
+  type AlertPercentDirection,
+  type AlertPriceMode,
+  type AlertRepeat,
+  type PriceAlert,
+  type PriceProviderChoice,
 } from '@/data/models/price'
 import type { Preferences } from '@/data/models/settings'
 import type { Trade } from '@/data/models/trade'
@@ -61,20 +62,24 @@ export interface BackgroundSnapshot {
   rules: BackgroundRule[]
 }
 
-export interface BackgroundEvent {
-  id: string
-  kind: AlertEventKind
-  tradeId: string | null
-  ruleId: string | null
-  symbol: string
-  price: number
-  level: number | null
-  targetPrice: number | null
-  stopPrice: number | null
-  direction: 'long' | 'short'
-  at: number
-  provider: PriceProviderId
-}
+const backgroundPrice = z.number().finite().positive()
+
+export const backgroundEventSchema = z.object({
+  id: z.string().min(1),
+  kind: alertEventKindSchema,
+  tradeId: z.string().nullable(),
+  ruleId: z.string().nullable(),
+  symbol: z.string().min(1),
+  price: backgroundPrice,
+  level: backgroundPrice.nullable(),
+  targetPrice: backgroundPrice.nullable(),
+  stopPrice: backgroundPrice.nullable(),
+  direction: z.enum(['long', 'short']),
+  at: z.number(),
+  provider: priceProviderSchema,
+})
+
+export type BackgroundEvent = z.infer<typeof backgroundEventSchema>
 
 export interface BackgroundSnapshotInput {
   now: number
@@ -153,7 +158,11 @@ export async function readBackgroundEvents(): Promise<BackgroundEvent[]> {
   if (!raw.trim()) return []
   try {
     const parsed: unknown = JSON.parse(raw)
-    return Array.isArray(parsed) ? (parsed as BackgroundEvent[]) : []
+    if (!Array.isArray(parsed)) return []
+    return parsed.flatMap((entry) => {
+      const result = backgroundEventSchema.safeParse(entry)
+      return result.success ? [result.data] : []
+    })
   } catch {
     return []
   }
