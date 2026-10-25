@@ -40,6 +40,8 @@ export function WindowsClosePrompt() {
       await invoke('resolve_windows_close', { behavior })
       setOpen(false)
     } catch {
+      setOpen(true)
+    } finally {
       setBusy(false)
     }
   }, [])

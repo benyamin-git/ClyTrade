@@ -27,7 +27,10 @@ pub fn read_snapshot(app: &AppHandle) -> Option<String> {
   std::fs::read_to_string(path).ok()
 }
 
-pub fn close_decision(snapshot: Option<&str>) -> CloseDecision {
+pub fn close_decision(snapshot: Option<&str>, tray_available: bool) -> CloseDecision {
+  if !tray_available {
+    return CloseDecision::Allow;
+  }
   let Some(json) = snapshot else {
     return CloseDecision::Allow;
   };
@@ -79,21 +82,33 @@ mod tests {
 
   #[test]
   fn missing_snapshot_allows_close() {
-    assert_eq!(close_decision(None), CloseDecision::Allow);
+    assert_eq!(close_decision(None, true), CloseDecision::Allow);
   }
 
   #[test]
   fn invalid_or_empty_snapshot_allows_close() {
-    assert_eq!(close_decision(Some("not json")), CloseDecision::Allow);
-    assert_eq!(close_decision(Some("{}")), CloseDecision::Allow);
+    assert_eq!(close_decision(Some("not json"), true), CloseDecision::Allow);
+    assert_eq!(close_decision(Some("{}"), true), CloseDecision::Allow);
+  }
+
+  #[test]
+  fn unavailable_tray_allows_close() {
+    assert_eq!(
+      close_decision(
+        Some(r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"tray"}"#),
+        false
+      ),
+      CloseDecision::Allow
+    );
   }
 
   #[test]
   fn monitoring_off_allows_close() {
     assert_eq!(
-      close_decision(Some(
-        r#"{"backgroundMonitoring":false,"windowsCloseBehavior":"tray"}"#
-      )),
+      close_decision(
+        Some(r#"{"backgroundMonitoring":false,"windowsCloseBehavior":"tray"}"#),
+        true
+      ),
       CloseDecision::Allow
     );
   }
@@ -101,9 +116,10 @@ mod tests {
   #[test]
   fn tray_hides_the_window() {
     assert_eq!(
-      close_decision(Some(
-        r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"tray"}"#
-      )),
+      close_decision(
+        Some(r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"tray"}"#),
+        true
+      ),
       CloseDecision::HideToTray
     );
   }
@@ -111,9 +127,10 @@ mod tests {
   #[test]
   fn quit_allows_the_close() {
     assert_eq!(
-      close_decision(Some(
-        r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"quit"}"#
-      )),
+      close_decision(
+        Some(r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"quit"}"#),
+        true
+      ),
       CloseDecision::Allow
     );
   }
@@ -121,15 +138,17 @@ mod tests {
   #[test]
   fn unset_or_unknown_prompts() {
     assert_eq!(
-      close_decision(Some(
-        r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"unset"}"#
-      )),
+      close_decision(
+        Some(r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"unset"}"#),
+        true
+      ),
       CloseDecision::Prompt
     );
     assert_eq!(
-      close_decision(Some(
-        r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"other"}"#
-      )),
+      close_decision(
+        Some(r#"{"backgroundMonitoring":true,"windowsCloseBehavior":"other"}"#),
+        true
+      ),
       CloseDecision::Prompt
     );
   }

@@ -101,6 +101,23 @@ describe('WindowsClosePrompt', () => {
     })
   })
 
+  it('re-enables both actions when the prompt reopens after a choice', async () => {
+    const user = userEvent.setup()
+    await openPrompt()
+
+    await user.click(screen.getByRole('button', { name: 'Hide to tray' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    await act(async () => {
+      tauri.handlers.get('windows-close-prompt')?.({ payload: null })
+    })
+
+    expect(screen.getByRole('button', { name: 'Hide to tray' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Quit' })).toBeEnabled()
+  })
+
   it('persists quit before asking native code to exit', async () => {
     const user = userEvent.setup()
     let behaviorAtInvoke: string | null = null

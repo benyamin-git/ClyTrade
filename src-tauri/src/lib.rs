@@ -1,12 +1,22 @@
-#[cfg(desktop)]
+#[cfg(target_os = "windows")]
 mod tray;
 
 use tauri::Manager;
+
+#[cfg(target_os = "windows")]
+#[derive(Clone, Copy)]
+struct TrayAvailability {
+  available: bool,
+}
 
 #[tauri::command]
 fn resolve_windows_close(app: tauri::AppHandle, behavior: String) -> Result<(), String> {
   match behavior.as_str() {
     "tray" => {
+      #[cfg(target_os = "windows")]
+      if !app.state::<TrayAvailability>().available {
+        return Err("tray is not available".to_string());
+      }
       let window = app
         .get_webview_window("main")
         .ok_or_else(|| "main window is not available".to_string())?;
@@ -24,17 +34,30 @@ fn resolve_windows_close(app: tauri::AppHandle, behavior: String) -> Result<(), 
 pub fn run() {
   tauri::Builder::default()
     .setup(|app| {
-      #[cfg(desktop)]
-      tray::create(app.handle())?;
-      #[cfg(not(desktop))]
+      #[cfg(target_os = "windows")]
+      {
+        let available = match tray::create(app.handle()) {
+          Ok(()) => true,
+          Err(error) => {
+            eprintln!("failed to create the tray icon: {error}");
+            false
+          }
+        };
+        app.manage(TrayAvailability { available });
+      }
+      #[cfg(not(target_os = "windows"))]
       let _ = app;
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![resolve_windows_close])
     .on_window_event(|window, event| {
-      #[cfg(desktop)]
+      #[cfg(target_os = "windows")]
       if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-        match tray::close_decision(tray::read_snapshot(window.app_handle()).as_deref()) {
+        let tray_available = window.app_handle().state::<TrayAvailability>().available;
+        match tray::close_decision(
+          tray::read_snapshot(window.app_handle()).as_deref(),
+          tray_available,
+        ) {
           tray::CloseDecision::Allow => {}
           tray::CloseDecision::HideToTray => {
             api.prevent_close();
@@ -47,7 +70,7 @@ pub fn run() {
           }
         }
       }
-      #[cfg(not(desktop))]
+      #[cfg(not(target_os = "windows"))]
       let _ = (window, event);
     })
     .run(tauri::generate_context!())
