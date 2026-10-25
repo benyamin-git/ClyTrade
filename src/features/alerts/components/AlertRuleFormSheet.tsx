@@ -24,7 +24,12 @@ import { SelectField } from '@/ui/components/SelectField'
 import { Sheet } from '@/ui/components/Sheet'
 import { SymbolPicker } from '@/ui/components/SymbolPicker'
 import { TextField } from '@/ui/components/TextField'
-import { toAlertDraft, validateAlertForm, type AlertFormValues } from '../logic/alertForm'
+import {
+  DEFAULT_COOLDOWN_MINUTES,
+  toAlertDraft,
+  validateAlertForm,
+  type AlertFormValues,
+} from '../logic/alertForm'
 
 export interface AlertRuleFormSheetProps {
   alert: PriceAlert | null
@@ -52,7 +57,7 @@ function candidateKey(candidate: SymbolCandidate): string {
 async function saveAlert(alert: PriceAlert | null, values: AlertFormValues): Promise<void> {
   const draft = toAlertDraft(values, Date.now())
   if (alert) {
-    await updateAlert(alert.id, draft)
+    await updateAlert(alert.id, { ...draft, enabled: alert.enabled })
   } else {
     await createAlert(draft)
   }
@@ -75,7 +80,7 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
   )
   const [repeat, setRepeat] = useState<AlertRepeat>(alert?.repeat ?? 'once')
   const [cooldownMinutes, setCooldownMinutes] = useState<number | null>(
-    alert?.cooldownMinutes ?? 60,
+    alert?.cooldownMinutes ?? DEFAULT_COOLDOWN_MINUTES,
   )
   const [note, setNote] = useState(alert?.note ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -112,7 +117,20 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
   const priceRefs = useMemo<MarketRef[]>(() => (priceRef ? [priceRef] : []), [priceRef])
   const { prices } = usePrices(priceRefs, 'detail')
   const quote = priceRef ? prices.get(priceRef.key) : undefined
-  const referencePrice = quote !== undefined && quote.price > 0 ? quote.price : null
+  const currentPrice = quote !== undefined && quote.price > 0 ? quote.price : null
+  const symbolUnchanged = alert !== null && alert.symbol.trim().toUpperCase() === normalizedSymbol
+  const mappingUnchanged =
+    alert !== null &&
+    alert.binanceSymbol === (selectedCandidate?.binanceSymbol ?? null) &&
+    alert.coingeckoId === (selectedCandidate?.coingeckoId ?? null)
+  const referencePrice =
+    alert !== null &&
+    alert.kind === 'percent' &&
+    alert.referencePrice !== null &&
+    symbolUnchanged &&
+    mappingUnchanged
+      ? alert.referencePrice
+      : currentPrice
 
   const pickerCandidates = useMemo(() => {
     if (selectedCandidate === null) return candidates
@@ -132,6 +150,11 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
     setSymbol(next)
   }
 
+  function handleRepeatChange(next: AlertRepeat) {
+    setRepeat(next)
+    if (next !== 'cooldown') setCooldownMinutes(DEFAULT_COOLDOWN_MINUTES)
+  }
+
   function formValues(): AlertFormValues {
     const isPrice = kind === 'price'
     const isRange = isPrice && priceMode === 'range'
@@ -146,7 +169,7 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
       percent: isPrice ? null : percent,
       percentDirection: isPrice ? null : percentDirection,
       repeat,
-      cooldownMinutes: cooldownMinutes ?? 0,
+      cooldownMinutes: repeat === 'cooldown' ? (cooldownMinutes ?? 0) : DEFAULT_COOLDOWN_MINUTES,
       note,
       referencePrice: isPrice ? null : referencePrice,
     }
@@ -293,7 +316,7 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
               { value: 'cross-back', label: t('alerts.form.repeats.crossBack') },
               { value: 'cooldown', label: t('alerts.form.repeats.cooldown') },
             ]}
-            onChange={setRepeat}
+            onChange={handleRepeatChange}
             ariaLabel={t('alerts.form.repeat')}
           />
         </Field>
@@ -321,11 +344,13 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
         <p role="status" className="mt-3 text-xs text-on-surface-variant">
           {t('alerts.form.priceUnavailable')}
         </p>
-      ) : quote !== undefined ? (
+      ) : kind === 'percent' && referencePrice !== null ? (
         <p className="mt-3 text-xs text-on-surface-variant">
-          {kind === 'percent'
-            ? t('alerts.form.referenceHint', { price: formatPrice(quote.price) })
-            : t('alerts.form.currentPriceHint', { price: formatPrice(quote.price) })}
+          {t('alerts.form.referenceHint', { price: formatPrice(referencePrice) })}
+        </p>
+      ) : kind === 'price' && currentPrice !== null ? (
+        <p className="mt-3 text-xs text-on-surface-variant">
+          {t('alerts.form.currentPriceHint', { price: formatPrice(currentPrice) })}
         </p>
       ) : null}
 

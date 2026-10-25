@@ -26,6 +26,8 @@ const COOLDOWN_MIN = 15
 const COOLDOWN_MAX = 1440
 const PERCENT_MAX = 1000
 
+export const DEFAULT_COOLDOWN_MINUTES = 60
+
 function isPositive(value: number | null): value is number {
   return value !== null && Number.isFinite(value) && value > 0
 }
@@ -35,12 +37,14 @@ export function validateAlertForm(values: AlertFormValues): string | null {
     return 'alerts.form.validation.symbolRequired'
   }
 
-  if (
-    !Number.isInteger(values.cooldownMinutes) ||
-    values.cooldownMinutes < COOLDOWN_MIN ||
-    values.cooldownMinutes > COOLDOWN_MAX
-  ) {
-    return 'alerts.form.validation.cooldownRange'
+  if (values.repeat === 'cooldown') {
+    if (
+      !Number.isInteger(values.cooldownMinutes) ||
+      values.cooldownMinutes < COOLDOWN_MIN ||
+      values.cooldownMinutes > COOLDOWN_MAX
+    ) {
+      return 'alerts.form.validation.cooldownRange'
+    }
   }
 
   if (values.kind === 'price') {
@@ -95,7 +99,8 @@ export function toAlertDraft(values: AlertFormValues, now: number): PriceAlertDr
     percent: isPercent ? values.percent : null,
     percentDirection: isPercent ? values.percentDirection : null,
     repeat: values.repeat,
-    cooldownMinutes: values.cooldownMinutes,
+    cooldownMinutes:
+      values.repeat === 'cooldown' ? values.cooldownMinutes : DEFAULT_COOLDOWN_MINUTES,
     referencePrice: isPercent ? values.referencePrice : null,
     lastPrice: null,
     armed: true,

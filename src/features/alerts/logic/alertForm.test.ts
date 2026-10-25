@@ -179,11 +179,21 @@ describe('validateAlertForm', () => {
     ).toBeNull()
   })
 
-  it('rejects a cooldown outside 15 to 1440 minutes', () => {
+  it('rejects a cooldown outside 15 to 1440 minutes only for cooldown rules', () => {
     for (const cooldownMinutes of [14, 1441, 15.5]) {
-      expect(validateAlertForm(values({ cooldownMinutes })), String(cooldownMinutes)).toBe(
-        'alerts.form.validation.cooldownRange',
-      )
+      expect(
+        validateAlertForm(values({ repeat: 'cooldown', cooldownMinutes })),
+        String(cooldownMinutes),
+      ).toBe('alerts.form.validation.cooldownRange')
+    }
+
+    for (const repeat of ['once', 'cross-back'] as const) {
+      for (const cooldownMinutes of [0, 14, 1441, 15.5]) {
+        expect(
+          validateAlertForm(values({ repeat, cooldownMinutes })),
+          `${repeat} ${cooldownMinutes}`,
+        ).toBeNull()
+      }
     }
   })
 
@@ -295,11 +305,17 @@ describe('toAlertDraft', () => {
     }
   })
 
-  it('keeps repeat and cooldown values', () => {
-    for (const repeat of repeats) {
-      const draft = toAlertDraft(values({ repeat, cooldownMinutes: 90 }), NOW)
-      expect(draft.repeat, repeat).toBe(repeat)
-      expect(draft.cooldownMinutes, repeat).toBe(90)
+  it('keeps the cooldown for cooldown rules and normalizes other repeats to 60', () => {
+    const cooldownDraft = toAlertDraft(values({ repeat: 'cooldown', cooldownMinutes: 90 }), NOW)
+    expect(cooldownDraft.repeat).toBe('cooldown')
+    expect(cooldownDraft.cooldownMinutes).toBe(90)
+
+    for (const repeat of ['once', 'cross-back'] as const) {
+      for (const cooldownMinutes of [0, 15.5, 90, 1441]) {
+        const draft = toAlertDraft(values({ repeat, cooldownMinutes }), NOW)
+        expect(draft.repeat, repeat).toBe(repeat)
+        expect(draft.cooldownMinutes, `${repeat} ${cooldownMinutes}`).toBe(60)
+      }
     }
   })
 

@@ -72,6 +72,27 @@ function coinGeckoCandidate(): SymbolCandidate {
   })
 }
 
+function ethereumCandidate(): SymbolCandidate {
+  return binanceCandidate({
+    priceId: 'ETHUSDT',
+    symbol: 'ETHUSDT',
+    binanceSymbol: 'ETHUSDT',
+  })
+}
+
+function coinGeckoOnlyCandidate(): SymbolCandidate {
+  return binanceCandidate({
+    provider: 'coingecko',
+    priceId: 'bitcoin',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    quote: null,
+    rank: 1,
+    binanceSymbol: null,
+    coingeckoId: 'bitcoin',
+  })
+}
+
 function freshPrice(overrides: Partial<ProviderPrice> = {}): ProviderPrice {
   return {
     key: 'binance:BTCUSDT',
@@ -384,6 +405,26 @@ describe('AlertRuleFormSheet repeat modes', () => {
     const [alert] = await savedAlerts()
     expect(alert).toMatchObject({ repeat: 'cooldown', cooldownMinutes: 90 })
   })
+
+  it('saves a non-cooldown rule with the default after an invalid cooldown entry', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(null)
+
+    await enterSymbol(user)
+    await user.type(screen.getByLabelText('Level'), '68000')
+    await user.click(screen.getByRole('radio', { name: 'Cooldown' }))
+    const cooldown = screen.getByLabelText('Cooldown (minutes)')
+    await user.clear(cooldown)
+    await user.type(cooldown, '15.5')
+    await user.click(screen.getByRole('radio', { name: 'Once' }))
+    expect(screen.queryByLabelText('Cooldown (minutes)')).not.toBeInTheDocument()
+    await createRule(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({ repeat: 'once', cooldownMinutes: 60 })
+  })
 })
 
 describe('AlertRuleFormSheet validation', () => {
@@ -475,7 +516,7 @@ describe('AlertRuleFormSheet editing', () => {
     })
   })
 
-  it('resets a percent reference to the current cached price on edit', async () => {
+  it('preserves the stored percent reference on a note-only edit', async () => {
     const seeded = await seedAlert({
       kind: 'percent',
       priceMode: null,
@@ -489,15 +530,116 @@ describe('AlertRuleFormSheet editing', () => {
     const user = userEvent.setup()
     const { onClose } = await renderForm(seeded)
 
-    expect(screen.getByText('Reference price: 68,000')).toBeInTheDocument()
+    expect(screen.getByText('Reference price: 100')).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Note'))
+    await user.type(screen.getByLabelText('Note'), 'note only')
     await saveChanges(user)
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
     const [alert] = await savedAlerts()
-    expect(alert).toMatchObject({ id: seeded.id, referencePrice: 68000, percent: 5 })
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      referencePrice: 100,
+      percent: 5,
+      note: 'note only',
+    })
   })
 
-  it('re-enables a paused rule when it is saved', async () => {
+  it('preserves the stored percent reference when no current quote is available', async () => {
+    const seeded = await seedAlert({
+      kind: 'percent',
+      priceMode: null,
+      level: null,
+      percent: 5,
+      percentDirection: 'up',
+      referencePrice: 100,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    expect(screen.getByText('Reference price: 100')).toBeInTheDocument()
+    await user.clear(screen.getByLabelText('Note'))
+    await user.type(screen.getByLabelText('Note'), 'no quote edit')
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      referencePrice: 100,
+      note: 'no quote edit',
+    })
+  })
+
+  it('rebases the percent reference when the symbol changes', async () => {
+    const seeded = await seedAlert({
+      kind: 'percent',
+      priceMode: null,
+      level: null,
+      percent: 5,
+      percentDirection: 'up',
+      referencePrice: 100,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    symbolState.bySymbol.set('ETH', [ethereumCandidate()])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    priceState.prices.set(
+      'binance:ETHUSDT',
+      freshPrice({ key: 'binance:ETHUSDT', symbol: 'ETH', price: 2500 }),
+    )
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    const symbolInput = screen.getByLabelText('Coin')
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+    await waitFor(() => expect(priceState.keys.has('binance:ETHUSDT')).toBe(true))
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      symbol: 'ETH',
+      binanceSymbol: 'ETHUSDT',
+      coingeckoId: null,
+      referencePrice: 2500,
+    })
+  })
+
+  it('rebases the percent reference when the mapping changes', async () => {
+    const seeded = await seedAlert({
+      kind: 'percent',
+      priceMode: null,
+      level: null,
+      percent: 5,
+      percentDirection: 'up',
+      referencePrice: 100,
+    })
+    symbolState.bySymbol.set('BTC', [coinGeckoOnlyCandidate()])
+    priceState.prices.set(
+      'coingecko:bitcoin',
+      freshPrice({ key: 'coingecko:bitcoin', provider: 'coingecko', price: 67000 }),
+    )
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    await user.selectOptions(await screen.findByLabelText('Market symbol'), 'coingecko:bitcoin')
+    await waitFor(() => expect(priceState.keys.has('coingecko:bitcoin')).toBe(true))
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      binanceSymbol: null,
+      coingeckoId: 'bitcoin',
+      referencePrice: 67000,
+    })
+  })
+
+  it('keeps a paused rule paused when it is saved', async () => {
     const seeded = await seedAlert({ enabled: false })
     symbolState.bySymbol.set('BTC', [binanceCandidate()])
     const user = userEvent.setup()
@@ -507,6 +649,6 @@ describe('AlertRuleFormSheet editing', () => {
 
     await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
     const [alert] = await savedAlerts()
-    expect(alert).toMatchObject({ id: seeded.id, enabled: true })
+    expect(alert).toMatchObject({ id: seeded.id, enabled: false })
   })
 })
