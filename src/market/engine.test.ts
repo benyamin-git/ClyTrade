@@ -12,9 +12,16 @@ import {
   listAlertEvents,
   listAlerts,
   resolveAlertEvent,
+  updateAlert,
 } from '@/data/repositories/alerts.repo'
 import { clearPriceCache, putPriceCache } from '@/data/repositories/prices.repo'
-import { clearTrades, createTrade, getTrade, listTrades } from '@/data/repositories/trades.repo'
+import {
+  clearTrades,
+  createTrade,
+  getTrade,
+  listTrades,
+  updateTrade,
+} from '@/data/repositories/trades.repo'
 import { runAlertEvaluation, type EngineOptions } from './engine'
 
 const NOW = 1_700_000_000_000
@@ -309,6 +316,61 @@ describe('runAlertEvaluation', () => {
     expect(await listAlertEvents()).toHaveLength(1)
   })
 
+  it('writes a new target event when the target level changes', async () => {
+    const trade = await seedTrade({ autoClose: false, targetPrice: 120, stopPrice: 80 })
+    await seedPrice(130)
+    expect((await runAlertEvaluation({ now: NOW, note: noteMock() })).events).toBe(1)
+
+    await updateTrade(trade.id, { targetPrice: 125 })
+    const summary = await runAlertEvaluation({ now: NOW + 1_000, note: noteMock() })
+
+    expect(summary).toEqual({ events: 1, closes: 0, reviews: 0 })
+    const events = await listAlertEvents()
+    expect(events).toHaveLength(2)
+    expect(
+      events.map((event) => event.level).sort((left, right) => (left ?? 0) - (right ?? 0)),
+    ).toEqual([120, 125])
+  })
+
+  it('writes a new rule event when the rule level changes', async () => {
+    const rule = await seedRule({ repeat: 'cooldown', level: 100, lastPrice: 95 })
+    await seedPrice(105)
+    expect((await runAlertEvaluation({ now: NOW, note: noteMock() })).events).toBe(1)
+
+    await updateAlert(rule.id, { level: 110 })
+    const later = NOW + 60 * 60_000
+    await seedPrice(115, later - 60_000)
+    const summary = await runAlertEvaluation({ now: later, note: noteMock() })
+
+    expect(summary).toEqual({ events: 1, closes: 0, reviews: 0 })
+    const events = await listAlertEvents()
+    expect(events).toHaveLength(2)
+    expect(
+      events.map((event) => event.level).sort((left, right) => (left ?? 0) - (right ?? 0)),
+    ).toEqual([100, 110])
+  })
+
+  it('writes a stale review alongside an unresolved gap review for the same trade', async () => {
+    const trade = await seedTrade()
+    await seedPrice(130, STALE_AT)
+    await createAlertEvent(
+      eventDraft({
+        kind: 'gap',
+        tradeId: trade.id,
+        level: null,
+        targetPrice: 120,
+        stopPrice: 90,
+      }),
+    )
+
+    const summary = await runAlertEvaluation({ now: NOW, note: noteMock() })
+
+    expect(summary).toEqual({ events: 0, closes: 0, reviews: 1 })
+    const events = await listAlertEvents()
+    expect(events).toHaveLength(2)
+    expect(events.map((event) => event.kind).sort()).toEqual(['gap', 'stale'])
+  })
+
   it('treats read events as unresolved but not dismissed events', async () => {
     const readTrade = await seedTrade({ autoClose: false })
     const dismissedTrade = await seedTrade({ autoClose: false })
@@ -361,6 +423,28 @@ describe('runAlertEvaluation', () => {
       closes: 0,
       reviews: 0,
     })
+  })
+
+  it('shares one run between concurrent callers', async () => {
+    const trade = await seedTrade()
+    await seedPrice(130)
+    const note = noteMock()
+
+    const first = runAlertEvaluation({ now: NOW, note })
+    const second = runAlertEvaluation({ now: NOW, note })
+
+    expect(second).toBe(first)
+    expect(await Promise.all([first, second])).toEqual([
+      { events: 1, closes: 1, reviews: 0 },
+      { events: 1, closes: 1, reviews: 0 },
+    ])
+    expect(await listAlertEvents()).toHaveLength(1)
+    expect(await getTrade(trade.id)).toMatchObject({
+      status: 'closed',
+      exitPrice: 120,
+      closedAt: NOW,
+    })
+    expect(note).toHaveBeenCalledTimes(1)
   })
 
   it('applies rule updates for a fired once rule and an advancing price', async () => {

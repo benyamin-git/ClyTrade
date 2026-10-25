@@ -24,6 +24,8 @@ export interface EvaluationSummary {
 
 const HISTORY_LIMIT = 500
 
+let inFlight: Promise<EvaluationSummary> | null = null
+
 function isUnresolved(status: AlertEventDraft['status']): boolean {
   return status === 'unread' || status === 'read'
 }
@@ -36,13 +38,13 @@ function dedupeKey(event: AlertEventDraft): string {
   return `${event.kind}|${owner}|${event.level ?? ''}`
 }
 
-export async function runAlertEvaluation(options: EngineOptions): Promise<EvaluationSummary> {
+async function evaluateAndPersist(options: EngineOptions): Promise<EvaluationSummary> {
   const now = options.now ?? Date.now()
   const [trades, rules, cache, history] = await Promise.all([
     listTrades(),
     listAlerts(),
     listPriceCache(),
-    listAlertEvents(),
+    listAlertEvents(HISTORY_LIMIT),
   ])
 
   const openTrades = trades.filter((trade) => trade.status === 'open')
@@ -105,4 +107,19 @@ export async function runAlertEvaluation(options: EngineOptions): Promise<Evalua
   await pruneAlertEvents(HISTORY_LIMIT)
 
   return { events, closes, reviews }
+}
+
+export function runAlertEvaluation(options: EngineOptions): Promise<EvaluationSummary> {
+  if (inFlight) return inFlight
+  const run = evaluateAndPersist(options)
+  inFlight = run
+  run.then(
+    () => {
+      if (inFlight === run) inFlight = null
+    },
+    () => {
+      if (inFlight === run) inFlight = null
+    },
+  )
+  return run
 }
