@@ -290,6 +290,31 @@ describe('readBackgroundEvents', () => {
     expect(bridge.readBackgroundEvents).toHaveBeenCalledOnce()
   })
 
+  it('keeps the optional native rule state', async () => {
+    platform.current = 'windows'
+    const queued = event({
+      id: 'native-rule-1',
+      kind: 'level',
+      tradeId: null,
+      ruleId: 'rule-1',
+      symbol: 'ETH',
+      price: 3050,
+      level: 3000,
+      targetPrice: null,
+      stopPrice: null,
+      ruleState: {
+        armed: false,
+        lastPrice: 3050,
+        lastFiredAt: NOW - 1_000,
+        referencePrice: null,
+        enabled: false,
+      },
+    })
+    tauri.invoke.mockResolvedValueOnce(JSON.stringify([queued]))
+
+    expect(await readBackgroundEvents()).toEqual([queued])
+  })
+
   it('drops malformed events but keeps the valid events around them', async () => {
     platform.current = 'windows'
     tauri.invoke.mockResolvedValueOnce(

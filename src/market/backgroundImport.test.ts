@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AlertEvent } from '@/data/models/price'
+import type { AlertEvent, PriceAlertDraft } from '@/data/models/price'
 import type { TradeDraft } from '@/data/models/trade'
 import {
   clearAlertEvents,
+  createAlert,
+  getAlert,
   getAlertEvent,
   importAlertEvent,
   listAlertEvents,
@@ -79,6 +81,30 @@ function alertEvent(overrides: Partial<AlertEvent> = {}): AlertEvent {
     resolution: null,
     readAt: null,
     createdAt: NOW,
+    ...overrides,
+  }
+}
+
+function alertDraft(overrides: Partial<PriceAlertDraft> = {}): PriceAlertDraft {
+  return {
+    kind: 'price',
+    symbol: 'ETH',
+    binanceSymbol: 'ETHUSDT',
+    coingeckoId: null,
+    priceMode: 'above',
+    level: 3000,
+    rangeLow: null,
+    rangeHigh: null,
+    percent: null,
+    percentDirection: null,
+    repeat: 'once',
+    cooldownMinutes: 60,
+    referencePrice: null,
+    lastPrice: 2900,
+    armed: true,
+    enabled: true,
+    note: null,
+    lastFiredAt: null,
     ...overrides,
   }
 }
@@ -308,6 +334,70 @@ describe('importBackgroundEvents', () => {
       ruleId: 'rule-1',
       level: 100,
       at: queued.at,
+    })
+  })
+
+  it('applies a queued rule event state through updateAlert', async () => {
+    const rule = await createAlert(alertDraft())
+    const at = NOW - 1_000
+    const queued = event({
+      id: 'native-rule-state',
+      kind: 'level',
+      tradeId: null,
+      ruleId: rule.id,
+      symbol: 'ETH',
+      price: 3050,
+      level: 3000,
+      targetPrice: null,
+      stopPrice: null,
+      direction: 'long',
+      at,
+      ruleState: {
+        armed: false,
+        lastPrice: 3050,
+        lastFiredAt: at,
+        referencePrice: null,
+        enabled: false,
+      },
+    })
+
+    const summary = await importBackgroundEvents([queued], NOW, noteMock())
+
+    expect(summary).toEqual({ imported: 1, closed: 0, reviews: 0 })
+    expect(await getAlert(rule.id)).toMatchObject({
+      armed: false,
+      lastPrice: 3050,
+      lastFiredAt: at,
+      referencePrice: null,
+      enabled: false,
+    })
+  })
+
+  it('does not apply rule state from a trade event', async () => {
+    const rule = await createAlert(alertDraft())
+    const trade = await createTrade(tradeDraft())
+    const queued = event({
+      id: 'native-trade-state',
+      tradeId: trade.id,
+      ruleId: null,
+      ruleState: {
+        armed: false,
+        lastPrice: 1,
+        lastFiredAt: NOW - 1_000,
+        referencePrice: null,
+        enabled: false,
+      },
+    })
+
+    const summary = await importBackgroundEvents([queued], NOW, noteMock())
+
+    expect(summary).toEqual({ imported: 1, closed: 1, reviews: 0 })
+    expect(await getAlert(rule.id)).toMatchObject({
+      armed: true,
+      lastPrice: 2900,
+      lastFiredAt: null,
+      referencePrice: null,
+      enabled: true,
     })
   })
 

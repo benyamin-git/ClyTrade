@@ -1,6 +1,6 @@
 import type { AlertEvent, AlertEventKind } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
-import { getAlertEvent, importAlertEvent } from '@/data/repositories/alerts.repo'
+import { getAlertEvent, importAlertEvent, updateAlert } from '@/data/repositories/alerts.repo'
 import { applyAutoClose, getTrade } from '@/data/repositories/trades.repo'
 import { backgroundEventSchema, type BackgroundEvent } from './background'
 
@@ -52,6 +52,17 @@ function isTradeHit(event: BackgroundEvent, trade: Trade | undefined): trade is 
     : event.level === trade.stopPrice
 }
 
+async function applyRuleState(event: BackgroundEvent): Promise<void> {
+  if (event.ruleId === null || event.ruleState === undefined) return
+  await updateAlert(event.ruleId, {
+    armed: event.ruleState.armed,
+    lastPrice: event.ruleState.lastPrice,
+    lastFiredAt: event.ruleState.lastFiredAt,
+    referencePrice: event.ruleState.referencePrice,
+    enabled: event.ruleState.enabled,
+  }).catch(() => undefined)
+}
+
 export async function importBackgroundEvents(
   events: readonly BackgroundEvent[],
   now: number,
@@ -71,6 +82,7 @@ export async function importBackgroundEvents(
     if (event.kind !== 'target' && event.kind !== 'stop') {
       const inserted = await importAlertEvent(toAlertEvent(event, event.id, event.kind))
       if (inserted) imported += 1
+      await applyRuleState(event)
       continue
     }
 

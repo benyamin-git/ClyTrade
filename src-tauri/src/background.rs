@@ -1,6 +1,7 @@
 use crate::background_eval::{
   market_refs, parse_binance_prices, parse_coingecko_prices, provider_candidates, run_snapshot,
-  uncovered_refs, MarketRef, NotificationPayload, Price, RuleStateCache, Snapshot,
+  seed_rule_cache_from_queue, uncovered_refs, webview_active, MarketRef, NotificationPayload,
+  Price, RuleStateCache, Snapshot,
 };
 use crate::background_files::{clear_events_file, read_events_file, write_atomic};
 use std::collections::{HashMap, HashSet};
@@ -22,6 +23,14 @@ fn now_ms() -> i64 {
     .duration_since(UNIX_EPOCH)
     .map(|duration| duration.as_millis() as i64)
     .unwrap_or(0)
+}
+
+fn main_window_active(app: &AppHandle) -> bool {
+  app.get_webview_window("main").is_some_and(|window| {
+    let visible = window.is_visible().unwrap_or(false);
+    let minimized = window.is_minimized().unwrap_or(false);
+    webview_active(visible, minimized)
+  })
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -197,7 +206,11 @@ pub async fn poll_once(
   app: &AppHandle,
   client: &reqwest::Client,
   cache: &mut RuleStateCache,
+  webview_active: bool,
 ) -> Result<PollSummary, String> {
+  if webview_active {
+    return Ok(PollSummary::default());
+  }
   let path = snapshot_path(app)?;
   let raw = match std::fs::read_to_string(&path) {
     Ok(raw) => raw,
@@ -230,6 +243,9 @@ pub async fn poll_once(
   let prices = fetch_prices(client, &snapshot, &refs).await;
   let existing = read_events_file(&events_path(app)?);
   let mut next_cache = cache.clone();
+  if next_cache.is_empty() {
+    seed_rule_cache_from_queue(&mut next_cache, &snapshot, &existing);
+  }
   let run = run_snapshot(&snapshot, &prices, &existing, now_ms(), &mut next_cache);
 
   if !run.queued.is_empty() {
@@ -260,7 +276,7 @@ pub fn spawn_timer(app: AppHandle) {
     let mut cache = RuleStateCache::default();
     tokio::time::sleep(Duration::from_secs(5)).await;
     loop {
-      match poll_once(&app, &client, &mut cache).await {
+      match poll_once(&app, &client, &mut cache, main_window_active(&app)).await {
         Ok(_) => {}
         Err(error) => eprintln!("background poll failed: {error}"),
       }

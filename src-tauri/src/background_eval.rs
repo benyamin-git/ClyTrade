@@ -2,9 +2,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 pub const DEFAULT_STALE_MS: i64 = 15 * 60_000;
-pub const TRADE_DEDUPE_MS: i64 = 5 * 60_000;
 pub const QUEUE_CAP: usize = 200;
 pub const MAX_NOTIFICATION_ITEMS: usize = 5;
+
+pub fn webview_active(visible: bool, minimized: bool) -> bool {
+  visible && !minimized
+}
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -237,6 +240,23 @@ pub struct QueueEvent {
   pub provider: String,
   #[serde(default = "default_direction")]
   pub direction: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub rule_state: Option<RuleState>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct RuleState {
+  #[serde(default)]
+  pub armed: bool,
+  #[serde(default)]
+  pub last_price: Option<f64>,
+  #[serde(default)]
+  pub last_fired_at: Option<i64>,
+  #[serde(default)]
+  pub reference_price: Option<f64>,
+  #[serde(default)]
+  pub enabled: bool,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
@@ -349,9 +369,36 @@ fn has_mapping(binance_symbol: &Option<String>, coingecko_id: &Option<String>) -
       .is_some_and(|value| !value.is_empty())
 }
 
+fn add_market_ref(
+  refs: &mut Vec<MarketRef>,
+  index: &mut HashMap<String, usize>,
+  candidate: MarketRef,
+) {
+  if let Some(position) = index.get(&candidate.key).copied() {
+    let existing = &mut refs[position];
+    if !existing
+      .binance_symbol
+      .as_deref()
+      .is_some_and(|value| !value.is_empty())
+    {
+      existing.binance_symbol = candidate.binance_symbol;
+    }
+    if !existing
+      .coingecko_id
+      .as_deref()
+      .is_some_and(|value| !value.is_empty())
+    {
+      existing.coingecko_id = candidate.coingecko_id;
+    }
+    return;
+  }
+  index.insert(candidate.key.clone(), refs.len());
+  refs.push(candidate);
+}
+
 pub fn market_refs(snapshot: &Snapshot) -> Vec<MarketRef> {
   let mut refs = Vec::new();
-  let mut seen = HashSet::new();
+  let mut index = HashMap::new();
 
   for trade in &snapshot.trades {
     if trade.status != "open" {
@@ -360,19 +407,20 @@ pub fn market_refs(snapshot: &Snapshot) -> Vec<MarketRef> {
     if trade.target_price.is_none() && trade.stop_price.is_none() {
       continue;
     }
-    let key = price_key_for(
-      trade.binance_symbol.as_deref(),
-      trade.coingecko_id.as_deref(),
-      &trade.symbol,
-    );
-    if seen.insert(key.clone()) {
-      refs.push(MarketRef {
-        key,
+    add_market_ref(
+      &mut refs,
+      &mut index,
+      MarketRef {
+        key: price_key_for(
+          trade.binance_symbol.as_deref(),
+          trade.coingecko_id.as_deref(),
+          &trade.symbol,
+        ),
         symbol: trade.symbol.clone(),
         binance_symbol: trade.binance_symbol.clone(),
         coingecko_id: trade.coingecko_id.clone(),
-      });
-    }
+      },
+    );
   }
 
   for rule in &snapshot.rules {
@@ -382,19 +430,20 @@ pub fn market_refs(snapshot: &Snapshot) -> Vec<MarketRef> {
     if !has_mapping(&rule.binance_symbol, &rule.coingecko_id) {
       continue;
     }
-    let key = price_key_for(
-      rule.binance_symbol.as_deref(),
-      rule.coingecko_id.as_deref(),
-      &rule.symbol,
-    );
-    if seen.insert(key.clone()) {
-      refs.push(MarketRef {
-        key,
+    add_market_ref(
+      &mut refs,
+      &mut index,
+      MarketRef {
+        key: price_key_for(
+          rule.binance_symbol.as_deref(),
+          rule.coingecko_id.as_deref(),
+          &rule.symbol,
+        ),
         symbol: rule.symbol.clone(),
         binance_symbol: rule.binance_symbol.clone(),
         coingecko_id: rule.coingecko_id.clone(),
-      });
-    }
+      },
+    );
   }
 
   refs
@@ -831,6 +880,49 @@ impl RuleStateCache {
   pub fn clear(&mut self) {
     self.states.clear();
   }
+
+  pub fn is_empty(&self) -> bool {
+    self.states.is_empty()
+  }
+}
+
+pub fn seed_rule_cache_from_queue(
+  cache: &mut RuleStateCache,
+  snapshot: &Snapshot,
+  existing_json: &str,
+) {
+  for event in parse_queue_events(existing_json) {
+    let Some(rule_id) = event.rule_id.as_deref() else {
+      continue;
+    };
+    let Some(state) = event.rule_state.as_ref() else {
+      continue;
+    };
+    let Some(rule) = snapshot.rules.iter().find(|rule| rule.id == rule_id) else {
+      continue;
+    };
+    if event.at < rule.updated_at {
+      continue;
+    }
+    if let Some(existing) = cache.states.get(rule_id) {
+      if existing.updated_at == rule.updated_at
+        && existing.last_fired_at.unwrap_or(i64::MIN) > event.at
+      {
+        continue;
+      }
+    }
+    cache.states.insert(
+      rule_id.to_string(),
+      CachedRuleState {
+        updated_at: rule.updated_at,
+        last_price: state.last_price,
+        armed: state.armed,
+        last_fired_at: state.last_fired_at,
+        reference_price: state.reference_price,
+        enabled: state.enabled,
+      },
+    );
+  }
 }
 
 fn overlay_rules(snapshot: &Snapshot, cache: &RuleStateCache) -> Vec<Rule> {
@@ -878,38 +970,50 @@ fn apply_rule_updates(cache: &mut RuleStateCache, rules: &[Rule], updates: &[Rul
   }
 }
 
-fn same_event_target(left: &QueueEvent, right: &QueueEvent) -> bool {
-  match (left.rule_id.as_deref(), right.rule_id.as_deref()) {
-    (Some(left_id), Some(right_id)) if left_id == right_id => return true,
-    _ => {}
-  }
-  match (left.trade_id.as_deref(), right.trade_id.as_deref()) {
-    (Some(left_id), Some(right_id)) if left_id == right_id => return true,
-    _ => {}
-  }
-  false
+struct RuleDedupe<'a> {
+  repeat: &'a str,
+  cooldown_ms: i64,
 }
 
 fn is_duplicate(
   existing: &[QueueEvent],
   accepted: &[QueueEvent],
   candidate: &QueueEvent,
-  cooldowns: &HashMap<&str, i64>,
+  rules: &HashMap<&str, RuleDedupe<'_>>,
 ) -> bool {
-  let window = match candidate.rule_id.as_deref() {
-    Some(rule_id) => cooldowns
-      .get(rule_id)
-      .copied()
-      .unwrap_or(TRADE_DEDUPE_MS)
-      .max(0),
-    None => TRADE_DEDUPE_MS,
-  };
+  if let Some(rule_id) = candidate.rule_id.as_deref() {
+    let Some(rule) = rules.get(rule_id) else {
+      return false;
+    };
+    if rule.repeat != "cooldown" {
+      return false;
+    }
+    let window = rule.cooldown_ms.max(0);
+    return existing.iter().chain(accepted.iter()).any(|event| {
+      event.rule_id.as_deref() == Some(rule_id)
+        && event.level == candidate.level
+        && (candidate.at - event.at).abs() < window
+    });
+  }
 
+  let Some(trade_id) = candidate.trade_id.as_deref() else {
+    return false;
+  };
   existing.iter().chain(accepted.iter()).any(|event| {
-    same_event_target(event, candidate)
+    event.trade_id.as_deref() == Some(trade_id)
+      && event.kind == candidate.kind
       && event.level == candidate.level
-      && (candidate.at - event.at).abs() < window
   })
+}
+
+pub fn parse_queue_events(existing_json: &str) -> Vec<QueueEvent> {
+  let Ok(serde_json::Value::Array(rows)) = serde_json::from_str(existing_json) else {
+    return Vec::new();
+  };
+  rows
+    .into_iter()
+    .filter_map(|row| serde_json::from_value::<QueueEvent>(row).ok())
+    .collect()
 }
 
 pub fn append_background_events(
@@ -917,15 +1021,23 @@ pub fn append_background_events(
   candidates: &[QueueEvent],
   rules: &[Rule],
 ) -> (String, Vec<QueueEvent>) {
-  let mut existing: Vec<QueueEvent> = serde_json::from_str(existing_json).unwrap_or_default();
-  let cooldowns: HashMap<&str, i64> = rules
+  let mut existing = parse_queue_events(existing_json);
+  let rules: HashMap<&str, RuleDedupe<'_>> = rules
     .iter()
-    .map(|rule| (rule.id.as_str(), rule.cooldown_minutes * 60_000))
+    .map(|rule| {
+      (
+        rule.id.as_str(),
+        RuleDedupe {
+          repeat: rule.repeat.as_str(),
+          cooldown_ms: rule.cooldown_minutes * 60_000,
+        },
+      )
+    })
     .collect();
   let mut accepted = Vec::new();
 
   for candidate in candidates {
-    if is_duplicate(&existing, &accepted, candidate, &cooldowns) {
+    if is_duplicate(&existing, &accepted, candidate, &rules) {
       continue;
     }
     accepted.push(candidate.clone());
@@ -1117,7 +1229,48 @@ fn event_direction(event: &Event, trades: &[Trade]) -> String {
   "long".to_string()
 }
 
-fn queue_event(event: &Event, trades: &[Trade]) -> QueueEvent {
+fn rule_state_after(rule: &Rule, update: Option<&RuleUpdate>) -> RuleState {
+  let mut state = RuleState {
+    armed: rule.armed,
+    last_price: rule.last_price,
+    last_fired_at: rule.last_fired_at,
+    reference_price: rule.reference_price,
+    enabled: rule.enabled,
+  };
+  if let Some(update) = update {
+    if let Some(armed) = update.patch.armed {
+      state.armed = armed;
+    }
+    if let Some(last_price) = update.patch.last_price {
+      state.last_price = Some(last_price);
+    }
+    if let Some(last_fired_at) = update.patch.last_fired_at {
+      state.last_fired_at = Some(last_fired_at);
+    }
+    if let Some(reference_price) = update.patch.reference_price {
+      state.reference_price = Some(reference_price);
+    }
+    if let Some(enabled) = update.patch.enabled {
+      state.enabled = enabled;
+    }
+  }
+  state
+}
+
+fn queue_event(
+  event: &Event,
+  trades: &[Trade],
+  rules: &[Rule],
+  updates: &[RuleUpdate],
+) -> QueueEvent {
+  let rule_state = event.rule_id.as_deref().and_then(|rule_id| {
+    if event.kind == "stale" {
+      return None;
+    }
+    let rule = rules.iter().find(|rule| rule.id == rule_id)?;
+    let update = updates.iter().find(|update| update.id == rule_id);
+    Some(rule_state_after(rule, update))
+  });
   QueueEvent {
     id: event_id(event),
     kind: event.kind.clone(),
@@ -1131,6 +1284,7 @@ fn queue_event(event: &Event, trades: &[Trade]) -> QueueEvent {
     at: event.at,
     provider: event.provider.clone(),
     direction: event_direction(event, trades),
+    rule_state,
   }
 }
 
@@ -1166,7 +1320,7 @@ pub fn run_snapshot(
     .events
     .iter()
     .chain(result.reviews.iter())
-    .map(|event| queue_event(event, &snapshot.trades))
+    .map(|event| queue_event(event, &snapshot.trades, &rules, &result.rule_updates))
     .collect();
   let (queue_json, queued) = append_background_events(existing_queue, &candidates, &rules);
   let notification = grouped_notification(snapshot, &queued);
@@ -1315,9 +1469,39 @@ mod tests {
   }
 
   #[test]
+  fn market_refs_merge_a_missing_coingecko_mapping_from_a_duplicate_key() {
+    let snapshot = Snapshot {
+      trades: vec![Trade {
+        id: "t1".to_string(),
+        symbol: "BTC".to_string(),
+        status: "open".to_string(),
+        target_price: Some(100.0),
+        binance_symbol: Some("BTCUSDT".to_string()),
+        coingecko_id: None,
+        ..Trade::default()
+      }],
+      rules: vec![Rule {
+        id: "r1".to_string(),
+        symbol: "BTC".to_string(),
+        enabled: true,
+        binance_symbol: Some("BTCUSDT".to_string()),
+        coingecko_id: Some("bitcoin".to_string()),
+        ..Rule::default()
+      }],
+      ..Snapshot::default()
+    };
+    let refs = market_refs(&snapshot);
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0].key, "binance:BTCUSDT");
+    assert_eq!(refs[0].binance_symbol.as_deref(), Some("BTCUSDT"));
+    assert_eq!(refs[0].coingecko_id.as_deref(), Some("bitcoin"));
+  }
+
+  #[test]
   fn queue_dedupes_a_rule_inside_its_cooldown() {
     let rules = vec![Rule {
       id: "r1".to_string(),
+      repeat: "cooldown".to_string(),
       cooldown_minutes: 60,
       ..Rule::default()
     }];
@@ -1347,27 +1531,66 @@ mod tests {
   }
 
   #[test]
-  fn queue_dedupes_a_trade_for_five_minutes() {
+  fn queue_keeps_a_trade_event_while_it_remains_queued() {
     let first = QueueEvent {
+      id: "bg:1000:target:trade:t1:100".to_string(),
       kind: "target".to_string(),
       trade_id: Some("t1".to_string()),
       level: Some(100.0),
       at: 1_000,
       ..QueueEvent::default()
     };
-    let inside = QueueEvent {
-      at: 1_000 + 4 * 60_000,
-      ..first.clone()
-    };
-    let outside = QueueEvent {
-      at: 1_000 + 5 * 60_000,
+    let later = QueueEvent {
+      id: "bg:301001:target:trade:t1:100".to_string(),
+      at: 1_000 + 5 * 60_000 + 1_000,
       ..first.clone()
     };
     let (json, _) = append_background_events("[]", &[first], &[]);
-    let (_, queued) = append_background_events(&json, &[inside], &[]);
+    let (_, queued) = append_background_events(&json, &[later], &[]);
     assert!(queued.is_empty());
-    let (_, queued) = append_background_events(&json, &[outside], &[]);
+  }
+
+  #[test]
+  fn queue_allows_a_cross_back_rule_to_fire_again_while_the_old_event_is_queued() {
+    let rule = Rule {
+      id: "r1".to_string(),
+      repeat: "cross-back".to_string(),
+      cooldown_minutes: 60,
+      ..Rule::default()
+    };
+    let first = QueueEvent {
+      id: "bg:1000:level:rule:r1:100".to_string(),
+      kind: "level".to_string(),
+      rule_id: Some("r1".to_string()),
+      level: Some(100.0),
+      at: 1_000,
+      ..QueueEvent::default()
+    };
+    let second = QueueEvent {
+      id: "bg:2000:level:rule:r1:100".to_string(),
+      at: 2_000,
+      ..first.clone()
+    };
+    let (json, _) = append_background_events("[]", &[first], std::slice::from_ref(&rule));
+    let (_, queued) = append_background_events(&json, &[second], &[rule]);
     assert_eq!(queued.len(), 1);
+  }
+
+  #[test]
+  fn queue_keeps_valid_entries_when_one_entry_is_malformed() {
+    let valid = QueueEvent {
+      id: "valid".to_string(),
+      kind: "level".to_string(),
+      rule_id: Some("r1".to_string()),
+      level: Some(100.0),
+      at: 1_000,
+      ..QueueEvent::default()
+    };
+    let rows = serde_json::json!([valid, "not-an-event"]);
+    let (json, _) = append_background_events(&rows.to_string(), &[], &[]);
+    let stored: Vec<QueueEvent> = serde_json::from_str(&json).unwrap();
+    assert_eq!(stored.len(), 1);
+    assert_eq!(stored[0].id, "valid");
   }
 
   #[test]

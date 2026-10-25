@@ -64,6 +64,14 @@ export interface BackgroundSnapshot {
 
 const backgroundPrice = z.number().finite().positive()
 
+const backgroundRuleStateSchema = z.object({
+  armed: z.boolean(),
+  lastPrice: backgroundPrice.nullable(),
+  lastFiredAt: z.number().nullable(),
+  referencePrice: backgroundPrice.nullable(),
+  enabled: z.boolean(),
+})
+
 export const backgroundEventSchema = z.object({
   id: z.string().min(1),
   kind: alertEventKindSchema,
@@ -77,6 +85,7 @@ export const backgroundEventSchema = z.object({
   direction: z.enum(['long', 'short']),
   at: z.number(),
   provider: priceProviderSchema,
+  ruleState: backgroundRuleStateSchema.optional(),
 })
 
 export type BackgroundEvent = z.infer<typeof backgroundEventSchema>
