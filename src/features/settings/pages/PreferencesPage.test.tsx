@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import { exportBackup } from '@/data/backup'
 import { DEFAULT_PREFERENCES, MARKET_API_KEY, PREFERENCES_KEY } from '@/data/models/settings'
@@ -15,6 +15,18 @@ import {
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { PreferencesPage } from './PreferencesPage'
 
+const platform = vi.hoisted(() => ({ current: 'web' as string }))
+
+vi.mock('@/lib/version', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/version')>()
+  return {
+    ...actual,
+    get APP_PLATFORM() {
+      return platform.current
+    },
+  }
+})
+
 function renderPage() {
   render(
     <SettingsProvider>
@@ -27,6 +39,7 @@ function renderPage() {
 
 describe('PreferencesPage', () => {
   beforeEach(async () => {
+    platform.current = 'web'
     await clearSettings()
   })
 
@@ -138,6 +151,29 @@ describe('PreferencesPage', () => {
       expect(await getMarketApiKey()).toBeNull()
     })
     expect(screen.getByLabelText('CoinGecko API key')).toHaveValue('')
+  })
+
+  it('shows the Windows close behavior and persists the choice', async () => {
+    platform.current = 'windows'
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    await user.selectOptions(await screen.findByLabelText('When closing'), 'tray')
+
+    await waitFor(async () => {
+      expect((await getPreferences()).windowsCloseBehavior).toBe('tray')
+    })
+  })
+
+  it('hides the Windows close behavior off Windows', async () => {
+    platform.current = 'web'
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    await screen.findByText('Defaults')
+
+    expect(screen.queryByLabelText('When closing')).not.toBeInTheDocument()
   })
 
   it('toggles key visibility', async () => {

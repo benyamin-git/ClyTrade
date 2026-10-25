@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Default capability for the ClyTrade window. The app only uses core web APIs, so no plugin permissions are granted.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "core:event:default"]
 }

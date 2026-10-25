@@ -246,6 +246,19 @@ function PreferencesForm() {
               onChange={setLocale}
               hint={t('preferences.languageHint')}
             />
+            {APP_PLATFORM === 'windows' ? (
+              <SelectField
+                label={t('preferences.windowsCloseBehavior')}
+                value={preferences.windowsCloseBehavior}
+                options={[
+                  { value: 'unset', label: t('windowsClose.ask') },
+                  { value: 'tray', label: t('windowsClose.hide') },
+                  { value: 'quit', label: t('windowsClose.quit') },
+                ]}
+                onChange={(value) => updatePreferences({ windowsCloseBehavior: value })}
+                hint={t('preferences.windowsCloseBehaviorHint')}
+              />
+            ) : null}
           </div>
         </Card>
 

@@ -799,10 +799,19 @@ export const fa = {
     providerCoingecko: 'کوین‌گکو',
     riskPerTrade: 'ریسک هر معامله',
     showKey: 'نمایش کلید',
+    windowsCloseBehavior: 'هنگام بستن',
+    windowsCloseBehaviorHint: 'وقتی پایش پس‌زمینه روشن است اعمال می‌شود.',
   },
   update: {
     available: 'نسخهٔ جدید در دسترس است.',
     dismiss: 'بستن',
     reload: 'بارگذاری مجدد',
+  },
+  windowsClose: {
+    ask: 'هر بار بپرس',
+    body: 'پایش پس‌زمینه روشن است. برای ادامهٔ بررسی قیمت‌ها به سینی سیستم پنهان شوید یا برنامه را ببندید و هشدارها را متوقف کنید.',
+    hide: 'پنهان کردن در سینی سیستم',
+    quit: 'خروج',
+    title: 'بستن ClyTrade؟',
   },
 } satisfies Dictionary

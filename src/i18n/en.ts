@@ -793,11 +793,20 @@ export const en = {
     providerCoingecko: 'CoinGecko',
     riskPerTrade: 'Risk per trade',
     showKey: 'Show key',
+    windowsCloseBehavior: 'When closing',
+    windowsCloseBehaviorHint: 'Applies while background monitoring is on.',
   },
   update: {
     available: 'New version available.',
     dismiss: 'Dismiss',
     reload: 'Reload',
+  },
+  windowsClose: {
+    ask: 'Ask every time',
+    body: 'Background monitoring is on. Hide to the tray to keep checking prices, or quit and stop alerts.',
+    hide: 'Hide to tray',
+    quit: 'Quit',
+    title: 'Close ClyTrade?',
   },
 }
 

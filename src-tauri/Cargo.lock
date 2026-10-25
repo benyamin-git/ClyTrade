@@ -331,6 +331,8 @@ dependencies = [
 name = "clytrade"
 version = "0.4.1"
 dependencies = [
+ "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
 ]

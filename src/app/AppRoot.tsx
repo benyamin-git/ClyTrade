@@ -6,6 +6,7 @@ import { requestPersistentStorage } from '@/lib/storage'
 import { SettingsI18nBridge } from './SettingsI18nBridge'
 import { router } from './router'
 import { UpdateBanner } from './UpdateBanner'
+import { WindowsClosePrompt } from './shell/WindowsClosePrompt'
 
 function BackgroundSync(): null {
   useBackgroundSync()
@@ -28,6 +29,7 @@ export function AppRoot() {
       <ForegroundAlerts />
       <RouterProvider router={router} />
       <UpdateBanner />
+      <WindowsClosePrompt />
     </SettingsI18nBridge>
   )
 }
