@@ -390,6 +390,7 @@ export const en = {
   },
   alerts: {
     at: '{{date}} at {{time}}',
+    autoCloseNote: 'Auto-closed {{symbol}} at {{level}} ({{reason}}).',
     form: {
       add: 'New alert',
       create: 'Create alert',
@@ -548,6 +549,7 @@ export const en = {
   },
   notifications: {
     title: 'ClyTrade alerts',
+    backgroundBody: 'A price level was reached while ClyTrade was in the background.',
     item: '{{symbol}} · {{kind}} · {{level}}',
     more: '+{{count}} more',
     permission: {

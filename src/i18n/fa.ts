@@ -393,6 +393,7 @@ export const fa = {
   },
   alerts: {
     at: '{{date}}، ساعت {{time}}',
+    autoCloseNote: 'بستهٔ خودکار {{symbol}} در {{level}} ({{reason}}).',
     form: {
       add: 'هشدار جدید',
       create: 'ساخت هشدار',
@@ -552,6 +553,7 @@ export const fa = {
   },
   notifications: {
     title: 'هشدارهای ClyTrade',
+    backgroundBody: 'در حالی که ClyTrade در پس‌زمینه بود، قیمت به یک سطح رسید.',
     item: '{{symbol}} · {{kind}} · {{level}}',
     more: '+{{count}} مورد دیگر',
     permission: {

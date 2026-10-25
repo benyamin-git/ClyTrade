@@ -1,3 +1,4 @@
+import Dexie from 'dexie'
 import { newId } from '@/lib/id'
 import { db } from '../db'
 import {
@@ -49,6 +50,23 @@ export async function deleteAlert(id: string): Promise<void> {
 export async function listAlertEvents(limit = 500): Promise<AlertEvent[]> {
   const safeLimit = Math.max(0, Math.floor(limit))
   return db.alertEvents.orderBy('at').reverse().limit(safeLimit).toArray()
+}
+
+export async function getAlertEvent(id: string): Promise<AlertEvent | undefined> {
+  return db.alertEvents.get(id)
+}
+
+export async function importAlertEvent(event: AlertEvent): Promise<boolean> {
+  const existing = await db.alertEvents.get(event.id)
+  if (existing) return false
+  const parsed = alertEventSchema.parse(event)
+  try {
+    await db.alertEvents.add(parsed)
+    return true
+  } catch (error) {
+    if (error instanceof Dexie.ConstraintError) return false
+    throw error
+  }
 }
 
 export async function createAlertEvent(draft: AlertEventDraft): Promise<AlertEvent> {

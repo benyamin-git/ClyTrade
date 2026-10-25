@@ -6,6 +6,9 @@ declare const __APP_PLATFORM__: string
 
 interface ClyTradeNativeBridge {
   setDarkTheme(dark: boolean): void
+  writeBackgroundSnapshot?: (json: string) => void
+  readBackgroundEvents?: () => string
+  clearBackgroundEvents?: () => void
 }
 
 interface Window {
