@@ -12,6 +12,10 @@ export const fa = {
     saveChanges: 'ذخیره تغییرات',
     unitToggle: 'تغییر واحد {{label}} (اکنون {{unit}})',
   },
+  symbolPicker: {
+    empty: 'نمادی پیدا نشد.',
+    none: 'انتخاب نماد',
+  },
   filters: {
     activeCount: {
       one: '{{count}} فعال',

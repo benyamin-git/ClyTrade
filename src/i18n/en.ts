@@ -10,6 +10,10 @@ export const en = {
     saveChanges: 'Save changes',
     unitToggle: 'Switch {{label}} unit (currently {{unit}})',
   },
+  symbolPicker: {
+    empty: 'No symbols found.',
+    none: 'Select a symbol',
+  },
   filters: {
     activeCount: {
       one: '{{count}} active',
