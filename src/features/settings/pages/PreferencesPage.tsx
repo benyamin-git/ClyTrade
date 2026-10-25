@@ -1,24 +1,125 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { MARKET_IDS } from '@/data/models/market'
 import { PREFERENCE_LIMITS, type BoundedPreference } from '@/data/models/settings'
+import { getMarketApiKey, setMarketApiKey } from '@/data/repositories/settings.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { useI18n } from '@/i18n/I18nContext'
 import { LOCALES } from '@/i18n/locales'
+import type { Translator } from '@/i18n/translate'
 import { CURRENCIES, currencySymbol } from '@/lib/currency'
 import { TIME_RANGES } from '@/lib/dates'
 import { clamp } from '@/lib/money'
 import { APP_PLATFORM, APP_VERSION, isPlatformId } from '@/lib/version'
+import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { Field } from '@/ui/components/Field'
 import { NumberField } from '@/ui/components/NumberField'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { SelectField } from '@/ui/components/SelectField'
+import { TextField } from '@/ui/components/TextField'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 
 function clampPreference(key: BoundedPreference, value: number): number {
   const limits = PREFERENCE_LIMITS[key]
   return clamp(value, limits.min, limits.max)
+}
+
+function notificationStatus(t: Translator): string {
+  if (typeof Notification === 'undefined') {
+    return t('preferences.notificationsUnsupported')
+  }
+  switch (Notification.permission) {
+    case 'granted':
+      return t('preferences.notificationsGranted')
+    case 'denied':
+      return t('preferences.notificationsDenied')
+    default:
+      return t('preferences.notificationsDefault')
+  }
+}
+
+function MarketKeyField({ initial }: { initial: string }) {
+  const { t } = useI18n()
+  const [value, setValue] = useState(initial)
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="flex flex-col gap-2">
+      <TextField
+        label={t('preferences.coingeckoKey')}
+        type={visible ? 'text' : 'password'}
+        value={value}
+        onChange={setValue}
+        onBlur={() => void setMarketApiKey(value)}
+        hint={t('preferences.coingeckoKeyHint')}
+      />
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outlined" onClick={() => setVisible((current) => !current)}>
+          {visible ? t('preferences.hideKey') : t('preferences.showKey')}
+        </Button>
+        <Button
+          size="sm"
+          variant="text"
+          onClick={() => {
+            setValue('')
+            void setMarketApiKey(null)
+          }}
+        >
+          {t('preferences.clearKey')}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function MarketDataCard() {
+  const { preferences, updatePreferences } = usePreferences()
+  const { t } = useI18n()
+  const storedKey = useLiveQuery(() => getMarketApiKey(), [])
+
+  return (
+    <Card title={t('preferences.marketData')}>
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
+        <SelectField
+          label={t('preferences.priceProvider')}
+          value={preferences.priceProvider}
+          options={[
+            { value: 'auto', label: t('preferences.providerAuto') },
+            { value: 'binance', label: t('preferences.providerBinance') },
+            { value: 'coingecko', label: t('preferences.providerCoingecko') },
+          ]}
+          onChange={(value) => updatePreferences({ priceProvider: value })}
+          hint={t('preferences.priceProviderHint')}
+        />
+        <Field
+          label={t('preferences.autoCloseByDefault')}
+          hint={t('preferences.autoCloseByDefaultHint')}
+        >
+          <SegmentedControl
+            value={preferences.autoCloseByDefault ? 'included' : 'excluded'}
+            options={[
+              { value: 'included', label: t('preferences.included') },
+              { value: 'excluded', label: t('preferences.excluded') },
+            ]}
+            onChange={(value) => updatePreferences({ autoCloseByDefault: value === 'included' })}
+            ariaLabel={t('preferences.autoCloseByDefault')}
+          />
+        </Field>
+        <div className="flex flex-col gap-1.5">
+          <p className="text-xs font-medium tracking-wide text-on-surface-variant uppercase">
+            {t('preferences.notifications')}
+          </p>
+          <p className="text-sm text-on-surface">{notificationStatus(t)}</p>
+          <p className="text-xs text-on-surface-variant">{t('preferences.notificationsHint')}</p>
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <MarketKeyField key={storedKey ?? 'empty'} initial={storedKey ?? ''} />
+        </div>
+      </div>
+    </Card>
+  )
 }
 
 function PreferencesForm() {
@@ -133,6 +234,8 @@ function PreferencesForm() {
             />
           </div>
         </Card>
+
+        <MarketDataCard />
 
         <Card title={t('preferences.interface')}>
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">

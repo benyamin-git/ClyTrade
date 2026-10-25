@@ -1,6 +1,7 @@
 import { db } from '../db'
 import {
   DEFAULT_PREFERENCES,
+  MARKET_API_KEY,
   PREFERENCES_KEY,
   parsePreferences,
   preferencesSchema,
@@ -16,6 +17,20 @@ export async function getSetting<T>(key: string): Promise<T | undefined> {
 export async function setSetting(key: string, value: unknown): Promise<void> {
   const row: SettingRow = { key, value, updatedAt: Date.now() }
   await db.settings.put(row)
+}
+
+export async function getMarketApiKey(): Promise<string | null> {
+  const value = await getSetting<unknown>(MARKET_API_KEY)
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+export async function setMarketApiKey(key: string | null): Promise<void> {
+  const trimmed = key?.trim() ?? ''
+  if (!trimmed) {
+    await db.settings.delete(MARKET_API_KEY)
+    return
+  }
+  await setSetting(MARKET_API_KEY, trimmed)
 }
 
 export async function getPreferences(): Promise<Preferences> {

@@ -1,12 +1,15 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
-import { DEFAULT_PREFERENCES, PREFERENCES_KEY } from '@/data/models/settings'
+import { exportBackup } from '@/data/backup'
+import { DEFAULT_PREFERENCES, MARKET_API_KEY, PREFERENCES_KEY } from '@/data/models/settings'
 import {
   clearSettings,
+  getMarketApiKey,
   getPreferences,
   getSetting,
+  setMarketApiKey,
   setPreferences,
 } from '@/data/repositories/settings.repo'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
@@ -88,6 +91,71 @@ describe('PreferencesPage', () => {
     await waitFor(async () => {
       const stored = await getSetting<{ riskPercent: number }>(PREFERENCES_KEY)
       expect(stored?.riskPercent).toBe(100)
+    })
+  })
+
+  it('persists the provider, auto-close default and key without exporting the key', async () => {
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    await user.selectOptions(await screen.findByLabelText('Price provider'), 'coingecko')
+    await waitFor(async () => {
+      expect((await getPreferences()).priceProvider).toBe('coingecko')
+    })
+
+    const key = await screen.findByLabelText('CoinGecko API key')
+    await user.type(key, 'demo-key')
+    await user.tab()
+    await waitFor(async () => {
+      expect(await getMarketApiKey()).toBe('demo-key')
+    })
+
+    const autoClose = screen.getByRole('radiogroup', { name: 'Auto-close new trades' })
+    await user.click(within(autoClose).getByRole('radio', { name: 'Included' }))
+    await waitFor(async () => {
+      expect((await getPreferences()).autoCloseByDefault).toBe(true)
+    })
+
+    const backup = await exportBackup()
+    expect(backup.data.settings.some((row) => row.key === MARKET_API_KEY)).toBe(false)
+  })
+
+  it('loads and clears a saved key', async () => {
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    await setMarketApiKey('saved-key')
+    renderPage()
+
+    await screen.findByLabelText('CoinGecko API key')
+    await waitFor(() => {
+      expect(screen.getByLabelText('CoinGecko API key')).toHaveValue('saved-key')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Clear key' }))
+
+    await waitFor(async () => {
+      expect(await getMarketApiKey()).toBeNull()
+    })
+    expect(screen.getByLabelText('CoinGecko API key')).toHaveValue('')
+  })
+
+  it('toggles key visibility', async () => {
+    const user = userEvent.setup()
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    await setMarketApiKey('saved-key')
+    renderPage()
+
+    await screen.findByLabelText('CoinGecko API key')
+    await waitFor(() => {
+      expect(screen.getByLabelText('CoinGecko API key')).toHaveValue('saved-key')
+    })
+    expect(screen.getByLabelText('CoinGecko API key')).toHaveAttribute('type', 'password')
+
+    await user.click(screen.getByRole('button', { name: 'Show key' }))
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('CoinGecko API key')).toHaveAttribute('type', 'text')
     })
   })
 })

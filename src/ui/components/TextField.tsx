@@ -6,6 +6,8 @@ export interface TextFieldProps {
   label: string
   value: string
   onChange: (value: string) => void
+  onBlur?: () => void
+  type?: 'text' | 'password'
   placeholder?: string
   hint?: string
   error?: string | null
@@ -18,6 +20,8 @@ export function TextField({
   label,
   value,
   onChange,
+  onBlur,
+  type = 'text',
   placeholder,
   hint,
   error,
@@ -38,7 +42,7 @@ export function TextField({
       {({ describedBy, invalid }) => (
         <input
           id={id}
-          type="text"
+          type={type}
           autoComplete="off"
           spellCheck={false}
           disabled={disabled}
@@ -47,6 +51,7 @@ export function TextField({
           aria-describedby={describedBy}
           aria-invalid={invalid ? true : undefined}
           onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
           className={cn(
             'h-control w-full rounded-app-sm border border-outline-variant bg-surface-container-lowest px-3 text-base transition-colors outline-none placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary',
             invalid && 'border-error focus:border-error focus:ring-error',
