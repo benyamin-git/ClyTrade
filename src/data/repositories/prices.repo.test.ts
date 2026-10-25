@@ -29,6 +29,7 @@ function symbol(
   return {
     id: `${provider}:${value}`,
     provider,
+    priceId: value,
     symbol: value,
     name: null,
     quote: provider === 'binance' ? 'USDT' : null,

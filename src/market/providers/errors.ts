@@ -27,7 +27,7 @@ export function errorFromResponse(provider: PriceProviderId, status: number): Pr
   if (status === 429) {
     return new ProviderError('rate-limit', provider, `HTTP ${status}`)
   }
-  if (status === 403 || status === 451) {
+  if (status === 401 || status === 403 || status === 451) {
     return new ProviderError('blocked', provider, `HTTP ${status}`)
   }
   if (status >= 400 && status < 500) {

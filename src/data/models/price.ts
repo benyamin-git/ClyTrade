@@ -21,6 +21,7 @@ export type PriceCacheEntry = z.infer<typeof priceCacheEntrySchema>
 export const marketSymbolSchema = z.object({
   id: z.string(),
   provider: priceProviderSchema,
+  priceId: z.string(),
   symbol: z.string(),
   name: z.string().nullable(),
   quote: z.string().nullable(),

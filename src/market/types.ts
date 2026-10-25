@@ -18,6 +18,7 @@ export interface ProviderPrice {
 
 export interface ProviderSymbol {
   provider: PriceProviderId
+  priceId: string
   symbol: string
   name: string | null
   quote: string | null

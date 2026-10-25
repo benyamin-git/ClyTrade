@@ -167,6 +167,7 @@ describe('binance.fetchSymbols', () => {
     expect(symbols.map((row) => row.symbol)).toEqual(['BTCUSDT', 'BTCUSDC'])
     expect(symbols[0]).toMatchObject({
       provider: 'binance',
+      priceId: 'BTCUSDT',
       symbol: 'BTCUSDT',
       name: null,
       quote: 'USDT',

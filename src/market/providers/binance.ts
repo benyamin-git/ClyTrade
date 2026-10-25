@@ -103,6 +103,7 @@ export function createBinanceProvider(options: BinanceOptions = {}): MarketProvi
         if (typeof row.symbol !== 'string' || typeof row.quoteAsset !== 'string') continue
         symbols.push({
           provider: PROVIDER,
+          priceId: row.symbol,
           symbol: row.symbol,
           name: null,
           quote: row.quoteAsset,
