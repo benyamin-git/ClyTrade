@@ -550,6 +550,19 @@ export const fa = {
       other: '{{count}} هشدار خوانده‌نشده',
     },
   },
+  notifications: {
+    title: 'هشدارهای ClyTrade',
+    item: '{{symbol}} · {{kind}} · {{level}}',
+    more: '+{{count}} مورد دیگر',
+    permission: {
+      label: 'اعلان‌ها',
+      granted: 'مجاز',
+      denied: 'مسدود',
+      default: 'درخواست نشده',
+      unsupported: 'پشتیبانی نمی‌شود',
+      request: 'فعال‌سازی اعلان‌ها',
+    },
+  },
   journal: {
     addTrade: 'افزودن معامله',
     autoClose: 'بستن خودکار',

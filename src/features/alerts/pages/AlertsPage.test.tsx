@@ -178,8 +178,21 @@ function renderPageWithProbe() {
   )
 }
 
+class FakeNotification {
+  static permission: NotificationPermission = 'default'
+  static requestPermission = vi.fn(async () => 'granted' as NotificationPermission)
+}
+
+function stubNotification(permission: NotificationPermission): typeof FakeNotification {
+  FakeNotification.permission = permission
+  FakeNotification.requestPermission = vi.fn(async () => 'granted' as NotificationPermission)
+  vi.stubGlobal('Notification', FakeNotification)
+  return FakeNotification
+}
+
 afterEach(() => {
   vi.useRealTimers()
+  vi.unstubAllGlobals()
   document.documentElement.dir = ''
   document.documentElement.lang = 'en'
 })
@@ -728,5 +741,51 @@ describe('AlertsPage', () => {
     expect(await screen.findByText('هنوز قاعدهٔ هشداری ندارید')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'به‌روزرسانی قیمت‌ها' })).toBeInTheDocument()
     expect(document.documentElement.dir).toBe('rtl')
+  })
+})
+
+describe('AlertsPage notification permission', () => {
+  it('shows the unsupported state without a request button', () => {
+    renderPage()
+
+    const row = screen.getByRole('region', { name: 'Notifications' })
+    expect(within(row).getByRole('status')).toHaveTextContent('Not supported')
+    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('requests permission from the default state and shows the granted status', async () => {
+    const fake = stubNotification('default')
+    const user = userEvent.setup()
+    renderPage()
+
+    const row = screen.getByRole('region', { name: 'Notifications' })
+    expect(within(row).getByRole('status')).toHaveTextContent('Not requested')
+
+    await user.click(within(row).getByRole('button', { name: 'Enable notifications' }))
+
+    expect(fake.requestPermission).toHaveBeenCalledOnce()
+    await waitFor(() => expect(within(row).getByRole('status')).toHaveTextContent('Allowed'))
+    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['granted', 'Allowed'],
+    ['denied', 'Blocked'],
+  ] as const)('shows the %s state without a request button', (permission, label) => {
+    stubNotification(permission)
+    renderPage()
+
+    const row = screen.getByRole('region', { name: 'Notifications' })
+    expect(within(row).getByRole('status')).toHaveTextContent(label)
+    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('localizes the permission row', () => {
+    stubNotification('default')
+    renderPage('fa')
+
+    const row = screen.getByRole('region', { name: 'اعلان‌ها' })
+    expect(within(row).getByRole('status')).toHaveTextContent('درخواست نشده')
+    expect(within(row).getByRole('button', { name: 'فعال‌سازی اعلان‌ها' })).toBeInTheDocument()
   })
 })

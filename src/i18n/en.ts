@@ -546,6 +546,19 @@ export const en = {
       other: '{{count}} unread alerts',
     },
   },
+  notifications: {
+    title: 'ClyTrade alerts',
+    item: '{{symbol}} · {{kind}} · {{level}}',
+    more: '+{{count}} more',
+    permission: {
+      label: 'Notifications',
+      granted: 'Allowed',
+      denied: 'Blocked',
+      default: 'Not requested',
+      unsupported: 'Not supported',
+      request: 'Enable notifications',
+    },
+  },
   journal: {
     addTrade: 'Add trade',
     autoClose: 'Auto-close',

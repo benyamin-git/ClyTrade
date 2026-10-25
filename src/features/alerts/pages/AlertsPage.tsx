@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Plus } from 'lucide-react'
+import { Bell, Plus } from 'lucide-react'
 import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import {
@@ -16,6 +16,7 @@ import { getPriceCache } from '@/data/repositories/prices.repo'
 import { listTrades, updateTrade } from '@/data/repositories/trades.repo'
 import { TradeFormSheet } from '@/features/journal/components/TradeFormSheet'
 import { useI18n } from '@/i18n/I18nContext'
+import type { Translator } from '@/i18n/translate'
 import { priceKeyFor, STALE_MS, type MarketRef } from '@/market/types'
 import { usePrices } from '@/market/usePrices'
 import { Button } from '@/ui/components/Button'
@@ -29,6 +30,10 @@ import { AlertRuleList } from '../components/AlertRuleList'
 import { AlertStatusStrip } from '../components/AlertStatusStrip'
 import type { AlertHistoryFilter } from '../logic/alertHistory'
 import { useCooldownActive } from '../logic/useCooldownActive'
+import {
+  useNotificationPermission,
+  type NotificationPermissionState,
+} from '../logic/useNotificationPermission'
 
 const REVIEW_KINDS: readonly AlertEventKind[] = ['gap', 'stale', 'conflict']
 
@@ -85,6 +90,38 @@ function LoadingState() {
     <p role="status" className="px-4 py-6 text-sm text-on-surface-variant">
       {t('common.loading')}
     </p>
+  )
+}
+
+function notificationStatus(permission: NotificationPermissionState, t: Translator): string {
+  if (permission === 'granted') return t('notifications.permission.granted')
+  if (permission === 'denied') return t('notifications.permission.denied')
+  if (permission === 'unsupported') return t('notifications.permission.unsupported')
+  return t('notifications.permission.default')
+}
+
+function NotificationPermissionRow() {
+  const { t } = useI18n()
+  const { permission, request } = useNotificationPermission()
+  const label = t('notifications.permission.label')
+
+  return (
+    <section
+      aria-label={label}
+      data-testid="alerts-notifications"
+      className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-app-md border border-outline-variant/60 bg-surface-container-low px-4 py-2.5"
+    >
+      <Bell aria-hidden="true" className="size-4 shrink-0 text-on-surface-variant" />
+      <span className="text-sm font-medium text-on-surface">{label}</span>
+      <span role="status" className="text-xs text-on-surface-variant">
+        {notificationStatus(permission, t)}
+      </span>
+      {permission === 'default' ? (
+        <Button size="sm" variant="outlined" className="ms-auto" onClick={() => void request()}>
+          {t('notifications.permission.request')}
+        </Button>
+      ) : null}
+    </section>
   )
 }
 
@@ -206,6 +243,8 @@ export function AlertsPage() {
           refreshing={refreshing}
         />
       </Card>
+
+      <NotificationPermissionRow />
 
       <Card
         className="shrink-0"
