@@ -14,6 +14,8 @@ export function SubTabBar({ tab }: { tab: TabDef }) {
     active?.scrollIntoView({ inline: 'center', block: 'nearest' })
   }, [pathname])
 
+  if (tab.subtabs.length < 2) return null
+
   return (
     <div className="shrink-0 border-b border-outline-variant/60 bg-surface">
       <nav

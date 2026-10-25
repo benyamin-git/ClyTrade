@@ -1,6 +1,7 @@
 import { createElement } from 'react'
-import { Calculator, NotebookPen, Settings, Wallet } from 'lucide-react'
+import { Bell, Calculator, NotebookPen, Settings, Wallet } from 'lucide-react'
 import { lazyPage } from '@/app/lazyPage'
+import { AlertsPage } from '@/features/alerts/pages/AlertsPage'
 import { calculators } from '@/features/calculations/registry'
 import { JournalOverviewPage } from '@/features/journal/pages/JournalOverviewPage'
 import { PortfolioOverviewPage } from '@/features/portfolio/pages/PortfolioOverviewPage'
@@ -57,6 +58,20 @@ export const tabs: readonly TabDef[] = [
         element: PortfolioOverviewPage,
       },
       { id: 'stats', labelKey: 'nav.stats', path: '/portfolio/stats', element: PortfolioStatsPage },
+    ],
+  },
+  {
+    id: 'alerts',
+    labelKey: 'nav.alerts',
+    path: '/alerts',
+    icon: Bell,
+    subtabs: [
+      {
+        id: 'overview',
+        labelKey: 'nav.overview',
+        path: '/alerts/overview',
+        element: AlertsPage,
+      },
     ],
   },
   {

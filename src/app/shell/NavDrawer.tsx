@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { NavLink } from 'react-router'
 import { X } from 'lucide-react'
+import { useUnreadAlertCount } from '@/features/alerts/logic/useUnreadAlertCount'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
 import { tabs } from '@/navigation/tabs'
@@ -14,6 +15,7 @@ export interface NavDrawerProps {
 
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
   const { t } = useI18n()
+  const unreadCount = useUnreadAlertCount()
   const navRef = useRef<HTMLElement>(null)
 
   useFocusTrap(open, navRef, onClose)
@@ -50,25 +52,41 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           </IconButton>
         </div>
         <ul className="flex flex-col gap-1 p-3">
-          {tabs.map((tab) => (
-            <li key={tab.id}>
-              <NavLink
-                to={tab.path}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  cn(
-                    'state-layer flex h-control-touch items-center gap-3 rounded-app-full px-4 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-secondary-container text-on-secondary-container'
-                      : 'text-on-surface-variant hover:text-on-surface',
-                  )
-                }
-              >
-                <tab.icon className="size-5 shrink-0" />
-                {t(tab.labelKey)}
-              </NavLink>
-            </li>
-          ))}
+          {tabs.map((tab) => {
+            const unread = tab.id === 'alerts' ? unreadCount : 0
+            return (
+              <li key={tab.id}>
+                <NavLink
+                  to={tab.path}
+                  onClick={onClose}
+                  aria-label={
+                    unread > 0
+                      ? `${t(tab.labelKey)}, ${t('alerts.unread', { count: unread })}`
+                      : undefined
+                  }
+                  className={({ isActive }) =>
+                    cn(
+                      'state-layer flex h-control-touch items-center gap-3 rounded-app-full px-4 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-secondary-container text-on-secondary-container'
+                        : 'text-on-surface-variant hover:text-on-surface',
+                    )
+                  }
+                >
+                  <tab.icon className="size-5 shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{t(tab.labelKey)}</span>
+                  {unread > 0 ? (
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-app-full bg-error px-1.5 text-2xs font-medium tabular-nums text-on-error"
+                    >
+                      {unread}
+                    </span>
+                  ) : null}
+                </NavLink>
+              </li>
+            )
+          })}
         </ul>
         <p className="mt-auto p-4 text-xs text-on-surface-variant">{t('shell.tagline')}</p>
       </nav>

@@ -388,6 +388,34 @@ export const en = {
     tags: 'Tags',
     targetPrice: 'Target price',
   },
+  alerts: {
+    history: {
+      emptyTitle: 'No alerts yet',
+      emptyDescription: 'Fired alerts stay here so you can check them later.',
+    },
+    review: {
+      emptyTitle: 'Nothing needs review',
+      emptyDescription: 'Gaps, stale prices and conflicting alerts will show up here.',
+    },
+    rules: {
+      emptyTitle: 'No alert rules yet',
+      emptyDescription:
+        'Create a price or percent rule to be notified when the market reaches your level.',
+    },
+    sections: {
+      history: 'History',
+      review: 'Needs review',
+      rules: 'Active rules',
+      status: 'Price status',
+    },
+    status: {
+      placeholder: 'Live price status will appear here once monitoring starts.',
+    },
+    unread: {
+      one: '{{count}} unread alert',
+      other: '{{count}} unread alerts',
+    },
+  },
   journal: {
     addTrade: 'Add trade',
     autoClose: 'Auto-close',
@@ -535,6 +563,7 @@ export const en = {
     tagline: 'Local-first trading tools. No account, no server.',
   },
   nav: {
+    alerts: 'Alerts',
     calculations: 'Calculations',
     dataControls: 'Data Controls',
     documentation: 'Documentation',

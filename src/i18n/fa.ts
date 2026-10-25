@@ -391,6 +391,34 @@ export const fa = {
     tags: 'برچسب‌ها',
     targetPrice: 'قیمت تارگت',
   },
+  alerts: {
+    history: {
+      emptyTitle: 'هنوز هشداری ثبت نشده',
+      emptyDescription: 'هشدارهای فعال‌شده اینجا می‌مانند تا بعداً بررسی کنید.',
+    },
+    review: {
+      emptyTitle: 'چیزی برای بررسی نیست',
+      emptyDescription: 'گپ‌ها، قیمت‌های قدیمی و هشدارهای متناقض اینجا نمایش داده می‌شوند.',
+    },
+    rules: {
+      emptyTitle: 'هنوز قاعدهٔ هشداری ندارید',
+      emptyDescription:
+        'یک قاعدهٔ قیمتی یا درصدی بسازید تا با رسیدن بازار به سطح مورد نظرتان خبردار شوید.',
+    },
+    sections: {
+      history: 'تاریخچه',
+      review: 'نیازمند بررسی',
+      rules: 'قواعد فعال',
+      status: 'وضعیت قیمت',
+    },
+    status: {
+      placeholder: 'وضعیت قیمت زنده پس از شروع پایش اینجا نمایش داده می‌شود.',
+    },
+    unread: {
+      one: '{{count}} هشدار خوانده‌نشده',
+      other: '{{count}} هشدار خوانده‌نشده',
+    },
+  },
   journal: {
     addTrade: 'افزودن معامله',
     autoClose: 'بستن خودکار',
@@ -539,6 +567,7 @@ export const fa = {
     tagline: 'ابزارهای معاملاتی مستقل و آفلاین. بدون حساب، بدون سرور.',
   },
   nav: {
+    alerts: 'هشدارها',
     calculations: 'محاسبات',
     dataControls: 'مدیریت اطلاعات',
     documentation: 'مستندات',

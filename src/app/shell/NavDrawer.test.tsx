@@ -1,11 +1,35 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import type { AlertEventDraft, AlertEventStatus } from '@/data/models/price'
+import {
+  clearAlertEvents,
+  createAlertEvent,
+  markAllAlertEventsRead,
+} from '@/data/repositories/alerts.repo'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import { tabs } from '@/navigation/tabs'
 import { NavDrawer } from './NavDrawer'
+
+function eventDraft(at: number, status: AlertEventStatus = 'unread'): AlertEventDraft {
+  return {
+    kind: 'level',
+    tradeId: null,
+    ruleId: null,
+    symbol: 'BTC',
+    price: 70000,
+    level: 70000,
+    targetPrice: null,
+    stopPrice: null,
+    at,
+    provider: 'binance',
+    status,
+    resolution: null,
+    readAt: status === 'read' ? at : null,
+  }
+}
 
 function renderDrawer(open: boolean, onClose = () => {}, initialPath = '/') {
   const { container } = render(
@@ -20,6 +44,10 @@ function renderDrawer(open: boolean, onClose = () => {}, initialPath = '/') {
 }
 
 describe('NavDrawer', () => {
+  beforeEach(async () => {
+    await clearAlertEvents()
+  })
+
   it('removes the closed drawer from focus and assistive tech', () => {
     const { root } = renderDrawer(false)
 
@@ -41,6 +69,31 @@ describe('NavDrawer', () => {
 
     expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Journal' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('shows the Alerts tab with the unread count', async () => {
+    await createAlertEvent(eventDraft(1))
+    await createAlertEvent(eventDraft(2))
+    await createAlertEvent(eventDraft(3, 'read'))
+
+    renderDrawer(true)
+
+    const alerts = await screen.findByRole('link', { name: 'Alerts, 2 unread alerts' })
+    expect(within(alerts).getByText('2')).toBeInTheDocument()
+  })
+
+  it('drops the Alerts badge when every event is marked read', async () => {
+    await createAlertEvent(eventDraft(1))
+
+    renderDrawer(true)
+    expect(await screen.findByRole('link', { name: 'Alerts, 1 unread alert' })).toBeInTheDocument()
+
+    await act(async () => {
+      await markAllAlertEventsRead()
+    })
+
+    const alerts = await screen.findByRole('link', { name: 'Alerts' })
+    expect(within(alerts).queryByText('1')).not.toBeInTheDocument()
   })
 
   it('moves focus into the drawer and traps tab focus', async () => {

@@ -6,6 +6,7 @@ vi.mock('@/navigation/tabs', async (importOriginal) => {
   return {
     ...actual,
     tabs: [
+      ...actual.tabs,
       {
         id: 'journal',
         labelKey: 'nav.journal',
@@ -22,5 +23,15 @@ describe('router', () => {
     const childPaths = routes[0]?.children?.map((route) => route.path) ?? []
 
     expect(childPaths).not.toContain('empty')
+  })
+
+  it('redirects the Alerts tab to its overview', () => {
+    const children = routes[0]?.children ?? []
+    const redirect = children.find((route) => route.path === 'alerts')
+
+    expect(redirect?.element).toMatchObject({
+      props: { to: '/alerts/overview', replace: true },
+    })
+    expect(children.map((route) => route.path)).toContain('alerts/overview')
   })
 })

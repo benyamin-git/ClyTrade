@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import type { TranslationKey } from '@/i18n/types'
 
-export type TabId = 'journal' | 'portfolio' | 'calculations' | 'settings'
+export type TabId = 'journal' | 'portfolio' | 'alerts' | 'calculations' | 'settings'
 
 export interface SubTabDef {
   id: string
