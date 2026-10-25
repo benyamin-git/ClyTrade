@@ -1,49 +1,133 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Bell, CircleAlert, History, Pause, Pencil, Play, Plus, Trash2 } from 'lucide-react'
-import type { PriceAlert } from '@/data/models/price'
-import { deleteAlert, listAlerts, updateAlert } from '@/data/repositories/alerts.repo'
+import { Plus } from 'lucide-react'
+import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price'
+import type { Trade } from '@/data/models/trade'
+import {
+  deleteAlert,
+  listAlertEvents,
+  listAlerts,
+  markAllAlertEventsRead,
+  resolveAlertEvent,
+  updateAlert,
+} from '@/data/repositories/alerts.repo'
+import { listTrades, updateTrade } from '@/data/repositories/trades.repo'
+import { TradeFormSheet } from '@/features/journal/components/TradeFormSheet'
 import { useI18n } from '@/i18n/I18nContext'
-import type { Translator } from '@/i18n/translate'
-import { formatPercent, formatPrice } from '@/lib/format'
+import { priceKeyFor, type MarketRef } from '@/market/types'
+import { usePrices } from '@/market/usePrices'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
-import { EmptyState } from '@/ui/components/EmptyState'
-import { IconButton } from '@/ui/components/IconButton'
 import { Sheet } from '@/ui/components/Sheet'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
+import { AlertHistory } from '../components/AlertHistory'
+import { AlertReviewList } from '../components/AlertReviewList'
 import { AlertRuleFormSheet } from '../components/AlertRuleFormSheet'
+import { AlertRuleList } from '../components/AlertRuleList'
+import { AlertStatusStrip } from '../components/AlertStatusStrip'
+import type { AlertHistoryFilter } from '../logic/alertHistory'
 
-function ruleSummary(rule: PriceAlert, t: Translator): string {
-  if (rule.kind === 'percent') {
-    const percent = rule.percent === null ? '—' : formatPercent(rule.percent)
-    if (rule.percentDirection === 'down') return t('alerts.rules.summary.percentDown', { percent })
-    if (rule.percentDirection === 'both') return t('alerts.rules.summary.percentBoth', { percent })
-    return t('alerts.rules.summary.percentUp', { percent })
-  }
+const REVIEW_KINDS: readonly AlertEventKind[] = ['gap', 'stale', 'conflict']
 
-  if (rule.priceMode === 'range') {
-    return t('alerts.rules.summary.range', {
-      low: rule.rangeLow === null ? '—' : formatPrice(rule.rangeLow),
-      high: rule.rangeHigh === null ? '—' : formatPrice(rule.rangeHigh),
-    })
-  }
+function isReviewEvent(event: AlertEvent): boolean {
+  return (event.status === 'unread' || event.status === 'read') && REVIEW_KINDS.includes(event.kind)
+}
 
-  const level = rule.level === null ? '—' : formatPrice(rule.level)
-  if (rule.priceMode === 'below') return t('alerts.rules.summary.below', { level })
-  if (rule.priceMode === 'crossing') return t('alerts.rules.summary.crossing', { level })
-  return t('alerts.rules.summary.above', { level })
+function LoadingState() {
+  const { t } = useI18n()
+  return (
+    <p role="status" className="px-4 py-6 text-sm text-on-surface-variant">
+      {t('common.loading')}
+    </p>
+  )
 }
 
 export function AlertsPage() {
   const { t } = useI18n()
-  const alerts = useLiveQuery(() => listAlerts(), [], undefined) ?? []
-  const [form, setForm] = useState<{ alert: PriceAlert | null } | null>(null)
+  const alerts = useLiveQuery(() => listAlerts(), [], undefined)
+  const trades = useLiveQuery(() => listTrades(), [], undefined)
+  const events = useLiveQuery(() => listAlertEvents(500), [], undefined)
+  const [historyFilter, setHistoryFilter] = useState<AlertHistoryFilter>('all')
+  const [ruleForm, setRuleForm] = useState<{ alert: PriceAlert | null } | null>(null)
+  const [tradeForm, setTradeForm] = useState<{ trade: Trade } | null>(null)
   const [deleting, setDeleting] = useState<PriceAlert | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const refs = useMemo<MarketRef[]>(() => {
+    const byKey = new Map<string, MarketRef>()
+    for (const rule of alerts ?? []) {
+      if (!rule.enabled) continue
+      const ref: MarketRef = {
+        key: priceKeyFor(rule),
+        symbol: rule.symbol,
+        binanceSymbol: rule.binanceSymbol,
+        coingeckoId: rule.coingeckoId,
+      }
+      byKey.set(ref.key, ref)
+    }
+    for (const trade of trades ?? []) {
+      if (trade.status !== 'open') continue
+      if (trade.targetPrice === null && trade.stopPrice === null) continue
+      const ref: MarketRef = {
+        key: priceKeyFor(trade),
+        symbol: trade.symbol,
+        binanceSymbol: trade.binanceSymbol,
+        coingeckoId: trade.coingeckoId,
+      }
+      byKey.set(ref.key, ref)
+    }
+    return [...byKey.values()]
+  }, [alerts, trades])
+
+  const { status, refresh } = usePrices(refs, 'alerts')
+  const reviewEvents = useMemo(() => (events ?? []).filter(isReviewEvent), [events])
   const statusLabel = t('alerts.sections.status')
   const rulesLabel = t('alerts.sections.rules')
   const reviewLabel = t('alerts.sections.review')
   const historyLabel = t('alerts.sections.history')
+
+  async function handleRefresh() {
+    setRefreshing(true)
+    try {
+      await refresh().catch(() => undefined)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
+  function handleToggle(rule: PriceAlert) {
+    void updateAlert(rule.id, { enabled: !rule.enabled }).catch(() => undefined)
+  }
+
+  function handleCloseAt(event: AlertEvent, level: 'target' | 'stop') {
+    const tradeId = event.tradeId
+    const price = level === 'target' ? event.targetPrice : event.stopPrice
+    if (tradeId === null || price === null) return
+    void (async () => {
+      await updateTrade(tradeId, { status: 'closed', exitPrice: price, closedAt: event.at })
+      await resolveAlertEvent(event.id, level)
+    })().catch(() => undefined)
+  }
+
+  function handleEditReview(event: AlertEvent) {
+    if (event.tradeId !== null) {
+      const trade = trades?.find((entry) => entry.id === event.tradeId)
+      if (trade) setTradeForm({ trade })
+      return
+    }
+    if (event.ruleId !== null) {
+      const rule = alerts?.find((entry) => entry.id === event.ruleId)
+      if (rule) setRuleForm({ alert: rule })
+    }
+  }
+
+  function handleDismiss(event: AlertEvent) {
+    void resolveAlertEvent(event.id, 'dismiss').catch(() => undefined)
+  }
+
+  function handleMarkAllRead() {
+    void markAllAlertEventsRead().catch(() => undefined)
+  }
 
   return (
     <ViewportPage className="gap-3 overflow-y-auto">
@@ -53,9 +137,11 @@ export function AlertsPage() {
         aria-label={statusLabel}
         data-testid="alerts-status"
       >
-        <p className="px-4 py-3 text-sm text-on-surface-variant">
-          {t('alerts.status.placeholder')}
-        </p>
+        <AlertStatusStrip
+          status={status}
+          onRefresh={() => void handleRefresh()}
+          refreshing={refreshing}
+        />
       </Card>
 
       <Card
@@ -65,64 +151,22 @@ export function AlertsPage() {
         data-testid="alerts-rules"
       >
         <div className="flex shrink-0 items-center justify-end px-4 pt-3">
-          <Button size="sm" icon={<Plus />} onClick={() => setForm({ alert: null })}>
+          <Button size="sm" icon={<Plus />} onClick={() => setRuleForm({ alert: null })}>
             {t('alerts.form.add')}
           </Button>
         </div>
 
-        {alerts.length === 0 ? (
-          <EmptyState
-            icon={<Bell />}
-            title={t('alerts.rules.emptyTitle')}
-            description={t('alerts.rules.emptyDescription')}
-          />
+        {alerts === undefined || trades === undefined ? (
+          <LoadingState />
         ) : (
-          <ul className="min-h-0 divide-y divide-outline-variant/40 overflow-y-auto">
-            {alerts.map((rule) => (
-              <li key={rule.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                    <span className="truncate">{rule.symbol}</span>
-                    {rule.enabled ? null : (
-                      <span className="rounded-app-full bg-surface-container-highest px-1.5 py-0.5 text-2xs font-medium text-on-surface-variant">
-                        {t('alerts.rules.paused')}
-                      </span>
-                    )}
-                  </p>
-                  <p className="truncate text-xs text-on-surface-variant">{ruleSummary(rule, t)}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-0.5">
-                  <IconButton
-                    label={
-                      rule.enabled
-                        ? t('alerts.rules.pauseAria', { symbol: rule.symbol })
-                        : t('alerts.rules.resumeAria', { symbol: rule.symbol })
-                    }
-                    size="sm"
-                    onClick={() => {
-                      void updateAlert(rule.id, { enabled: !rule.enabled }).catch(() => undefined)
-                    }}
-                  >
-                    {rule.enabled ? <Pause /> : <Play />}
-                  </IconButton>
-                  <IconButton
-                    label={t('alerts.rules.editAria', { symbol: rule.symbol })}
-                    size="sm"
-                    onClick={() => setForm({ alert: rule })}
-                  >
-                    <Pencil />
-                  </IconButton>
-                  <IconButton
-                    label={t('alerts.rules.deleteAria', { symbol: rule.symbol })}
-                    size="sm"
-                    onClick={() => setDeleting(rule)}
-                  >
-                    <Trash2 />
-                  </IconButton>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <AlertRuleList
+            rules={alerts}
+            trades={trades}
+            onEdit={(rule) => setRuleForm({ alert: rule })}
+            onDelete={setDeleting}
+            onToggle={handleToggle}
+            onEditTrade={(trade) => setTradeForm({ trade })}
+          />
         )}
       </Card>
 
@@ -132,11 +176,17 @@ export function AlertsPage() {
         aria-label={reviewLabel}
         data-testid="alerts-review"
       >
-        <EmptyState
-          icon={<CircleAlert />}
-          title={t('alerts.review.emptyTitle')}
-          description={t('alerts.review.emptyDescription')}
-        />
+        {events === undefined ? (
+          <LoadingState />
+        ) : (
+          <AlertReviewList
+            events={reviewEvents}
+            onCloseAt={handleCloseAt}
+            onEdit={handleEditReview}
+            onDismiss={handleDismiss}
+            onRefresh={() => void handleRefresh()}
+          />
+        )}
       </Card>
 
       <Card
@@ -145,14 +195,25 @@ export function AlertsPage() {
         aria-label={historyLabel}
         data-testid="alerts-history"
       >
-        <EmptyState
-          icon={<History />}
-          title={t('alerts.history.emptyTitle')}
-          description={t('alerts.history.emptyDescription')}
-        />
+        {events === undefined ? (
+          <LoadingState />
+        ) : (
+          <AlertHistory
+            events={events}
+            filter={historyFilter}
+            onMarkAllRead={handleMarkAllRead}
+            onFilter={setHistoryFilter}
+          />
+        )}
       </Card>
 
-      {form ? <AlertRuleFormSheet alert={form.alert} onClose={() => setForm(null)} /> : null}
+      {ruleForm ? (
+        <AlertRuleFormSheet alert={ruleForm.alert} onClose={() => setRuleForm(null)} />
+      ) : null}
+
+      {tradeForm ? (
+        <TradeFormSheet trade={tradeForm.trade} onClose={() => setTradeForm(null)} />
+      ) : null}
 
       <Sheet
         open={deleting !== null}
