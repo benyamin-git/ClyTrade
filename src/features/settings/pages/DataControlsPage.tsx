@@ -66,6 +66,7 @@ export function DataControlsPage() {
       setMessage({
         tone: 'ok',
         text: t('data.import.imported', {
+          alerts: backup.data.priceAlerts.length,
           assets: backup.data.assets.length,
           mode: t(`data.import.${mode}`),
           trades: backup.data.trades.length,

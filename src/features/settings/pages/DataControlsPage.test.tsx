@@ -87,7 +87,9 @@ describe('DataControlsPage', () => {
 
     await user.upload(input, backupWithUi({ theme: 'light', accent: 'rose' }))
 
-    expect(await screen.findByText('Imported 0 trades and 0 assets (Merge).')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Imported 0 trades, 0 assets and 0 alerts (Merge).'),
+    ).toBeInTheDocument()
     await waitFor(() => {
       expect(document.documentElement.dataset.theme).toBe('light')
       expect(document.documentElement.dataset.accent).toBe('rose')

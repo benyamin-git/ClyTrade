@@ -100,6 +100,36 @@ export async function pruneAlertEvents(keep = 500): Promise<void> {
   }
 }
 
+export async function replaceAllAlerts(alerts: PriceAlert[]): Promise<void> {
+  await db.transaction('rw', db.priceAlerts, async () => {
+    await db.priceAlerts.clear()
+    if (alerts.length > 0) {
+      await db.priceAlerts.bulkAdd(alerts)
+    }
+  })
+}
+
+export async function mergeAlerts(alerts: PriceAlert[]): Promise<void> {
+  if (alerts.length > 0) {
+    await db.priceAlerts.bulkPut(alerts)
+  }
+}
+
+export async function replaceAllAlertEvents(events: AlertEvent[]): Promise<void> {
+  await db.transaction('rw', db.alertEvents, async () => {
+    await db.alertEvents.clear()
+    if (events.length > 0) {
+      await db.alertEvents.bulkAdd(events)
+    }
+  })
+}
+
+export async function mergeAlertEvents(events: AlertEvent[]): Promise<void> {
+  if (events.length > 0) {
+    await db.alertEvents.bulkPut(events)
+  }
+}
+
 export async function clearAlertEvents(): Promise<void> {
   await db.alertEvents.clear()
 }

@@ -4,6 +4,7 @@ import {
   BACKUP_SCHEMA_VERSION,
   BackupError,
   backupFilename,
+  clearAllData,
   downloadBackup,
   exportBackup,
   importBackup,
@@ -11,15 +12,24 @@ import {
   type BackupFile,
 } from './backup'
 import type { Asset } from './models/asset'
-import { clearAssets, listAssets } from './repositories/assets.repo'
-import { clearTrades, listTrades } from './repositories/trades.repo'
+import type { AlertEvent, AlertEventDraft, PriceAlert, PriceAlertDraft } from './models/price'
+import { MARKET_API_KEY } from './models/settings'
+import { listAssets } from './repositories/assets.repo'
+import {
+  createAlert,
+  createAlertEvent,
+  listAlertEvents,
+  listAlerts,
+} from './repositories/alerts.repo'
+import { setSetting } from './repositories/settings.repo'
+import { listTrades } from './repositories/trades.repo'
 import type { Trade } from './models/trade'
 
 const validBackup: BackupFile = {
   app: BACKUP_APP_ID,
   schemaVersion: BACKUP_SCHEMA_VERSION,
   exportedAt: '2026-01-01T00:00:00.000Z',
-  data: { trades: [], assets: [], settings: [] },
+  data: { trades: [], assets: [], settings: [], priceAlerts: [], alertEvents: [] },
 }
 
 function codeOf(text: string): string {
@@ -36,11 +46,13 @@ describe('parseBackup', () => {
     expect(parseBackup(JSON.stringify(validBackup)).app).toBe(BACKUP_APP_ID)
   })
 
-  it('accepts schema version 2 and imports a v1 trade with a default market', () => {
-    expect(BACKUP_SCHEMA_VERSION).toBe(2)
+  it('accepts v1 and v2 backups with empty alert collections', () => {
+    expect(BACKUP_SCHEMA_VERSION).toBe(3)
 
     const v2 = parseBackup(JSON.stringify({ ...validBackup, schemaVersion: 2 }))
     expect(v2.schemaVersion).toBe(2)
+    expect(v2.data.priceAlerts).toEqual([])
+    expect(v2.data.alertEvents).toEqual([])
 
     const legacyTrade = {
       id: 'legacy',
@@ -70,6 +82,63 @@ describe('parseBackup', () => {
       }),
     )
     expect(legacy.data.trades[0]?.market).toBe('unspecified')
+  })
+
+  it('accepts v3 alert rules and history', () => {
+    const backup = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        data: {
+          ...validBackup.data,
+          priceAlerts: [makeAlert('alert-1')],
+          alertEvents: [makeAlertEvent('event-1')],
+        },
+      }),
+    )
+
+    expect(backup.data.priceAlerts).toHaveLength(1)
+    expect(backup.data.alertEvents).toHaveLength(1)
+  })
+
+  it('rejects duplicate alert rule ids', () => {
+    const alert = makeAlert('dup')
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, priceAlerts: [alert, { ...alert, level: 71000 }] },
+        }),
+      ),
+    ).toBe('duplicate-id')
+  })
+
+  it('rejects duplicate alert event ids', () => {
+    const event = makeAlertEvent('dup')
+    expect(
+      codeOf(
+        JSON.stringify({
+          ...validBackup,
+          data: { ...validBackup.data, alertEvents: [event, { ...event, price: 71000 }] },
+        }),
+      ),
+    ).toBe('duplicate-id')
+  })
+
+  it('strips the market API key from imported settings', () => {
+    const backup = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        data: {
+          ...validBackup.data,
+          settings: [
+            { key: MARKET_API_KEY, value: 'secret', updatedAt: 1 },
+            { key: 'preferences', value: {}, updatedAt: 1 },
+          ],
+        },
+      }),
+    )
+
+    expect(backup.data.settings.map((row) => row.key)).toEqual(['preferences'])
   })
 
   it('reports a future version as future-version even when its data is unreadable', () => {
@@ -195,6 +264,55 @@ describe('parseBackup', () => {
   })
 })
 
+function makeAlertDraft(): PriceAlertDraft {
+  return {
+    kind: 'price',
+    symbol: 'BTC',
+    binanceSymbol: 'BTCUSDT',
+    coingeckoId: 'bitcoin',
+    priceMode: 'above',
+    level: 70000,
+    rangeLow: null,
+    rangeHigh: null,
+    percent: null,
+    percentDirection: null,
+    repeat: 'once',
+    cooldownMinutes: 60,
+    referencePrice: null,
+    lastPrice: 68000,
+    armed: true,
+    enabled: true,
+    note: null,
+    lastFiredAt: null,
+  }
+}
+
+function makeAlert(id: string): PriceAlert {
+  return { ...makeAlertDraft(), id, createdAt: 1, updatedAt: 1 }
+}
+
+function makeAlertEventDraft(): AlertEventDraft {
+  return {
+    kind: 'level',
+    tradeId: null,
+    ruleId: 'alert-1',
+    symbol: 'BTC',
+    price: 70000,
+    level: 70000,
+    targetPrice: null,
+    stopPrice: null,
+    at: 1,
+    provider: 'binance',
+    status: 'unread',
+    resolution: null,
+    readAt: null,
+  }
+}
+
+function makeAlertEvent(id: string): AlertEvent {
+  return { ...makeAlertEventDraft(), id, createdAt: 1 }
+}
+
 function makeTrade(id: string): Trade {
   return {
     id,
@@ -241,6 +359,14 @@ function makeAsset(id: string): Asset {
 }
 
 describe('exportBackup', () => {
+  beforeEach(async () => {
+    await clearAllData()
+  })
+
+  afterEach(async () => {
+    await clearAllData()
+  })
+
   it('includes the stored theme and accent', async () => {
     localStorage.setItem('clytrade.theme', 'light')
     localStorage.setItem('clytrade.accent', 'rose')
@@ -249,17 +375,27 @@ describe('exportBackup', () => {
 
     expect(backup.data.ui).toEqual({ theme: 'light', accent: 'rose' })
   })
+
+  it('includes alert rules and history but excludes the market API key', async () => {
+    await createAlert(makeAlertDraft())
+    await createAlertEvent(makeAlertEventDraft())
+    await setSetting(MARKET_API_KEY, 'secret')
+
+    const backup = await exportBackup()
+
+    expect(backup.data.priceAlerts).toHaveLength(1)
+    expect(backup.data.alertEvents).toHaveLength(1)
+    expect(backup.data.settings.some((row) => row.key === MARKET_API_KEY)).toBe(false)
+  })
 })
 
 describe('importBackup', () => {
   beforeEach(async () => {
-    await clearTrades()
-    await clearAssets()
+    await clearAllData()
   })
 
   afterEach(async () => {
-    await clearTrades()
-    await clearAssets()
+    await clearAllData()
   })
 
   it('rolls back every store when a replace fails midway', async () => {
@@ -270,6 +406,8 @@ describe('importBackup', () => {
           trades: [makeTrade('seed-trade')],
           assets: [makeAsset('seed-asset')],
           settings: [],
+          priceAlerts: [],
+          alertEvents: [],
         },
       },
       'replace',
@@ -284,6 +422,8 @@ describe('importBackup', () => {
         trades: [duplicate, { ...duplicate, symbol: 'ETHUSDT' }],
         assets: [makeAsset('new-asset')],
         settings: [],
+        priceAlerts: [],
+        alertEvents: [],
       },
     }
 
@@ -291,6 +431,28 @@ describe('importBackup', () => {
 
     expect((await listTrades()).map((trade) => trade.id)).toEqual(['seed-trade'])
     expect((await listAssets()).map((asset) => asset.id)).toEqual(['seed-asset'])
+  })
+
+  it('imports alert rules and history and clears them with all data', async () => {
+    await importBackup(
+      {
+        ...validBackup,
+        data: {
+          ...validBackup.data,
+          priceAlerts: [makeAlert('backup-alert')],
+          alertEvents: [makeAlertEvent('backup-event')],
+        },
+      },
+      'replace',
+    )
+
+    expect((await listAlerts()).map((alert) => alert.id)).toEqual(['backup-alert'])
+    expect((await listAlertEvents()).map((event) => event.id)).toEqual(['backup-event'])
+
+    await clearAllData()
+
+    expect(await listAlerts()).toEqual([])
+    expect(await listAlertEvents()).toEqual([])
   })
 })
 

@@ -105,7 +105,7 @@ export const fa = {
       replace: 'جایگزینی',
       modeAria: 'حالت بازیابی',
       chooseFile: 'انتخاب فایل',
-      imported: '{{trades}} معامله و {{assets}} دارایی در حالت {{mode}} وارد شد.',
+      imported: '{{trades}} معامله، {{assets}} دارایی و {{alerts}} هشدار در حالت {{mode}} وارد شد.',
       failed: 'بازیابی ناموفق بود.',
     },
     install: {

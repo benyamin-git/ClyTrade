@@ -5,13 +5,25 @@ import { isThemeId, readStoredTheme, type ThemeId } from '@/theme/theme'
 import { db } from './db'
 import { assetSchema } from './models/asset'
 import { settingRowSchema } from './models/backup-schemas'
+import { alertEventSchema, priceAlertSchema } from './models/price'
+import { MARKET_API_KEY } from './models/settings'
 import { tradeSchema } from './models/trade'
+import {
+  listAlertEvents,
+  listAlerts,
+  mergeAlertEvents,
+  mergeAlerts,
+  replaceAllAlertEvents,
+  replaceAllAlerts,
+} from './repositories/alerts.repo'
 import { listAssets, mergeAssets, replaceAllAssets } from './repositories/assets.repo'
 import { listSettings, mergeSettings, replaceAllSettings } from './repositories/settings.repo'
 import { listTrades, mergeTrades, replaceAllTrades } from './repositories/trades.repo'
 
+export { MARKET_API_KEY }
+
 export const BACKUP_APP_ID = 'clytrade'
-export const BACKUP_SCHEMA_VERSION = 2
+export const BACKUP_SCHEMA_VERSION = 3
 
 export const backupEnvelopeSchema = z.object({
   app: z.literal(BACKUP_APP_ID),
@@ -29,6 +41,8 @@ export const backupSchema = backupEnvelopeSchema.extend({
     trades: z.array(tradeSchema),
     assets: z.array(assetSchema),
     settings: z.array(settingRowSchema),
+    priceAlerts: z.array(priceAlertSchema).default([]),
+    alertEvents: z.array(alertEventSchema).default([]),
     ui: backupUiSchema.optional(),
   }),
 })
@@ -37,7 +51,13 @@ export type BackupFile = z.infer<typeof backupSchema>
 export type ImportMode = 'replace' | 'merge'
 
 export async function exportBackup(): Promise<BackupFile> {
-  const [trades, assets, settings] = await Promise.all([listTrades(), listAssets(), listSettings()])
+  const [trades, assets, settings, priceAlerts, alertEvents] = await Promise.all([
+    listTrades(),
+    listAssets(),
+    listSettings(),
+    listAlerts(),
+    listAlertEvents(),
+  ])
   return {
     app: BACKUP_APP_ID,
     schemaVersion: BACKUP_SCHEMA_VERSION,
@@ -45,7 +65,9 @@ export async function exportBackup(): Promise<BackupFile> {
     data: {
       trades,
       assets,
-      settings,
+      settings: settings.filter((row) => row.key !== MARKET_API_KEY),
+      priceAlerts,
+      alertEvents,
       ui: { theme: readStoredTheme(), accent: readStoredAccent() },
     },
   }
@@ -118,7 +140,7 @@ export function parseBackup(text: string): BackupFile {
   if (!result.success) {
     throw new BackupError('invalid-backup')
   }
-  const { trades, assets, settings } = result.data.data
+  const { trades, assets, settings, priceAlerts, alertEvents } = result.data.data
   const tradeIds = new Set<string>()
   for (const trade of trades) {
     if (tradeIds.has(trade.id)) throw new BackupError('duplicate-id')
@@ -134,26 +156,68 @@ export function parseBackup(text: string): BackupFile {
     if (settingKeys.has(row.key)) throw new BackupError('duplicate-id')
     settingKeys.add(row.key)
   }
-  return result.data
+  const alertIds = new Set<string>()
+  for (const alert of priceAlerts) {
+    if (alertIds.has(alert.id)) throw new BackupError('duplicate-id')
+    alertIds.add(alert.id)
+  }
+  const eventIds = new Set<string>()
+  for (const event of alertEvents) {
+    if (eventIds.has(event.id)) throw new BackupError('duplicate-id')
+    eventIds.add(event.id)
+  }
+  return {
+    ...result.data,
+    data: {
+      ...result.data.data,
+      settings: settings.filter((row) => row.key !== MARKET_API_KEY),
+    },
+  }
 }
 
 export async function importBackup(backup: BackupFile, mode: ImportMode): Promise<void> {
-  const { trades, assets, settings } = backup.data
+  const { trades, assets, settings, priceAlerts, alertEvents } = backup.data
   if (mode === 'replace') {
-    await db.transaction('rw', db.trades, db.assets, db.settings, async () => {
-      await replaceAllTrades(trades)
-      await replaceAllAssets(assets)
-      await replaceAllSettings(settings)
-    })
+    await db.transaction(
+      'rw',
+      db.trades,
+      db.assets,
+      db.settings,
+      db.priceAlerts,
+      db.alertEvents,
+      async () => {
+        await replaceAllTrades(trades)
+        await replaceAllAssets(assets)
+        await replaceAllSettings(settings)
+        await replaceAllAlerts(priceAlerts)
+        await replaceAllAlertEvents(alertEvents)
+      },
+    )
     return
   }
-  await Promise.all([mergeTrades(trades), mergeAssets(assets), mergeSettings(settings)])
+  await Promise.all([
+    mergeTrades(trades),
+    mergeAssets(assets),
+    mergeSettings(settings),
+    mergeAlerts(priceAlerts),
+    mergeAlertEvents(alertEvents),
+  ])
 }
 
 export async function clearAllData(): Promise<void> {
-  await db.transaction('rw', db.trades, db.assets, db.settings, async () => {
-    await replaceAllTrades([])
-    await replaceAllAssets([])
-    await replaceAllSettings([])
-  })
+  await db.transaction(
+    'rw',
+    db.trades,
+    db.assets,
+    db.settings,
+    db.priceAlerts,
+    db.alertEvents,
+    async () => {
+      await replaceAllTrades([])
+      await replaceAllAssets([])
+      await replaceAllSettings([])
+      await replaceAllAlerts([])
+      await replaceAllAlertEvents([])
+    },
+  )
 }

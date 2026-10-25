@@ -103,7 +103,7 @@ export const en = {
       replace: 'Replace',
       modeAria: 'Import mode',
       chooseFile: 'Choose file',
-      imported: 'Imported {{trades}} trades and {{assets}} assets ({{mode}}).',
+      imported: 'Imported {{trades}} trades, {{assets}} assets and {{alerts}} alerts ({{mode}}).',
       failed: 'Import failed.',
     },
     install: {
