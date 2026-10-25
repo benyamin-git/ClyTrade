@@ -476,6 +476,14 @@ export const fa = {
     namePlaceholder: 'بیت‌کوین',
     avgCostHint: 'به ازای هر واحد',
     currentPriceHint: 'خالی = ارزش‌گذاری به قیمت خرید',
+    autoPrice: 'قیمت خودکار',
+    autoPriceHint:
+      'قیمت فعلی را هنگام باز بودن برنامه از بازار به‌روزرسانی می‌کند. برای ورود دستی قیمت، آن را خاموش کنید.',
+    autoPriceOn: 'خودکار',
+    autoPriceOff: 'دستی',
+    symbolMapping: 'نماد بازار',
+    priceUnavailable:
+      'قیمت زنده‌ای برای این نماد پیدا نشد. می‌توانید ذخیره کنید و قیمت را دستی وارد کنید.',
     validation: {
       symbolRequired: 'نماد الزامی است.',
       quantityRequired: 'مقدار الزامی است.',

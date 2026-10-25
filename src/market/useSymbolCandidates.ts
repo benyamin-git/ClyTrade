@@ -12,11 +12,21 @@ export function useSymbolCandidates(
   input: string,
   providers: readonly MarketProvider[],
 ): UseSymbolCandidatesResult {
-  const [state, setState] = useState<UseSymbolCandidatesResult>({
+  const [state, setState] = useState<UseSymbolCandidatesResult>(() => ({
     candidates: [],
-    loading: false,
+    loading: input.trim() !== '',
     error: null,
-  })
+  }))
+  const [trackedInput, setTrackedInput] = useState(input)
+
+  if (trackedInput !== input) {
+    setTrackedInput(input)
+    setState({
+      candidates: [],
+      loading: input.trim() !== '',
+      error: null,
+    })
+  }
 
   useEffect(() => {
     if (!input.trim()) return

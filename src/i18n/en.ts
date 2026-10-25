@@ -473,6 +473,14 @@ export const en = {
     namePlaceholder: 'Bitcoin',
     avgCostHint: 'Per unit',
     currentPriceHint: 'Empty = valued at cost',
+    autoPrice: 'Automatic price',
+    autoPriceHint:
+      'Refreshes the current price from the market while the app is open. Turn it off to enter prices manually.',
+    autoPriceOn: 'Automatic',
+    autoPriceOff: 'Manual',
+    symbolMapping: 'Market symbol',
+    priceUnavailable:
+      'No live price found for this symbol. You can still save and enter a price manually.',
     validation: {
       symbolRequired: 'Symbol is required.',
       quantityRequired: 'Quantity is required.',
