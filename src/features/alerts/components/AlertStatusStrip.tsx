@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nContext'
 import type { TranslationKey } from '@/i18n/types'
@@ -7,6 +6,7 @@ import { formatTime } from '@/lib/dates'
 import type { SchedulerStatus } from '@/market/scheduler'
 import { Button } from '@/ui/components/Button'
 import { Stat } from '@/ui/components/Stat'
+import { useCooldownActive } from '../logic/useCooldownActive'
 
 export interface AlertStatusStripProps {
   status: SchedulerStatus
@@ -41,14 +41,7 @@ function errorKey(error: string): TranslationKey {
 
 export function AlertStatusStrip({ status, onRefresh, refreshing }: AlertStatusStripProps) {
   const { t } = useI18n()
-  const [now, setNow] = useState(() => Date.now())
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1_000)
-    return () => window.clearInterval(timer)
-  }, [])
-
-  const coolingDown = status.nextAllowedAt !== null && status.nextAllowedAt > now
+  const coolingDown = useCooldownActive(status.nextAllowedAt)
   const activeProvider =
     status.activeProvider === null ? '—' : providerLabel(status.activeProvider, t)
 

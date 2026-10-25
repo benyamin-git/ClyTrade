@@ -5,16 +5,18 @@ import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price
 import type { Trade } from '@/data/models/trade'
 import {
   deleteAlert,
+  dismissAlertEvent,
   listAlertEvents,
   listAlerts,
   markAllAlertEventsRead,
   resolveAlertEvent,
   updateAlert,
 } from '@/data/repositories/alerts.repo'
+import { getPriceCache } from '@/data/repositories/prices.repo'
 import { listTrades, updateTrade } from '@/data/repositories/trades.repo'
 import { TradeFormSheet } from '@/features/journal/components/TradeFormSheet'
 import { useI18n } from '@/i18n/I18nContext'
-import { priceKeyFor, type MarketRef } from '@/market/types'
+import { priceKeyFor, STALE_MS, type MarketRef } from '@/market/types'
 import { usePrices } from '@/market/usePrices'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
@@ -26,11 +28,55 @@ import { AlertRuleFormSheet } from '../components/AlertRuleFormSheet'
 import { AlertRuleList } from '../components/AlertRuleList'
 import { AlertStatusStrip } from '../components/AlertStatusStrip'
 import type { AlertHistoryFilter } from '../logic/alertHistory'
+import { useCooldownActive } from '../logic/useCooldownActive'
 
 const REVIEW_KINDS: readonly AlertEventKind[] = ['gap', 'stale', 'conflict']
 
 function isReviewEvent(event: AlertEvent): boolean {
   return (event.status === 'unread' || event.status === 'read') && REVIEW_KINDS.includes(event.kind)
+}
+
+function mergeRef(byKey: Map<string, MarketRef>, ref: MarketRef): void {
+  const existing = byKey.get(ref.key)
+  if (!existing) {
+    byKey.set(ref.key, ref)
+    return
+  }
+  byKey.set(ref.key, {
+    ...existing,
+    binanceSymbol: existing.binanceSymbol ?? ref.binanceSymbol,
+    coingeckoId: existing.coingeckoId ?? ref.coingeckoId,
+  })
+}
+
+function eventPriceKeys(
+  event: AlertEvent,
+  rules: readonly PriceAlert[],
+  trades: readonly Trade[],
+  refs: readonly MarketRef[],
+): string[] {
+  const keys = new Set<string>()
+  if (event.tradeId !== null) {
+    const trade = trades.find((entry) => entry.id === event.tradeId)
+    if (trade) keys.add(priceKeyFor(trade))
+  }
+  if (event.ruleId !== null) {
+    const rule = rules.find((entry) => entry.id === event.ruleId)
+    if (rule) keys.add(priceKeyFor(rule))
+  }
+  const symbol = event.symbol.trim().toUpperCase()
+  for (const ref of refs) {
+    if (ref.symbol.trim().toUpperCase() === symbol) keys.add(ref.key)
+  }
+  return [...keys]
+}
+
+async function hasFreshPrice(keys: readonly string[]): Promise<boolean> {
+  for (const key of keys) {
+    const entry = await getPriceCache(key)
+    if (entry !== undefined && Date.now() - entry.fetchedAt < STALE_MS) return true
+  }
+  return false
 }
 
 function LoadingState() {
@@ -48,8 +94,11 @@ export function AlertsPage() {
   const trades = useLiveQuery(() => listTrades(), [], undefined)
   const events = useLiveQuery(() => listAlertEvents(500), [], undefined)
   const [historyFilter, setHistoryFilter] = useState<AlertHistoryFilter>('all')
-  const [ruleForm, setRuleForm] = useState<{ alert: PriceAlert | null } | null>(null)
-  const [tradeForm, setTradeForm] = useState<{ trade: Trade } | null>(null)
+  const [ruleForm, setRuleForm] = useState<{
+    alert: PriceAlert | null
+    reviewEventId?: string
+  } | null>(null)
+  const [tradeForm, setTradeForm] = useState<{ trade: Trade; reviewEventId?: string } | null>(null)
   const [deleting, setDeleting] = useState<PriceAlert | null>(null)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -57,41 +106,50 @@ export function AlertsPage() {
     const byKey = new Map<string, MarketRef>()
     for (const rule of alerts ?? []) {
       if (!rule.enabled) continue
-      const ref: MarketRef = {
+      mergeRef(byKey, {
         key: priceKeyFor(rule),
         symbol: rule.symbol,
         binanceSymbol: rule.binanceSymbol,
         coingeckoId: rule.coingeckoId,
-      }
-      byKey.set(ref.key, ref)
+      })
     }
     for (const trade of trades ?? []) {
       if (trade.status !== 'open') continue
       if (trade.targetPrice === null && trade.stopPrice === null) continue
-      const ref: MarketRef = {
+      mergeRef(byKey, {
         key: priceKeyFor(trade),
         symbol: trade.symbol,
         binanceSymbol: trade.binanceSymbol,
         coingeckoId: trade.coingeckoId,
-      }
-      byKey.set(ref.key, ref)
+      })
     }
     return [...byKey.values()]
   }, [alerts, trades])
 
   const { status, refresh } = usePrices(refs, 'alerts')
+  const cooldownActive = useCooldownActive(status.nextAllowedAt)
+  const refreshDisabled = refreshing || cooldownActive
   const reviewEvents = useMemo(() => (events ?? []).filter(isReviewEvent), [events])
   const statusLabel = t('alerts.sections.status')
   const rulesLabel = t('alerts.sections.rules')
   const reviewLabel = t('alerts.sections.review')
   const historyLabel = t('alerts.sections.history')
 
-  async function handleRefresh() {
+  async function runRefresh() {
     setRefreshing(true)
     try {
       await refresh().catch(() => undefined)
     } finally {
       setRefreshing(false)
+    }
+  }
+
+  async function handleRefreshReview(event: AlertEvent) {
+    await runRefresh()
+    const keys = eventPriceKeys(event, alerts ?? [], trades ?? [], refs)
+    const fresh = await hasFreshPrice(keys).catch(() => false)
+    if (fresh) {
+      await resolveAlertEvent(event.id, 'refresh').catch(() => undefined)
     }
   }
 
@@ -112,17 +170,22 @@ export function AlertsPage() {
   function handleEditReview(event: AlertEvent) {
     if (event.tradeId !== null) {
       const trade = trades?.find((entry) => entry.id === event.tradeId)
-      if (trade) setTradeForm({ trade })
+      if (trade) setTradeForm({ trade, reviewEventId: event.id })
       return
     }
     if (event.ruleId !== null) {
       const rule = alerts?.find((entry) => entry.id === event.ruleId)
-      if (rule) setRuleForm({ alert: rule })
+      if (rule) setRuleForm({ alert: rule, reviewEventId: event.id })
     }
   }
 
   function handleDismiss(event: AlertEvent) {
-    void resolveAlertEvent(event.id, 'dismiss').catch(() => undefined)
+    void dismissAlertEvent(event.id).catch(() => undefined)
+  }
+
+  function resolveEditedReview(reviewEventId: string | undefined) {
+    if (reviewEventId === undefined) return
+    void resolveAlertEvent(reviewEventId, 'edit').catch(() => undefined)
   }
 
   function handleMarkAllRead() {
@@ -139,7 +202,7 @@ export function AlertsPage() {
       >
         <AlertStatusStrip
           status={status}
-          onRefresh={() => void handleRefresh()}
+          onRefresh={() => void runRefresh()}
           refreshing={refreshing}
         />
       </Card>
@@ -181,10 +244,11 @@ export function AlertsPage() {
         ) : (
           <AlertReviewList
             events={reviewEvents}
+            refreshDisabled={refreshDisabled}
             onCloseAt={handleCloseAt}
             onEdit={handleEditReview}
             onDismiss={handleDismiss}
-            onRefresh={() => void handleRefresh()}
+            onRefresh={(event) => void handleRefreshReview(event)}
           />
         )}
       </Card>
@@ -208,11 +272,19 @@ export function AlertsPage() {
       </Card>
 
       {ruleForm ? (
-        <AlertRuleFormSheet alert={ruleForm.alert} onClose={() => setRuleForm(null)} />
+        <AlertRuleFormSheet
+          alert={ruleForm.alert}
+          onClose={() => setRuleForm(null)}
+          onSaved={() => resolveEditedReview(ruleForm.reviewEventId)}
+        />
       ) : null}
 
       {tradeForm ? (
-        <TradeFormSheet trade={tradeForm.trade} onClose={() => setTradeForm(null)} />
+        <TradeFormSheet
+          trade={tradeForm.trade}
+          onClose={() => setTradeForm(null)}
+          onSaved={() => resolveEditedReview(tradeForm.reviewEventId)}
+        />
       ) : null}
 
       <Sheet

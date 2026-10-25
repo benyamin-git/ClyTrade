@@ -5,6 +5,7 @@ import {
   createAlert,
   createAlertEvent,
   deleteAlert,
+  dismissAlertEvent,
   getAlert,
   listAlertEvents,
   listAlerts,
@@ -134,6 +135,37 @@ describe('alert repository', () => {
     expect(resolved?.status).toBe('resolved')
     expect(resolved?.resolution).toBe('target')
     expect(resolved?.readAt).not.toBeNull()
+  })
+
+  it('resolves an event with the refresh resolution', async () => {
+    const event = await createAlertEvent(eventDraft(1))
+
+    await resolveAlertEvent(event.id, 'refresh')
+
+    const resolved = (await listAlertEvents()).find((row) => row.id === event.id)
+    expect(resolved?.status).toBe('resolved')
+    expect(resolved?.resolution).toBe('refresh')
+  })
+
+  it('dismisses an event with the dismissed status and resolution', async () => {
+    const event = await createAlertEvent(eventDraft(1))
+
+    await dismissAlertEvent(event.id)
+
+    const dismissed = (await listAlertEvents()).find((row) => row.id === event.id)
+    expect(dismissed?.status).toBe('dismissed')
+    expect(dismissed?.resolution).toBe('dismiss')
+    expect(dismissed?.readAt).not.toBeNull()
+  })
+
+  it('keeps an existing read time when dismissing', async () => {
+    const event = await createAlertEvent(eventDraft(1, { status: 'read', readAt: 42 }))
+
+    await dismissAlertEvent(event.id)
+
+    const dismissed = (await listAlertEvents()).find((row) => row.id === event.id)
+    expect(dismissed?.status).toBe('dismissed')
+    expect(dismissed?.readAt).toBe(42)
   })
 
   it('prunes history to the newest 500 events', async () => {

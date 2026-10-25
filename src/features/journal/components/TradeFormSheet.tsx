@@ -28,6 +28,7 @@ import { TextField } from '@/ui/components/TextField'
 export interface TradeFormSheetProps {
   trade: Trade | null
   onClose: () => void
+  onSaved?: () => void
 }
 
 interface TradeSymbolMappingProps {
@@ -120,7 +121,7 @@ function TradeSymbolMapping({
   )
 }
 
-export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
+export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps) {
   const { preferences } = usePreferences()
   const { t } = useI18n()
   const [symbol, setSymbol] = useState(trade?.symbol ?? '')
@@ -292,6 +293,7 @@ export function TradeFormSheet({ trade, onClose }: TradeFormSheetProps) {
       } else {
         await createTrade(draft)
       }
+      onSaved?.()
       onClose()
     } catch {
       setError(t('journal.validation.saveFailed'))

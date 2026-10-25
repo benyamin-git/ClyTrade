@@ -34,6 +34,7 @@ import {
 export interface AlertRuleFormSheetProps {
   alert: PriceAlert | null
   onClose: () => void
+  onSaved?: () => void
 }
 
 function candidateFromAlert(alert: PriceAlert): SymbolCandidate | null {
@@ -87,7 +88,7 @@ async function saveAlert(alert: PriceAlert | null, values: AlertFormValues): Pro
   })
 }
 
-export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) {
+export function AlertRuleFormSheet({ alert, onClose, onSaved }: AlertRuleFormSheetProps) {
   const { t } = useI18n()
   const [kind, setKind] = useState<'price' | 'percent'>(alert?.kind ?? 'price')
   const [symbol, setSymbol] = useState(alert?.symbol ?? '')
@@ -205,6 +206,7 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
     setSaving(true)
     try {
       await saveAlert(alert, values)
+      onSaved?.()
       onClose()
     } catch {
       setError(t('alerts.form.saveFailed'))

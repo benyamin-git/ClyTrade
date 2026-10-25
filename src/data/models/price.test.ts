@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { assetDraftSchema } from './asset'
 import {
   alertEventSchema,
+  alertResolutionSchema,
   priceAlertSchema,
   priceCacheEntrySchema,
   priceProviderChoiceSchema,
@@ -138,6 +139,12 @@ describe('alertEventSchema', () => {
 
   it('rejects a non-positive event price', () => {
     expect(alertEventSchema.safeParse({ ...validAlertEvent, price: 0 }).success).toBe(false)
+  })
+
+  it('accepts the refresh resolution alongside the existing resolutions', () => {
+    for (const resolution of ['target', 'stop', 'edit', 'dismiss', 'refresh']) {
+      expect(alertResolutionSchema.safeParse(resolution).success).toBe(true)
+    }
   })
 })
 

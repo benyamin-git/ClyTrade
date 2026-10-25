@@ -79,7 +79,7 @@ export type AlertEventKind = z.infer<typeof alertEventKindSchema>
 export const alertEventStatusSchema = z.enum(['unread', 'read', 'resolved', 'dismissed'])
 export type AlertEventStatus = z.infer<typeof alertEventStatusSchema>
 
-export const alertResolutionSchema = z.enum(['target', 'stop', 'edit', 'dismiss'])
+export const alertResolutionSchema = z.enum(['target', 'stop', 'edit', 'dismiss', 'refresh'])
 export type AlertResolution = z.infer<typeof alertResolutionSchema>
 
 export const alertEventSchema = z.object({

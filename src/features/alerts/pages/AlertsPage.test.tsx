@@ -1,7 +1,13 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AlertEvent, AlertEventDraft, PriceAlert, PriceAlertDraft } from '@/data/models/price'
+import type {
+  AlertEvent,
+  AlertEventDraft,
+  PriceAlert,
+  PriceAlertDraft,
+  PriceCacheEntry,
+} from '@/data/models/price'
 import type { Trade, TradeDraft } from '@/data/models/trade'
 import {
   createAlert,
@@ -16,18 +22,20 @@ import {
   replaceAllTrades,
   AUTO_CLOSED_TAG,
 } from '@/data/repositories/trades.repo'
+import { clearPriceCache, putPriceCache } from '@/data/repositories/prices.repo'
 import { useUnreadAlertCount } from '@/features/alerts/logic/useUnreadAlertCount'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import { formatTime } from '@/lib/dates'
 import type { SchedulerStatus } from '@/market/scheduler'
+import { STALE_MS, type MarketRef } from '@/market/types'
 import { AlertStatusStrip } from '../components/AlertStatusStrip'
 import { AlertsPage } from './AlertsPage'
 
 const NOW = 1_700_000_000_000
 
 const priceState = vi.hoisted(() => ({
-  refs: [] as { key: string; symbol: string }[],
+  refs: [] as MarketRef[],
   reasons: [] as string[],
   status: {
     provider: 'auto',
@@ -36,12 +44,12 @@ const priceState = vi.hoisted(() => ({
     nextAllowedAt: null,
     error: null,
   } as SchedulerStatus,
-  refresh: vi.fn(async () => undefined),
+  refresh: vi.fn(async (): Promise<void> => undefined),
 }))
 
 vi.mock('@/market/usePrices', () => ({
-  usePrices: (refs: readonly { key: string; symbol: string }[], reason: string) => {
-    priceState.refs = refs.map((ref) => ({ key: ref.key, symbol: ref.symbol }))
+  usePrices: (refs: readonly MarketRef[], reason: string) => {
+    priceState.refs = [...refs]
     priceState.reasons.push(reason)
     return { prices: new Map(), status: priceState.status, refresh: priceState.refresh }
   },
@@ -132,6 +140,18 @@ async function seedEvent(overrides: Partial<AlertEventDraft> = {}): Promise<Aler
   return createAlertEvent(eventDraft(overrides))
 }
 
+function cachedPrice(overrides: Partial<PriceCacheEntry> = {}): PriceCacheEntry {
+  return {
+    key: 'binance:BTCUSDT',
+    symbol: 'BTC',
+    provider: 'binance',
+    price: 65_000,
+    fetchedAt: Date.now(),
+    sourceTimestamp: null,
+    ...overrides,
+  }
+}
+
 function UnreadProbe() {
   const count = useUnreadAlertCount()
   return <span data-testid="unread-count">{count}</span>
@@ -168,6 +188,7 @@ beforeEach(async () => {
   await replaceAllAlerts([])
   await replaceAllTrades([])
   await replaceAllAlertEvents([])
+  await clearPriceCache()
   priceState.refs = []
   priceState.reasons = []
   priceState.status = {
@@ -177,7 +198,8 @@ beforeEach(async () => {
     nextAllowedAt: null,
     error: null,
   }
-  priceState.refresh.mockClear()
+  priceState.refresh.mockReset()
+  priceState.refresh.mockImplementation(async () => undefined)
 })
 
 describe('AlertsPage', () => {
@@ -265,6 +287,10 @@ describe('AlertsPage', () => {
       'binance:BTCUSDT',
       'binance:SOLUSDT',
     ])
+    expect(priceState.refs.find((ref) => ref.key === 'binance:BTCUSDT')).toMatchObject({
+      binanceSymbol: 'BTCUSDT',
+      coingeckoId: 'bitcoin',
+    })
   })
 
   it('disables refresh while the manual cooldown is active', () => {
@@ -486,8 +512,172 @@ describe('AlertsPage', () => {
     await waitFor(async () => {
       const events = await listAlertEvents()
       expect(events.find((entry) => entry.id === event.id)).toMatchObject({
-        status: 'resolved',
+        status: 'dismissed',
         resolution: 'dismiss',
+      })
+    })
+    await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())
+  })
+
+  it('clears a stale review after a successful refresh with a fresh price', async () => {
+    const trade = await seedTrade()
+    const event = await seedEvent({
+      kind: 'stale',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    priceState.refresh.mockImplementationOnce(async () => {
+      await putPriceCache([cachedPrice()])
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    await user.click(await within(review).findByRole('button', { name: 'Refresh price' }))
+
+    await waitFor(async () => {
+      const events = await listAlertEvents()
+      expect(events.find((entry) => entry.id === event.id)).toMatchObject({
+        status: 'resolved',
+        resolution: 'refresh',
+      })
+    })
+    await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())
+  })
+
+  it('keeps a stale review when the refreshed price is still stale', async () => {
+    const trade = await seedTrade()
+    const event = await seedEvent({
+      kind: 'stale',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    priceState.refresh.mockImplementationOnce(async () => {
+      await putPriceCache([cachedPrice({ fetchedAt: Date.now() - STALE_MS - 1_000 })])
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    await user.click(await within(review).findByRole('button', { name: 'Refresh price' }))
+    await waitFor(() => expect(priceState.refresh).toHaveBeenCalledOnce())
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    })
+
+    const events = await listAlertEvents()
+    expect(events.find((entry) => entry.id === event.id)).toMatchObject({ status: 'unread' })
+    expect(within(review).getByText('Stale price')).toBeInTheDocument()
+  })
+
+  it('disables the stale review refresh during the manual cooldown', async () => {
+    priceState.status = {
+      provider: 'auto',
+      activeProvider: null,
+      lastSuccessAt: null,
+      nextAllowedAt: Date.now() + 30_000,
+      error: null,
+    }
+    const trade = await seedTrade()
+    await seedEvent({
+      kind: 'stale',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    expect(await within(review).findByRole('button', { name: 'Refresh price' })).toBeDisabled()
+  })
+
+  it('disables the stale review refresh while a refresh is running', async () => {
+    const trade = await seedTrade()
+    await seedEvent({
+      kind: 'stale',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    let finish: () => void = () => undefined
+    priceState.refresh.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    )
+    const user = userEvent.setup()
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    const status = screen.getByTestId('alerts-status')
+    await user.click(within(status).getByRole('button', { name: 'Refresh prices' }))
+    await waitFor(() =>
+      expect(within(review).getByRole('button', { name: 'Refresh price' })).toBeDisabled(),
+    )
+    await act(async () => {
+      finish()
+    })
+    await waitFor(() =>
+      expect(within(review).getByRole('button', { name: 'Refresh price' })).toBeEnabled(),
+    )
+  })
+
+  it('resolves a review event after saving an edited trade', async () => {
+    const trade = await seedTrade()
+    const event = await seedEvent({
+      kind: 'conflict',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    await user.click(await within(review).findByRole('button', { name: 'Edit trade' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Edit BTC' })
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(async () => {
+      const events = await listAlertEvents()
+      expect(events.find((entry) => entry.id === event.id)).toMatchObject({
+        status: 'resolved',
+        resolution: 'edit',
+      })
+    })
+    await waitFor(() => expect(within(review).queryByText('Trade changed')).not.toBeInTheDocument())
+  })
+
+  it('resolves a review event after saving an edited rule', async () => {
+    const rule = await seedAlert()
+    const event = await seedEvent({
+      kind: 'stale',
+      ruleId: rule.id,
+      price: 65_000,
+      level: null,
+      at: NOW,
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    await user.click(await within(review).findByRole('button', { name: 'Edit alert' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Edit BTC alert' })
+    await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(async () => {
+      const events = await listAlertEvents()
+      expect(events.find((entry) => entry.id === event.id)).toMatchObject({
+        status: 'resolved',
+        resolution: 'edit',
       })
     })
     await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())

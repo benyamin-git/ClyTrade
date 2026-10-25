@@ -9,6 +9,7 @@ import { EmptyState } from '@/ui/components/EmptyState'
 
 export interface AlertReviewListProps {
   events: readonly AlertEvent[]
+  refreshDisabled: boolean
   onCloseAt: (event: AlertEvent, level: 'target' | 'stop') => void
   onEdit: (event: AlertEvent) => void
   onDismiss: (event: AlertEvent) => void
@@ -25,6 +26,7 @@ function description(event: AlertEvent, t: Translator): string {
 
 export function AlertReviewList({
   events,
+  refreshDisabled,
   onCloseAt,
   onEdit,
   onDismiss,
@@ -90,7 +92,12 @@ export function AlertReviewList({
               </Button>
             ) : null}
             {event.kind === 'stale' ? (
-              <Button size="sm" variant="outlined" onClick={() => onRefresh(event)}>
+              <Button
+                size="sm"
+                variant="outlined"
+                onClick={() => onRefresh(event)}
+                disabled={refreshDisabled}
+              >
                 {t('alerts.review.refresh')}
               </Button>
             ) : null}

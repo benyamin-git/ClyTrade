@@ -90,6 +90,18 @@ export async function resolveAlertEvent(id: string, resolution: AlertResolution)
   })
 }
 
+export async function dismissAlertEvent(id: string): Promise<void> {
+  const existing = await db.alertEvents.get(id)
+  if (!existing) {
+    throw new Error('alert event not found')
+  }
+  await db.alertEvents.update(id, {
+    status: 'dismissed',
+    resolution: 'dismiss',
+    readAt: existing.readAt ?? Date.now(),
+  })
+}
+
 export async function pruneAlertEvents(keep = 500): Promise<void> {
   const safeKeep = Math.max(0, Math.floor(keep))
   const count = await db.alertEvents.count()

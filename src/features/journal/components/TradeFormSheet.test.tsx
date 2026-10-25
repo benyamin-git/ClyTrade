@@ -179,12 +179,12 @@ async function saveChanges(user: ReturnType<typeof userEvent.setup>) {
   return savedTrades()
 }
 
-function renderForm(trade: Trade | null) {
+function renderForm(trade: Trade | null, onSaved?: () => void) {
   render(
     <SettingsProvider>
       <SettingsI18nBridge>
         <PreferencesGate>
-          <TradeFormSheet trade={trade} onClose={() => undefined} />
+          <TradeFormSheet trade={trade} onClose={() => undefined} onSaved={onSaved} />
         </PreferencesGate>
       </SettingsI18nBridge>
     </SettingsProvider>,
@@ -664,5 +664,38 @@ describe('TradeFormSheet symbol mapping and entry prefill', () => {
       binanceSymbol: null,
       coingeckoId: null,
     })
+  })
+})
+
+describe('TradeFormSheet onSaved', () => {
+  beforeEach(async () => {
+    await clearSettings()
+    await clearTrades()
+  })
+
+  it('calls onSaved after a successful edit', async () => {
+    const seeded = await seedTrade()
+    const user = userEvent.setup()
+    const onSaved = vi.fn()
+    renderForm(seeded, onSaved)
+
+    await screen.findByLabelText('Symbol')
+    await saveChanges(user)
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+  })
+
+  it('does not call onSaved when validation fails', async () => {
+    const seeded = await seedTrade()
+    const user = userEvent.setup()
+    const onSaved = vi.fn()
+    renderForm(seeded, onSaved)
+
+    const entry = await screen.findByLabelText('Entry price')
+    await user.clear(entry)
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    expect(await screen.findByText('Entry price must be greater than 0.')).toBeInTheDocument()
+    expect(onSaved).not.toHaveBeenCalled()
   })
 })

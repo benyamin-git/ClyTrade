@@ -139,11 +139,11 @@ async function seedAlert(overrides: Partial<PriceAlertDraft> = {}): Promise<Pric
   return createAlert(alertDraft(overrides))
 }
 
-async function renderForm(alert: PriceAlert | null) {
+async function renderForm(alert: PriceAlert | null, onSaved?: () => void) {
   const onClose = vi.fn()
   render(
     <I18nProvider preference="en">
-      <AlertRuleFormSheet alert={alert} onClose={onClose} />
+      <AlertRuleFormSheet alert={alert} onClose={onClose} onSaved={onSaved} />
     </I18nProvider>,
   )
   await screen.findByLabelText('Coin')
@@ -788,11 +788,24 @@ describe('AlertRuleFormSheet editing', () => {
     })
   })
 
+  it('calls onSaved after a successful edit', async () => {
+    const seeded = await seedAlert()
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const onSaved = vi.fn()
+    const user = userEvent.setup()
+    await renderForm(seeded, onSaved)
+
+    await saveChanges(user)
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce())
+  })
+
   it('surfaces the save error when the rule disappeared while the sheet was open', async () => {
     const seeded = await seedAlert()
     symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const onSaved = vi.fn()
     const user = userEvent.setup()
-    const { onClose } = await renderForm(seeded)
+    const { onClose } = await renderForm(seeded, onSaved)
 
     await deleteAlert(seeded.id)
     await saveChanges(user)
@@ -801,6 +814,7 @@ describe('AlertRuleFormSheet editing', () => {
       await screen.findByText('Could not save this alert. Check the values and try again.'),
     ).toBeInTheDocument()
     expect(onClose).not.toHaveBeenCalled()
+    expect(onSaved).not.toHaveBeenCalled()
     expect(await listAlerts()).toHaveLength(0)
   })
 
