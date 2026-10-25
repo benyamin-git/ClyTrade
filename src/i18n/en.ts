@@ -390,6 +390,11 @@ export const en = {
   },
   journal: {
     addTrade: 'Add trade',
+    autoClose: 'Auto-close',
+    autoCloseHint:
+      'Closes this trade when its target or stop is reached. Needs a fresh live price.',
+    autoCloseOff: 'Excluded',
+    autoCloseOn: 'Included',
     deleteConfirm: 'Delete {{symbol}}? This cannot be undone.',
     deleteTitle: 'Delete trade',
     editAria: 'Edit {{symbol}}',
@@ -414,7 +419,11 @@ export const en = {
     emptyDescription: 'Add your first futures trade to start building the journal.',
     editTitle: 'Edit {{symbol}}',
     formStatusHint: 'Empty = open',
+    currentPriceHint: 'Current price: {{price}}',
+    priceUnavailable:
+      'No live price found for this symbol. You can still save and enter a price manually.',
     strategyPlaceholder: 'Breakout',
+    symbolMapping: 'Market symbol',
     tagsHint: 'Comma separated',
     validation: {
       symbolRequired: 'Symbol is required.',

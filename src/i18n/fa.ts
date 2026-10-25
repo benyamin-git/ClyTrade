@@ -393,6 +393,11 @@ export const fa = {
   },
   journal: {
     addTrade: 'افزودن معامله',
+    autoClose: 'بستن خودکار',
+    autoCloseHint:
+      'با رسیدن قیمت به تارگت یا حد ضرر، این معامله بسته می‌شود. به قیمت زندهٔ تازه نیاز دارد.',
+    autoCloseOff: 'غیرفعال',
+    autoCloseOn: 'فعال',
     deleteConfirm: 'معاملهٔ {{symbol}} حذف شود؟ این کار قابل بازگشت نیست.',
     deleteTitle: 'حذف معامله',
     editAria: 'ویرایش {{symbol}}',
@@ -417,7 +422,11 @@ export const fa = {
     emptyDescription: 'نخستین معاملهٔ فیوچرز خود را اضافه کنید تا ژورنال شکل بگیرد.',
     editTitle: 'ویرایش {{symbol}}',
     formStatusHint: 'خالی = باز',
+    currentPriceHint: 'قیمت فعلی: {{price}}',
+    priceUnavailable:
+      'قیمت زنده‌ای برای این نماد پیدا نشد. می‌توانید ذخیره کنید و قیمت را دستی وارد کنید.',
     strategyPlaceholder: 'شکست',
+    symbolMapping: 'نماد بازار',
     tagsHint: 'با کاما جدا کنید',
     validation: {
       symbolRequired: 'نماد الزامی است.',
