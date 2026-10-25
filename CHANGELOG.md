@@ -6,6 +6,14 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-25
+
+### Changed
+
+- Android: release-signing verification release. No functional changes; 0.4.1
+  confirms that release-key APKs update in place after the one-time 0.3.0
+  migration.
+
 ## [0.4.0] - 2026-10-24
 
 ### Added
@@ -135,7 +143,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.1
 [0.4.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.0
 [0.3.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.2.0
