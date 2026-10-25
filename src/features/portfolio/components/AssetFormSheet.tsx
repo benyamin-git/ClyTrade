@@ -122,10 +122,19 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
   const mappingIsCurrent = mappingSymbol === normalizedSymbol
   const effectiveBinanceSymbol = mappingIsCurrent ? binanceSymbol : null
   const effectiveCoingeckoId = mappingIsCurrent ? coingeckoId : null
+  const selectionKey = `${normalizedSymbol}|${effectiveBinanceSymbol ?? ''}|${effectiveCoingeckoId ?? ''}`
 
   const autoPriceTouchedRef = useRef(false)
   const priceTouchedRef = useRef(false)
-  const prefilledRef = useRef(false)
+  const prefilledRef = useRef<{ price: number; selectionKey: string } | null>(null)
+
+  const clearPrefilledPrice = useCallback((nextSelectionKey: string) => {
+    const prefilled = prefilledRef.current
+    if (prefilled === null || prefilled.selectionKey === nextSelectionKey) return
+    if (priceTouchedRef.current) return
+    prefilledRef.current = null
+    setCurrentPrice((value) => (value === prefilled.price ? null : value))
+  }, [])
 
   const apiKey = useLiveQuery(() => getMarketApiKey(), [])
   const providers = useMemo(() => createMarketProviders(apiKey ?? null), [apiKey])
@@ -153,30 +162,42 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
 
   const handleSelectMapping = useCallback(
     (candidate: SymbolCandidate | null) => {
+      const nextBinanceSymbol = candidate?.binanceSymbol ?? null
+      const nextCoingeckoId = candidate?.coingeckoId ?? null
+      clearPrefilledPrice(`${normalizedSymbol}|${nextBinanceSymbol ?? ''}|${nextCoingeckoId ?? ''}`)
       setMappingSymbol(normalizedSymbol)
-      setBinanceSymbol(candidate?.binanceSymbol ?? null)
-      setCoingeckoId(candidate?.coingeckoId ?? null)
+      setBinanceSymbol(nextBinanceSymbol)
+      setCoingeckoId(nextCoingeckoId)
     },
-    [normalizedSymbol],
+    [normalizedSymbol, clearPrefilledPrice],
   )
 
+  function handleSymbolChange(next: string) {
+    const nextNormalized = next.trim().toUpperCase()
+    if (nextNormalized !== normalizedSymbol) {
+      clearPrefilledPrice(`${nextNormalized}|`)
+    }
+    setSymbol(next)
+  }
+
   useEffect(() => {
-    if (prefilledRef.current || priceTouchedRef.current || currentPrice !== null) return
+    if (priceTouchedRef.current || currentPrice !== null) return
     if (currentQuote === undefined) return
     if (Date.now() - currentQuote.fetchedAt >= STALE_MS) return
 
     const price = currentQuote.price
+    const key = selectionKey
     let cancelled = false
     queueMicrotask(() => {
-      if (cancelled || prefilledRef.current || priceTouchedRef.current) return
-      prefilledRef.current = true
+      if (cancelled || priceTouchedRef.current || prefilledRef.current !== null) return
+      prefilledRef.current = { price, selectionKey: key }
       setCurrentPrice(price)
     })
 
     return () => {
       cancelled = true
     }
-  }, [currentQuote, currentPrice])
+  }, [currentQuote, currentPrice, selectionKey])
 
   function handleMarketChange(next: Market) {
     setMarket(next)
@@ -241,7 +262,7 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
         <TextField
           label={t('fields.symbol')}
           value={symbol}
-          onChange={setSymbol}
+          onChange={handleSymbolChange}
           placeholder="BTC"
         />
         <SelectField

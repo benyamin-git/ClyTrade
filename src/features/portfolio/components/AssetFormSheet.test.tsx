@@ -96,6 +96,14 @@ function coinGeckoCandidate(): SymbolCandidate {
   })
 }
 
+function ethereumCandidate(): SymbolCandidate {
+  return binanceCandidate({
+    priceId: 'ETHUSDT',
+    symbol: 'ETHUSDT',
+    binanceSymbol: 'ETHUSDT',
+  })
+}
+
 function freshPrice(overrides: Partial<ProviderPrice> = {}): ProviderPrice {
   return {
     key: 'binance:BTCUSDT',
@@ -363,6 +371,155 @@ describe('AssetFormSheet automatic prices', () => {
       autoPrice: false,
       binanceSymbol: 'BTCUSDT',
       coingeckoId: 'bitcoin',
+    })
+  })
+
+  it('clears a machine-prefilled current price when the symbol changes', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    symbolState.bySymbol.set('ETH', [ethereumCandidate()])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    const symbolInput = screen.getByLabelText('Symbol')
+    await user.type(symbolInput, 'BTC')
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue('68000'))
+
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue(''))
+  })
+
+  it('prefills the new symbol price after a symbol change', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    symbolState.bySymbol.set('ETH', [ethereumCandidate()])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    priceState.prices.set(
+      'binance:ETHUSDT',
+      freshPrice({ key: 'binance:ETHUSDT', symbol: 'ETH', price: 2500 }),
+    )
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    const symbolInput = screen.getByLabelText('Symbol')
+    await user.type(symbolInput, 'BTC')
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue('68000'))
+
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue('2500'))
+  })
+
+  it('re-prefills when the mapping changes for the same symbol', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [
+      binanceCandidate(),
+      binanceCandidate({
+        provider: 'coingecko',
+        priceId: 'bitcoin',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        quote: null,
+        rank: 1,
+        binanceSymbol: null,
+        coingeckoId: 'bitcoin',
+      }),
+    ])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    priceState.prices.set(
+      'coingecko:bitcoin',
+      freshPrice({ key: 'coingecko:bitcoin', provider: 'coingecko', price: 67000 }),
+    )
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    await user.type(screen.getByLabelText('Symbol'), 'BTC')
+    const picker = await screen.findByLabelText('Market symbol')
+    await user.selectOptions(picker, 'binance:BTCUSDT')
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue('68000'))
+
+    await user.selectOptions(picker, 'coingecko:bitcoin')
+    await waitFor(() => expect(screen.getByLabelText('Current price')).toHaveValue('67000'))
+  })
+
+  it('drops a stale mapping when the symbol changes to an unresolvable one', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate(), coinGeckoCandidate()])
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    const symbolInput = screen.getByLabelText('Symbol')
+    await user.type(symbolInput, 'BTC')
+    await user.selectOptions(await screen.findByLabelText('Market symbol'), 'coingecko:bitcoin')
+
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+    await screen.findByText(
+      'No live price found for this symbol. You can still save and enter a price manually.',
+    )
+
+    await user.type(screen.getByLabelText('Quantity'), '1')
+    await user.type(screen.getByLabelText('Average cost'), '100')
+
+    const [asset] = await saveNewAsset(user)
+    expect(asset).toMatchObject({
+      symbol: 'ETH',
+      binanceSymbol: null,
+      coingeckoId: null,
+    })
+  })
+
+  it('drops a stored mapping when an edited asset changes symbol', async () => {
+    const seeded = await seedAsset({
+      autoPrice: true,
+      binanceSymbol: 'BTCUSDT',
+      coingeckoId: 'bitcoin',
+    })
+    const user = userEvent.setup()
+    await renderForm(seeded)
+
+    const symbolInput = screen.getByLabelText('Symbol')
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+    await screen.findByText(
+      'No live price found for this symbol. You can still save and enter a price manually.',
+    )
+
+    const [asset] = await saveChanges(user)
+    expect(asset).toMatchObject({
+      symbol: 'ETH',
+      binanceSymbol: null,
+      coingeckoId: null,
+    })
+  })
+
+  it('resolves a new mapping after the symbol changes', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate(), coinGeckoCandidate()])
+    symbolState.bySymbol.set('ETH', [ethereumCandidate()])
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    const symbolInput = screen.getByLabelText('Symbol')
+    await user.type(symbolInput, 'BTC')
+    await user.selectOptions(await screen.findByLabelText('Market symbol'), 'coingecko:bitcoin')
+
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+    await waitFor(() => expect(priceState.keys.has('binance:ETHUSDT')).toBe(true))
+
+    await user.type(screen.getByLabelText('Quantity'), '1')
+    await user.type(screen.getByLabelText('Average cost'), '100')
+
+    const [asset] = await saveNewAsset(user)
+    expect(asset).toMatchObject({
+      symbol: 'ETH',
+      binanceSymbol: 'ETHUSDT',
+      coingeckoId: null,
     })
   })
 })
