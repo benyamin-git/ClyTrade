@@ -2,7 +2,13 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PriceAlert, PriceAlertDraft } from '@/data/models/price'
-import { createAlert, listAlerts, replaceAllAlerts } from '@/data/repositories/alerts.repo'
+import {
+  createAlert,
+  deleteAlert,
+  listAlerts,
+  replaceAllAlerts,
+  updateAlert,
+} from '@/data/repositories/alerts.repo'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import type { SymbolCandidate } from '@/market/symbols'
 import type { ProviderPrice } from '@/market/types'
@@ -425,6 +431,22 @@ describe('AlertRuleFormSheet repeat modes', () => {
     const [alert] = await savedAlerts()
     expect(alert).toMatchObject({ repeat: 'once', cooldownMinutes: 60 })
   })
+
+  it('keeps the entered cooldown when switching away and back', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    await enterSymbol(user)
+    await user.click(screen.getByRole('radio', { name: 'Cooldown' }))
+    const cooldown = screen.getByLabelText('Cooldown (minutes)')
+    await user.clear(cooldown)
+    await user.type(cooldown, '90')
+    await user.click(screen.getByRole('radio', { name: 'Once' }))
+    await user.click(screen.getByRole('radio', { name: 'Cooldown' }))
+
+    expect(screen.getByLabelText('Cooldown (minutes)')).toHaveValue('90')
+  })
 })
 
 describe('AlertRuleFormSheet validation', () => {
@@ -637,6 +659,149 @@ describe('AlertRuleFormSheet editing', () => {
       coingeckoId: 'bitcoin',
       referencePrice: 67000,
     })
+  })
+
+  it('preserves runtime state on a note-only edit', async () => {
+    const seeded = await seedAlert({
+      priceMode: 'crossing',
+      level: 68000,
+      repeat: 'cross-back',
+      armed: false,
+      lastPrice: 65000,
+      lastFiredAt: 123456789,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    await user.clear(screen.getByLabelText('Note'))
+    await user.type(screen.getByLabelText('Note'), 'note only')
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      note: 'note only',
+      armed: false,
+      lastPrice: 65000,
+      lastFiredAt: 123456789,
+    })
+  })
+
+  it('resets runtime state when the symbol changes', async () => {
+    const seeded = await seedAlert({
+      priceMode: 'crossing',
+      level: 68000,
+      repeat: 'cross-back',
+      armed: false,
+      lastPrice: 65000,
+      lastFiredAt: 123456789,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    symbolState.bySymbol.set('ETH', [ethereumCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    const symbolInput = screen.getByLabelText('Coin')
+    await user.clear(symbolInput)
+    await user.type(symbolInput, 'ETH')
+    await waitFor(() => expect(priceState.keys.has('binance:ETHUSDT')).toBe(true))
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      symbol: 'ETH',
+      armed: true,
+      lastPrice: null,
+      lastFiredAt: null,
+    })
+  })
+
+  it('keeps runtime state written after the sheet opened', async () => {
+    const seeded = await seedAlert({
+      priceMode: 'crossing',
+      level: 68000,
+      repeat: 'cross-back',
+      armed: true,
+      lastPrice: 66000,
+      lastFiredAt: null,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    await updateAlert(seeded.id, {
+      armed: false,
+      lastPrice: 69000,
+      lastFiredAt: 987654321,
+      enabled: false,
+    })
+    await user.clear(screen.getByLabelText('Note'))
+    await user.type(screen.getByLabelText('Note'), 'after fire')
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      note: 'after fire',
+      enabled: false,
+      armed: false,
+      lastPrice: 69000,
+      lastFiredAt: 987654321,
+    })
+  })
+
+  it('keeps a newer percent reference written after the sheet opened', async () => {
+    const seeded = await seedAlert({
+      kind: 'percent',
+      priceMode: null,
+      level: null,
+      percent: 5,
+      percentDirection: 'up',
+      referencePrice: 100,
+    })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    await updateAlert(seeded.id, {
+      referencePrice: 120,
+      lastFiredAt: 500,
+      enabled: false,
+    })
+    await user.clear(screen.getByLabelText('Note'))
+    await user.type(screen.getByLabelText('Note'), 'after percent fire')
+    await saveChanges(user)
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce())
+    const [alert] = await savedAlerts()
+    expect(alert).toMatchObject({
+      id: seeded.id,
+      note: 'after percent fire',
+      enabled: false,
+      referencePrice: 120,
+      lastFiredAt: 500,
+    })
+  })
+
+  it('surfaces the save error when the rule disappeared while the sheet was open', async () => {
+    const seeded = await seedAlert()
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(seeded)
+
+    await deleteAlert(seeded.id)
+    await saveChanges(user)
+
+    expect(
+      await screen.findByText('Could not save this alert. Check the values and try again.'),
+    ).toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(await listAlerts()).toHaveLength(0)
   })
 
   it('keeps a paused rule paused when it is saved', async () => {

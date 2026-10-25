@@ -6,7 +6,7 @@ import type {
   AlertRepeat,
   PriceAlert,
 } from '@/data/models/price'
-import { createAlert, updateAlert } from '@/data/repositories/alerts.repo'
+import { createAlert, getAlert, updateAlert } from '@/data/repositories/alerts.repo'
 import { getMarketApiKey } from '@/data/repositories/settings.repo'
 import { useI18n } from '@/i18n/I18nContext'
 import type { TranslationKey } from '@/i18n/types'
@@ -56,11 +56,35 @@ function candidateKey(candidate: SymbolCandidate): string {
 
 async function saveAlert(alert: PriceAlert | null, values: AlertFormValues): Promise<void> {
   const draft = toAlertDraft(values, Date.now())
-  if (alert) {
-    await updateAlert(alert.id, { ...draft, enabled: alert.enabled })
-  } else {
+  if (alert === null) {
     await createAlert(draft)
+    return
   }
+
+  const fresh = await getAlert(alert.id)
+  if (!fresh) {
+    throw new Error('alert not found')
+  }
+
+  const mappingUnchanged =
+    fresh.symbol.trim().toUpperCase() === draft.symbol &&
+    fresh.binanceSymbol === draft.binanceSymbol &&
+    fresh.coingeckoId === draft.coingeckoId
+
+  await updateAlert(alert.id, {
+    ...draft,
+    enabled: fresh.enabled,
+    armed: mappingUnchanged ? fresh.armed : draft.armed,
+    lastPrice: mappingUnchanged ? fresh.lastPrice : draft.lastPrice,
+    lastFiredAt: mappingUnchanged ? fresh.lastFiredAt : draft.lastFiredAt,
+    referencePrice:
+      mappingUnchanged &&
+      draft.kind === 'percent' &&
+      fresh.kind === 'percent' &&
+      fresh.referencePrice !== null
+        ? fresh.referencePrice
+        : draft.referencePrice,
+  })
 }
 
 export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) {
@@ -148,11 +172,6 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
       setCandidate(null)
     }
     setSymbol(next)
-  }
-
-  function handleRepeatChange(next: AlertRepeat) {
-    setRepeat(next)
-    if (next !== 'cooldown') setCooldownMinutes(DEFAULT_COOLDOWN_MINUTES)
   }
 
   function formValues(): AlertFormValues {
@@ -316,7 +335,7 @@ export function AlertRuleFormSheet({ alert, onClose }: AlertRuleFormSheetProps) 
               { value: 'cross-back', label: t('alerts.form.repeats.crossBack') },
               { value: 'cooldown', label: t('alerts.form.repeats.cooldown') },
             ]}
-            onChange={handleRepeatChange}
+            onChange={setRepeat}
             ariaLabel={t('alerts.form.repeat')}
           />
         </Field>
