@@ -1,12 +1,37 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import type { AssetDraft } from '@/data/models/asset'
-import { clearAssets, createAsset } from '@/data/repositories/assets.repo'
+import { clearAssets, createAsset, listAssets, updateAsset } from '@/data/repositories/assets.repo'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
+import { formatTime } from '@/lib/dates'
+import type { ProviderPrice } from '@/market/types'
 import { PortfolioOverviewPage } from './PortfolioOverviewPage'
+
+const marketState = vi.hoisted(() => ({
+  prices: new Map() as Map<string, ProviderPrice>,
+}))
+
+vi.mock('@/market/usePrices', () => ({
+  usePrices: () => ({
+    prices: marketState.prices,
+    status: {
+      provider: 'auto',
+      activeProvider: null,
+      lastSuccessAt: null,
+      nextAllowedAt: null,
+      error: null,
+    },
+    refresh: async () => undefined,
+  }),
+}))
+
+vi.mock('@/data/repositories/assets.repo', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/data/repositories/assets.repo')>()
+  return { ...actual, updateAsset: vi.fn(actual.updateAsset) }
+})
 
 function draft(partial: Partial<AssetDraft> & Pick<AssetDraft, 'symbol'>): AssetDraft {
   return {
@@ -114,5 +139,89 @@ describe('PortfolioOverviewPage filters', () => {
     )
 
     expect(screen.getByText('BTC')).toBeInTheDocument()
+  })
+})
+
+function providerPrice(
+  overrides: Partial<ProviderPrice> & Pick<ProviderPrice, 'key'>,
+): ProviderPrice {
+  return {
+    symbol: 'BTC',
+    provider: 'binance',
+    price: 68000,
+    fetchedAt: Date.now(),
+    sourceTimestamp: null,
+    ...overrides,
+  }
+}
+
+describe('PortfolioOverviewPage automatic prices', () => {
+  beforeEach(async () => {
+    await clearAssets()
+    marketState.prices = new Map()
+    vi.mocked(updateAsset).mockClear()
+  })
+
+  it('writes a fresh crypto price once and shows its timestamp', async () => {
+    await createAsset(
+      draft({
+        symbol: 'BTC',
+        market: 'crypto',
+        autoPrice: true,
+        binanceSymbol: 'BTCUSDT',
+      }),
+    )
+    const fetchedAt = Date.now()
+    marketState.prices = new Map([
+      ['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT', fetchedAt })],
+    ])
+
+    renderPage()
+
+    expect(await screen.findByText('68,000')).toBeInTheDocument()
+    await waitFor(() => expect(vi.mocked(updateAsset)).toHaveBeenCalledTimes(1))
+    const [assets] = await Promise.all([listAssets()])
+    expect(assets[0]?.currentPrice).toBe(68000)
+    expect(screen.getByText(formatTime(fetchedAt))).toBeInTheDocument()
+    expect(screen.queryByText('Stale')).not.toBeInTheDocument()
+  })
+
+  it('does not write prices for manual assets', async () => {
+    await createAsset(
+      draft({
+        symbol: 'BTC',
+        market: 'crypto',
+        autoPrice: false,
+        binanceSymbol: 'BTCUSDT',
+      }),
+    )
+    marketState.prices = new Map([['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT' })]])
+
+    renderPage()
+
+    expect(await screen.findByText('at cost')).toBeInTheDocument()
+    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
+  })
+
+  it('leaves stale prices unwritten and badges them', async () => {
+    await createAsset(
+      draft({
+        symbol: 'BTC',
+        market: 'crypto',
+        autoPrice: true,
+        binanceSymbol: 'BTCUSDT',
+      }),
+    )
+    const fetchedAt = Date.now() - 20 * 60_000
+    marketState.prices = new Map([
+      ['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT', fetchedAt })],
+    ])
+
+    renderPage()
+
+    expect(await screen.findByText('Stale')).toBeInTheDocument()
+    expect(screen.getByText(formatTime(fetchedAt))).toBeInTheDocument()
+    expect(screen.getByText('at cost')).toBeInTheDocument()
+    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
   })
 })

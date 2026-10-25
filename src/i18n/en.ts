@@ -456,6 +456,8 @@ export const en = {
     editAria: 'Edit {{symbol}}',
     deleteAria: 'Delete {{symbol}}',
     atCost: 'at cost',
+    staleBadge: 'Stale',
+    priceUpdatedAt: 'Price updated {{time}}',
     columns: {
       asset: 'Asset',
       avgCost: 'Avg cost',

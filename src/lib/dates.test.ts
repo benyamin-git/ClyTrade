@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addDays,
   formatDate,
+  formatTime,
   fromDateInputValue,
   isWithinRange,
   rangeStart,
@@ -25,6 +26,17 @@ describe('formatDate', () => {
 
   it('returns a placeholder for invalid dates', () => {
     expect(formatDate(new Date('nope'))).toBe('—')
+  })
+})
+
+describe('formatTime', () => {
+  it('formats the time of day for the active locale', () => {
+    setIntlContext({ locale: 'en-US' })
+    expect(formatTime(new Date(2026, 5, 15, 14, 30))).toBe('2:30 PM')
+  })
+
+  it('returns a placeholder for invalid timestamps', () => {
+    expect(formatTime(Number.NaN)).toBe('—')
   })
 })
 

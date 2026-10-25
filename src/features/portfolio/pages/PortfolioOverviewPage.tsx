@@ -1,16 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
-import { deleteAsset, listAssets } from '@/data/repositories/assets.repo'
+import { deleteAsset, listAssets, updateAsset } from '@/data/repositories/assets.repo'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
 import { useFilterState } from '@/features/filters/useFilterState'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
 import { cn } from '@/lib/cn'
+import { formatTime } from '@/lib/dates'
 import { formatCurrency, formatNumber, formatPercent, formatPrice } from '@/lib/format'
+import { usePrices } from '@/market/usePrices'
+import { STALE_MS, priceKeyFor, type MarketRef } from '@/market/types'
 import { Button } from '@/ui/components/Button'
 import { Card } from '@/ui/components/Card'
 import { DataTable, type Column } from '@/ui/components/DataTable'
@@ -21,6 +24,7 @@ import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { AssetFormSheet } from '../components/AssetFormSheet'
 import { PortfolioFilterSheet } from '../components/PortfolioFilterSheet'
+import { shouldWriteAutoPrice } from '../logic/autoPrice'
 import {
   ASSET_FILTER_GROUPS,
   DEFAULT_ASSET_FILTERS,
@@ -35,6 +39,40 @@ export function PortfolioOverviewPage() {
   const { t } = useI18n()
   const assets = useLiveQuery(() => listAssets(), [], undefined)
   const rows = useMemo<AssetRow[]>(() => toAssetRows(assets ?? []), [assets])
+
+  const refs = useMemo<MarketRef[]>(
+    () =>
+      (assets ?? [])
+        .filter((asset) => asset.market === 'crypto' && asset.autoPrice)
+        .map((asset) => ({
+          key: priceKeyFor(asset),
+          symbol: asset.symbol,
+          binanceSymbol: asset.binanceSymbol,
+          coingeckoId: asset.coingeckoId,
+        })),
+    [assets],
+  )
+  const { prices } = usePrices(refs, 'portfolio')
+  const [now, setNow] = useState(() => Date.now())
+  const writtenFetchedAt = useRef(new Map<string, number>())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!assets) return
+    const currentTime = Date.now()
+    for (const asset of assets) {
+      const price = prices.get(priceKeyFor(asset))
+      if (price === undefined) continue
+      if (!shouldWriteAutoPrice(asset, price, currentTime, STALE_MS)) continue
+      if (writtenFetchedAt.current.get(asset.id) === price.fetchedAt) continue
+      writtenFetchedAt.current.set(asset.id, price.fetchedAt)
+      void updateAsset(asset.id, { currentPrice: price.price }).catch(() => undefined)
+    }
+  }, [assets, prices])
 
   const { filters, patch, reset } = useFilterState(DEFAULT_ASSET_FILTERS)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -97,15 +135,38 @@ export function PortfolioOverviewPage() {
       key: 'price',
       header: t('portfolio.columns.price'),
       align: 'right',
-      render: (row) => (
-        <span className="tabular">
-          {row.asset.currentPrice === null ? (
-            <span className="text-on-surface-variant">{t('portfolio.atCost')}</span>
-          ) : (
-            formatPrice(row.asset.currentPrice)
-          )}
-        </span>
-      ),
+      render: (row) => {
+        const price = prices.get(priceKeyFor(row.asset))
+        const stale = price !== undefined && now - price.fetchedAt >= STALE_MS
+        return (
+          <span className="flex flex-col items-end gap-0.5">
+            <span className="tabular">
+              {row.asset.currentPrice === null ? (
+                <span className="text-on-surface-variant">{t('portfolio.atCost')}</span>
+              ) : (
+                formatPrice(row.asset.currentPrice)
+              )}
+            </span>
+            {price ? (
+              <span className="flex items-center justify-end gap-1 text-2xs text-on-surface-variant">
+                <time
+                  dateTime={new Date(price.fetchedAt).toISOString()}
+                  aria-label={t('portfolio.priceUpdatedAt', {
+                    time: formatTime(price.fetchedAt),
+                  })}
+                >
+                  {formatTime(price.fetchedAt)}
+                </time>
+                {stale ? (
+                  <span className="rounded-app-full bg-error-container px-1.5 py-0.5 font-medium text-on-error-container">
+                    {t('portfolio.staleBadge')}
+                  </span>
+                ) : null}
+              </span>
+            ) : null}
+          </span>
+        )
+      },
     },
     {
       key: 'value',

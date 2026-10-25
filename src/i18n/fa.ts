@@ -459,6 +459,8 @@ export const fa = {
     editAria: 'ویرایش {{symbol}}',
     deleteAria: 'حذف {{symbol}}',
     atCost: 'به قیمت خرید',
+    staleBadge: 'قدیمی',
+    priceUpdatedAt: 'قیمت در {{time}} به‌روزرسانی شد',
     columns: {
       asset: 'دارایی',
       avgCost: 'میانگین قیمت خرید',

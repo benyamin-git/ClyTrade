@@ -33,6 +33,8 @@ export interface MarketProvider {
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
+export const STALE_MS = 15 * 60_000
+
 export function priceKeyFor(
   ref: Pick<MarketRef, 'symbol' | 'binanceSymbol' | 'coingeckoId'>,
 ): string {

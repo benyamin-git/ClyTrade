@@ -55,6 +55,19 @@ export function formatDate(timestamp: number | Date): string {
   return formatter.format(date)
 }
 
+export function formatTime(timestamp: number | Date): string {
+  const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp
+  if (Number.isNaN(date.getTime())) return '—'
+  const { locale, calendar } = getIntlContext()
+  const key = `${locale}|${calendar ?? ''}|time`
+  let formatter = dateFormatters.get(key)
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(locale, { timeStyle: 'short', calendar })
+    dateFormatters.set(key, formatter)
+  }
+  return formatter.format(date)
+}
+
 export function toDateInputValue(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
