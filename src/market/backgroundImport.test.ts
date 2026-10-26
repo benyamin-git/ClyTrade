@@ -138,6 +138,7 @@ describe('importBackgroundEvents', () => {
       level: 120,
       reason: 'target',
       at: queued.at,
+      price: 130,
     })
 
     expect(await getTrade(trade.id)).toMatchObject({
@@ -232,6 +233,7 @@ describe('importBackgroundEvents', () => {
       level: 90,
       reason: 'stop',
       at: queued.at,
+      price: 80,
     })
     expect(await getTrade(trade.id)).toMatchObject({
       status: 'closed',

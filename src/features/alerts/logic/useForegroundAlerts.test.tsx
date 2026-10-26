@@ -9,7 +9,13 @@ import type { MarketRef, ProviderPrice } from '@/market/types'
 import { useForegroundAlerts } from './useForegroundAlerts'
 
 interface RunOptions {
-  note: (input: { symbol: string; level: number; reason: 'target' | 'stop'; at: number }) => string
+  note: (input: {
+    symbol: string
+    level: number
+    reason: 'target' | 'stop'
+    at: number
+    price: number
+  }) => string
 }
 
 interface RunSummary {
@@ -40,6 +46,7 @@ vi.mock('@/market/usePrices', () => ({
         activeProvider: null,
         lastSuccessAt: null,
         nextAllowedAt: null,
+        monthlyUsage: null,
         error: null,
       },
       refresh: async () => undefined,
@@ -321,9 +328,9 @@ describe('useForegroundAlerts', () => {
     await waitFor(() => expect(engine.runAlertEvaluation).toHaveBeenCalledOnce())
     const options = engine.runAlertEvaluation.mock.calls[0]?.[0]
 
-    expect(options?.note({ symbol: 'BTC', level: 120, reason: 'target', at: NOW })).toBe(
-      'Auto-closed BTC at 120 (Target hit).',
-    )
+    expect(
+      options?.note({ symbol: 'BTC', level: 120, reason: 'target', at: NOW, price: 123.5 }),
+    ).toContain('Auto-closed BTC at 120 (Target hit) with market price 123.5 on')
   })
 
   it('localizes the auto-close note in Persian', async () => {
@@ -334,9 +341,9 @@ describe('useForegroundAlerts', () => {
     await waitFor(() => expect(engine.runAlertEvaluation).toHaveBeenCalledOnce())
     const options = engine.runAlertEvaluation.mock.calls[0]?.[0]
 
-    expect(options?.note({ symbol: 'BTC', level: 120, reason: 'stop', at: NOW })).toBe(
-      'BTC به‌طور خودکار در 120 بسته شد (برخورد با استاپ).',
-    )
+    expect(
+      options?.note({ symbol: 'BTC', level: 120, reason: 'stop', at: NOW, price: 118 }),
+    ).toContain('با قیمت بازار 118')
   })
 
   it('shows one grouped notification for newly created unread events', async () => {

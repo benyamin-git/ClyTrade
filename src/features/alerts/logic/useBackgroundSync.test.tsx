@@ -307,9 +307,9 @@ describe('useBackgroundSync', () => {
     )
 
     const note = importer.importBackgroundEvents.mock.calls[0]?.[2]
-    expect(note?.({ symbol: 'ETH', level: 3000, reason: 'target', at: NOW })).toBe(
-      'Auto-closed ETH at 3,000 (Target hit).',
-    )
+    expect(
+      note?.({ symbol: 'ETH', level: 3000, reason: 'target', at: NOW, price: 3050 }),
+    ).toContain('with market price 3,050')
   })
 
   it('imports again when the document becomes visible', async () => {

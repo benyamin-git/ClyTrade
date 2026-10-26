@@ -397,7 +397,8 @@ export const fa = {
   },
   alerts: {
     at: '{{date}}، ساعت {{time}}',
-    autoCloseNote: '{{symbol}} به‌طور خودکار در {{level}} بسته شد ({{reason}}).',
+    autoCloseNote:
+      '{{symbol}} به‌طور خودکار در {{level}} بسته شد ({{reason}}) با قیمت بازار {{price}} در {{time}}.',
     background: {
       cadenceAndroid: 'اندروید تقریباً هر 15 دقیقه یک‌بار هشدارها را در پس‌زمینه بررسی می‌کند.',
       cadenceWindows:
@@ -504,6 +505,8 @@ export const fa = {
         'قیمت در یک به‌روزرسانی هم از تارگت و هم از استاپ عبور کرد. انتخاب کنید این معامله چگونه بسته شود.',
       levels: 'تارگت {{target}} · استاپ {{stop}}',
       refresh: 'به‌روزرسانی قیمت',
+      tradeChanged:
+        'این معامله پس از گپ تغییر کرده است. معامله را بررسی کنید و پس از حل شدن، این مورد را رد کنید.',
       staleDescription:
         'آخرین قیمت {{symbol}} بیش از 15 دقیقه قدیمی است، بنابراین چیزی بسته نشد. برای بررسی دوباره به‌روزرسانی کنید.',
     },
@@ -521,6 +524,8 @@ export const fa = {
       reference: 'قیمت مرجع {{price}}',
       repeat: 'تکرار: {{mode}}',
       tradeBadge: 'معاملهٔ ژورنال',
+      priceUnavailable:
+        'قیمت زنده‌ای برای این معامله موجود نیست. در این نسخه فقط قیمت رمزارزها ارائه می‌شود.',
       tradeEditAria: 'ویرایش معاملهٔ {{symbol}}',
       tradeLevels: 'تارگت {{target}} · استاپ {{stop}}',
       tradeStop: 'استاپ {{level}}',
@@ -556,6 +561,8 @@ export const fa = {
         unknown: 'به‌روزرسانی قیمت ناموفق بود.',
       },
       lastSuccess: 'آخرین موفقیت',
+      monthlyUsage: 'CoinGecko در این ماه',
+      monthlyUsageValue: '{{used}} / {{limit}}',
       never: 'هرگز',
       nextRefresh: 'به‌روزرسانی بعدی',
       now: 'اکنون',

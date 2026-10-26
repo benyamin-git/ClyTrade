@@ -11,6 +11,7 @@ export interface BackgroundNoteInput {
   level: number
   reason: 'target' | 'stop'
   at: number
+  price: number
 }
 
 export type BackgroundNote = (input: BackgroundNoteInput) => string
@@ -112,6 +113,7 @@ export async function importBackgroundEvents(
         level,
         reason: event.kind,
         at: event.at,
+        price: event.price,
       }),
     })
     if (applied) closed += 1

@@ -8,6 +8,7 @@ import {
   createAlert,
   createAlertEvent,
   deleteAlert,
+  dismissAlertEvent,
   getAlert,
   listAlertEvents,
   listAlerts,
@@ -316,6 +317,44 @@ describe('runAlertEvaluation', () => {
     expect(await listAlertEvents()).toHaveLength(1)
   })
 
+  it('does not recreate a dismissed gap review until the trade levels change', async () => {
+    const trade = await seedTrade({ targetPrice: 90, stopPrice: 110 })
+    await seedPrice(100)
+    const first = await runAlertEvaluation({ now: NOW, note: noteMock() })
+    expect(first.reviews).toBe(1)
+    const review = (await listAlertEvents())[0]
+    if (!review) throw new Error('missing review')
+    await dismissAlertEvent(review.id)
+
+    expect(await runAlertEvaluation({ now: NOW + 1_000, note: noteMock() })).toEqual({
+      events: 0,
+      closes: 0,
+      reviews: 0,
+    })
+
+    await updateTrade(trade.id, { targetPrice: 80 })
+    expect((await runAlertEvaluation({ now: NOW + 2_000, note: noteMock() })).reviews).toBe(1)
+  })
+
+  it('does not recreate a dismissed stale review until the stale price changes', async () => {
+    await seedTrade()
+    await seedPrice(130, STALE_AT)
+    const first = await runAlertEvaluation({ now: NOW, note: noteMock() })
+    expect(first.reviews).toBe(1)
+    const review = (await listAlertEvents())[0]
+    if (!review) throw new Error('missing review')
+    await dismissAlertEvent(review.id)
+
+    expect(await runAlertEvaluation({ now: NOW + 1_000, note: noteMock() })).toEqual({
+      events: 0,
+      closes: 0,
+      reviews: 0,
+    })
+
+    await seedPrice(140, STALE_AT - 1_000)
+    expect((await runAlertEvaluation({ now: NOW + 2_000, note: noteMock() })).reviews).toBe(1)
+  })
+
   it('writes a new target event when the target level changes', async () => {
     const trade = await seedTrade({ autoClose: false, targetPrice: 120, stopPrice: 80 })
     await seedPrice(130)
@@ -475,7 +514,7 @@ describe('runAlertEvaluation', () => {
     })
   })
 
-  it('suppresses a duplicate unresolved rule event but still applies its update', async () => {
+  it('repeats a cooldown rule event after the cooldown while applying its update', async () => {
     const rule = await seedRule({ repeat: 'cooldown', level: 100, lastPrice: 95 })
     await seedPrice(105)
     expect((await runAlertEvaluation({ now: NOW, note: noteMock() })).events).toBe(1)
@@ -483,13 +522,61 @@ describe('runAlertEvaluation', () => {
     const later = NOW + 60 * 60_000
     await seedPrice(105, later - 60_000)
     expect(await runAlertEvaluation({ now: later, note: noteMock() })).toEqual({
-      events: 0,
+      events: 1,
       closes: 0,
       reviews: 0,
     })
 
-    expect(await listAlertEvents()).toHaveLength(1)
+    expect(await listAlertEvents()).toHaveLength(2)
     expect(await getAlert(rule.id)).toMatchObject({ lastFiredAt: later, lastPrice: 105 })
+  })
+
+  it('repeats rule events according to their mode', async () => {
+    const cases = [
+      { kind: 'price', repeat: 'once', expected: 1 },
+      { kind: 'price', repeat: 'cross-back', expected: 2 },
+      { kind: 'price', repeat: 'cooldown', expected: 2 },
+      { kind: 'percent', repeat: 'once', expected: 1 },
+      { kind: 'percent', repeat: 'cross-back', expected: 2 },
+      { kind: 'percent', repeat: 'cooldown', expected: 2 },
+    ] as const
+
+    for (const entry of cases) {
+      await resetDb()
+      const isPercent = entry.kind === 'percent'
+      const rule = await seedRule({
+        kind: entry.kind,
+        repeat: entry.repeat,
+        level: isPercent ? null : 100,
+        priceMode: isPercent ? null : 'above',
+        percent: isPercent ? 5 : null,
+        percentDirection: isPercent ? 'up' : null,
+        referencePrice: isPercent ? 100 : null,
+        lastPrice: isPercent ? 100 : 95,
+      })
+      await seedPrice(isPercent ? 106 : 105)
+      expect((await runAlertEvaluation({ now: NOW, note: noteMock() })).events).toBe(1)
+
+      const later = NOW + 60 * 60_000
+      if (entry.repeat === 'cross-back') {
+        await seedPrice(isPercent ? 100 : 90, later - 120_000)
+        await runAlertEvaluation({ now: later - 60_000, note: noteMock() })
+      }
+      await seedPrice(isPercent ? 112 : 115, later - 60_000)
+      await runAlertEvaluation({ now: later, note: noteMock() })
+
+      const events = await listAlertEvents()
+      expect(events, `${entry.kind}/${entry.repeat}`).toHaveLength(entry.expected)
+      if (entry.expected === 2) {
+        expect(events.map((event) => event.kind)).toEqual([
+          isPercent ? 'percent' : 'level',
+          isPercent ? 'percent' : 'level',
+        ])
+      }
+      expect(await getAlert(rule.id)).toMatchObject(
+        entry.repeat === 'once' ? { enabled: false } : { enabled: true },
+      )
+    }
   })
 
   it('prunes history to the newest 500 events after writing', async () => {
@@ -543,7 +630,13 @@ describe('runAlertEvaluation', () => {
     await runAlertEvaluation({ now: NOW, note })
 
     expect(note).toHaveBeenCalledTimes(1)
-    expect(note).toHaveBeenCalledWith({ symbol: 'BTC', level: 90, reason: 'stop', at: NOW })
+    expect(note).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      level: 90,
+      reason: 'stop',
+      at: NOW,
+      price: 80,
+    })
   })
 
   it('defaults the evaluation time to the current clock', async () => {

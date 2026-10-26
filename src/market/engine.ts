@@ -13,7 +13,13 @@ import { STALE_MS, type ProviderPrice } from './types'
 
 export interface EngineOptions {
   now?: number
-  note: (input: { symbol: string; level: number; reason: 'target' | 'stop'; at: number }) => string
+  note: (input: {
+    symbol: string
+    level: number
+    reason: 'target' | 'stop'
+    at: number
+    price: number
+  }) => string
 }
 
 export interface EvaluationSummary {
@@ -30,12 +36,32 @@ function isUnresolved(status: AlertEventDraft['status']): boolean {
   return status === 'unread' || status === 'read'
 }
 
-function dedupeKey(event: AlertEventDraft): string {
+function dedupeKey(event: AlertEventDraft): string | null {
   const owner = event.tradeId ?? event.ruleId ?? ''
-  if (event.kind === 'gap' || event.kind === 'stale') {
-    return `${event.kind}|${owner}`
+  if (event.kind === 'level' || event.kind === 'percent') return null
+  if (event.kind === 'gap') {
+    return `gap|${owner}|${event.targetPrice ?? ''}|${event.stopPrice ?? ''}`
+  }
+  if (event.kind === 'stale') {
+    return `stale|${owner}|${event.price}`
   }
   return `${event.kind}|${owner}|${event.level ?? ''}`
+}
+
+function addKey(set: Set<string>, event: AlertEventDraft): void {
+  const key = dedupeKey(event)
+  if (key !== null) set.add(key)
+}
+
+function shouldSuppress(
+  event: AlertEventDraft,
+  unresolved: ReadonlySet<string>,
+  dismissedReviews: ReadonlySet<string>,
+): boolean {
+  const key = dedupeKey(event)
+  if (key === null) return false
+  if (unresolved.has(key)) return true
+  return (event.kind === 'gap' || event.kind === 'stale') && dismissedReviews.has(key)
 }
 
 async function evaluateAndPersist(options: EngineOptions): Promise<EvaluationSummary> {
@@ -61,24 +87,28 @@ async function evaluateAndPersist(options: EngineOptions): Promise<EvaluationSum
     staleMs: STALE_MS,
   })
 
-  const seen = new Set(
-    history.filter((event) => isUnresolved(event.status)).map((event) => dedupeKey(event)),
-  )
+  const unresolved = new Set<string>()
+  const dismissedReviews = new Set<string>()
+  for (const event of history) {
+    if (isUnresolved(event.status)) {
+      addKey(unresolved, event)
+    } else if (event.status === 'dismissed' && (event.kind === 'gap' || event.kind === 'stale')) {
+      addKey(dismissedReviews, event)
+    }
+  }
   let events = 0
   let reviews = 0
 
   for (const draft of result.events) {
-    const key = dedupeKey(draft)
-    if (seen.has(key)) continue
-    seen.add(key)
+    if (shouldSuppress(draft, unresolved, dismissedReviews)) continue
+    addKey(unresolved, draft)
     await createAlertEvent(draft)
     events += 1
   }
 
   for (const draft of result.reviews) {
-    const key = dedupeKey(draft)
-    if (seen.has(key)) continue
-    seen.add(key)
+    if (shouldSuppress(draft, unresolved, dismissedReviews)) continue
+    addKey(unresolved, draft)
     await createAlertEvent(draft)
     reviews += 1
   }
@@ -95,6 +125,7 @@ async function evaluateAndPersist(options: EngineOptions): Promise<EvaluationSum
         level: close.level,
         reason: close.reason,
         at: close.at,
+        price: close.price,
       }),
     })
     if (applied) closes += 1

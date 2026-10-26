@@ -395,7 +395,8 @@ export const en = {
   },
   alerts: {
     at: '{{date}} at {{time}}',
-    autoCloseNote: 'Auto-closed {{symbol}} at {{level}} ({{reason}}).',
+    autoCloseNote:
+      'Auto-closed {{symbol}} at {{level}} ({{reason}}) with market price {{price}} on {{time}}.',
     background: {
       cadenceAndroid: 'Android checks your alerts about every 15 minutes in the background.',
       cadenceWindows:
@@ -502,6 +503,8 @@ export const en = {
         'The price crossed both the target and the stop in one refresh. Choose how to close this trade.',
       levels: 'Target {{target}} · Stop {{stop}}',
       refresh: 'Refresh price',
+      tradeChanged:
+        'This trade changed after the gap. Review the trade and dismiss this item when it is resolved.',
       staleDescription:
         'The last price for {{symbol}} is older than 15 minutes, so nothing was closed. Refresh to check again.',
     },
@@ -519,6 +522,8 @@ export const en = {
       reference: 'Reference {{price}}',
       repeat: 'Repeat: {{mode}}',
       tradeBadge: 'Journal trade',
+      priceUnavailable:
+        'No live price for this trade. Only crypto prices are available in this version.',
       tradeEditAria: 'Edit {{symbol}} trade',
       tradeLevels: 'Target {{target}} · Stop {{stop}}',
       tradeStop: 'Stop {{level}}',
@@ -553,6 +558,8 @@ export const en = {
         unknown: 'Price refresh failed.',
       },
       lastSuccess: 'Last success',
+      monthlyUsage: 'CoinGecko this month',
+      monthlyUsageValue: '{{used}} / {{limit}}',
       never: 'Never',
       nextRefresh: 'Next refresh',
       now: 'Now',
