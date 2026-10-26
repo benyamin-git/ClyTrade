@@ -48,6 +48,8 @@ All notable changes to ClyTrade are documented here. The format follows
   current price; ambiguous symbols resolve through a provider picker.
 - Documentation, README and AGENTS describe the price layer, alerts and platform
   limits.
+- The Tauri JS and Rust dependencies are pinned to matching versions for the
+  Android release build.
 
 ### Security
 
