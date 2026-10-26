@@ -44,3 +44,9 @@ export async function clearNativeEvents(): Promise<void> {
     window.ClyTradeNative?.clearBackgroundEvents?.()
   }
 }
+
+export function consumeNativePendingRoute(): string | null {
+  if (!isAndroid()) return null
+  const route = window.ClyTradeNative?.consumePendingRoute?.()
+  return typeof route === 'string' && route.length > 0 ? route : null
+}

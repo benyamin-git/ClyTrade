@@ -10,6 +10,7 @@ interface ClyTradeNativeBridge {
   writeBackgroundSnapshot?: (json: string) => void
   readBackgroundEvents?: () => string
   clearBackgroundEvents?: () => void
+  consumePendingRoute?: () => string
 }
 
 interface Window {

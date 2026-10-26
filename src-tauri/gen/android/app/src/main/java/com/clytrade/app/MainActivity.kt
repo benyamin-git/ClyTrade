@@ -1,5 +1,6 @@
 package com.clytrade.app
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.webkit.JavascriptInterface
@@ -9,13 +10,23 @@ import androidx.core.view.WindowCompat
 
 class MainActivity : TauriActivity() {
   @Volatile private var darkTheme = false
+  private val routeLock = Any()
+  private var pendingRoute: String? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     darkTheme =
       (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
         Configuration.UI_MODE_NIGHT_YES
+    setPendingRoute(routeFrom(intent))
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
+    setIntent(intent)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    routeFrom(intent)?.let(::setPendingRoute)
   }
 
   override fun onWebViewCreate(webView: WebView) {
@@ -46,6 +57,9 @@ class MainActivity : TauriActivity() {
         fun clearBackgroundEvents() {
           MarketQueue.clear(applicationContext)
         }
+
+        @JavascriptInterface
+        fun consumePendingRoute(): String = takePendingRoute()
       },
       "ClyTradeNative"
     )
@@ -67,6 +81,25 @@ class MainActivity : TauriActivity() {
     super.onConfigurationChanged(newConfig)
     applySystemBarAppearance()
   }
+
+  private fun routeFrom(intent: Intent?): String? {
+    if (intent?.getBooleanExtra(MarketNotifications.EXTRA_OPEN_ALERTS, false) != true) return null
+    intent.removeExtra(MarketNotifications.EXTRA_OPEN_ALERTS)
+    return MarketNotifications.ALERTS_ROUTE
+  }
+
+  private fun setPendingRoute(route: String?) {
+    synchronized(routeLock) {
+      pendingRoute = route
+    }
+  }
+
+  private fun takePendingRoute(): String =
+    synchronized(routeLock) {
+      val route = pendingRoute
+      pendingRoute = null
+      route ?: ""
+    }
 
   private fun applySystemBarAppearance() {
     WindowCompat.getInsetsController(window, window.decorView).apply {

@@ -40,7 +40,10 @@ class MarketSnapshotTest {
                 .put("staleMs", 900_000)
                 .put(
                     "notification",
-                    JSONObject().put("title", "ClyTrade alerts").put("body", "Background hit"),
+                    JSONObject()
+                        .put("title", "ClyTrade alerts")
+                        .put("body", "Background hit")
+                        .put("more", "+{{count}} more"),
                 )
                 .put(
                     "trades",
@@ -82,6 +85,7 @@ class MarketSnapshotTest {
         assertEquals("demo-key", snapshot.coingeckoKey)
         assertEquals("tray", snapshot.windowsCloseBehavior)
         assertEquals("ClyTrade alerts", snapshot.notification.title)
+        assertEquals("+{{count}} more", snapshot.notification.more)
         assertEquals(1, snapshot.trades.size)
         assertEquals("open", snapshot.trades[0].status)
         assertEquals("short", snapshot.trades[0].direction)
@@ -101,6 +105,17 @@ class MarketSnapshotTest {
         assertNull(Snapshot.parse("""{"trades":"nope"}"""))
         assertNull(Snapshot.parse("""{"trades":[1]}"""))
         assertNull(Snapshot.parse("""{"staleMs":"soon"}"""))
+    }
+
+    @Test
+    fun notification_more_is_optional() {
+        val snapshot = Snapshot.parse("""{"notification":{"title":"t","body":"b"}}""")!!
+        assertEquals("", snapshot.notification.more)
+    }
+
+    @Test
+    fun invalid_notification_more_returns_null() {
+        assertNull(Snapshot.parse("""{"notification":{"more":1}}"""))
     }
 
     @Test

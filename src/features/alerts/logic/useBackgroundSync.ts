@@ -105,6 +105,7 @@ export function useBackgroundSync(): void {
         notification: {
           title: t('notifications.title'),
           body: t('notifications.backgroundBody'),
+          more: t('notifications.more'),
         },
         trades: stored.trades,
         rules: stored.rules,

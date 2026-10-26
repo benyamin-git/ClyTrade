@@ -43,8 +43,10 @@ export function useNotificationPermission(): NotificationPermissionHook {
       try {
         const { requestPermission } = await import('@tauri-apps/plugin-notification')
         const result = await requestPermission()
-        setPermission(result)
-        return result === 'granted'
+        const next: NotificationPermissionState =
+          result === 'granted' ? 'granted' : result === 'denied' ? 'denied' : 'default'
+        setPermission(next)
+        return next === 'granted'
       } catch {
         setPermission('unsupported')
         return false

@@ -48,6 +48,12 @@ export interface BackgroundRule {
   priceKey: string
 }
 
+export interface BackgroundNotificationTemplate {
+  title: string
+  body: string
+  more?: string
+}
+
 export interface BackgroundSnapshot {
   version: 1
   generatedAt: number
@@ -57,7 +63,7 @@ export interface BackgroundSnapshot {
   backgroundMonitoring: boolean
   windowsCloseBehavior: 'unset' | 'tray' | 'quit'
   staleMs: number
-  notification: { title: string; body: string }
+  notification: BackgroundNotificationTemplate
   trades: BackgroundTrade[]
   rules: BackgroundRule[]
 }
@@ -95,7 +101,7 @@ export interface BackgroundSnapshotInput {
   locale: 'en' | 'fa'
   preferences: Preferences
   coingeckoKey: string | null
-  notification: { title: string; body: string }
+  notification: BackgroundNotificationTemplate
   trades: readonly Trade[]
   rules: readonly PriceAlert[]
 }

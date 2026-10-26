@@ -1,12 +1,19 @@
 import { render, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppRoot } from './AppRoot'
+import { router } from './router'
 
 const calls = vi.hoisted(() => ({
   background: 0,
   foreground: 0,
   persistent: 0,
 }))
+
+const native = vi.hoisted(() => ({
+  consumeNativePendingRoute: vi.fn<() => string | null>(() => null),
+}))
+
+vi.mock('@/lib/native', () => native)
 
 vi.mock('@/lib/storage', () => ({
   requestPersistentStorage: async () => {
@@ -21,6 +28,7 @@ vi.mock('./router', async () => {
   return {
     router: createMemoryRouter([
       { path: '/', element: createElement('div', null, 'route content') },
+      { path: '*', element: createElement('div', null, 'route content') },
     ]),
   }
 })
@@ -62,10 +70,15 @@ vi.mock('@/features/alerts/logic/useForegroundAlerts', async () => {
   }
 })
 
+const navigate = vi.spyOn(router, 'navigate')
+
 beforeEach(() => {
   calls.background = 0
   calls.foreground = 0
   calls.persistent = 0
+  native.consumeNativePendingRoute.mockReset()
+  native.consumeNativePendingRoute.mockReturnValue(null)
+  navigate.mockClear()
 })
 
 afterEach(() => {
@@ -80,5 +93,31 @@ describe('AppRoot', () => {
     await waitFor(() => expect(calls.background).toBe(1))
     expect(calls.foreground).toBe(1)
     expect(calls.persistent).toBe(1)
+  })
+
+  it('opens Alerts when the native shell has a pending route', async () => {
+    native.consumeNativePendingRoute.mockReturnValueOnce('/alerts/overview')
+
+    render(<AppRoot />)
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/alerts/overview'))
+  })
+
+  it('stays on the current route when nothing is pending', async () => {
+    render(<AppRoot />)
+
+    await waitFor(() => expect(calls.background).toBe(1))
+    expect(native.consumeNativePendingRoute).toHaveBeenCalled()
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('consumes a route that arrives while the app is already visible', async () => {
+    render(<AppRoot />)
+    await waitFor(() => expect(calls.background).toBe(1))
+
+    native.consumeNativePendingRoute.mockReturnValueOnce('/alerts/overview')
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/alerts/overview'))
   })
 })

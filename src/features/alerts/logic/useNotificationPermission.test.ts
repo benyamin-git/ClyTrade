@@ -153,6 +153,20 @@ describe('useNotificationPermission on native', () => {
     expect(result.current.permission).toBe('denied')
   })
 
+  it('normalizes an unexpected plugin result to default', async () => {
+    platform.current = 'android'
+    plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    plugin.requestPermission.mockResolvedValueOnce('prompt' as NotificationPermission)
+    const { result } = renderHook(() => useNotificationPermission())
+    await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
+
+    await act(async () => {
+      await expect(result.current.request()).resolves.toBe(false)
+    })
+
+    expect(result.current.permission).toBe('default')
+  })
+
   it('reports unsupported when the plugin is unavailable', async () => {
     platform.current = 'android'
     plugin.isPermissionGranted.mockRejectedValueOnce(new Error('missing plugin'))

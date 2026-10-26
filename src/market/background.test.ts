@@ -236,6 +236,15 @@ describe('buildBackgroundSnapshot', () => {
     expect(snapshot.rules.map((entry) => entry.id)).toEqual(['coingecko'])
     expect(snapshot.rules[0]?.priceKey).toBe('coingecko:ethereum')
   })
+
+  it('publishes the optional localized more template', () => {
+    const snapshot = buildBackgroundSnapshot({
+      ...snapshotInput(),
+      notification: { ...NOTIFICATION, more: '+{{count}} more' },
+    })
+
+    expect(snapshot.notification).toEqual({ ...NOTIFICATION, more: '+{{count}} more' })
+  })
 })
 
 describe('writeBackgroundSnapshot', () => {

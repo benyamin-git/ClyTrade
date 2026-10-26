@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import {
   clearNativeEvents,
+  consumeNativePendingRoute,
   isBackgroundPlatform,
   readNativeEvents,
   setNativeBackgroundMonitoring,
@@ -29,6 +30,7 @@ interface FakeBridge {
   writeBackgroundSnapshot: Mock<(json: string) => void>
   readBackgroundEvents: Mock<() => string>
   clearBackgroundEvents: Mock<() => void>
+  consumePendingRoute: Mock<() => string>
 }
 
 function installBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
@@ -38,6 +40,7 @@ function installBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
     writeBackgroundSnapshot: vi.fn<(json: string) => void>(),
     readBackgroundEvents: vi.fn<() => string>(() => '[]'),
     clearBackgroundEvents: vi.fn<() => void>(),
+    consumePendingRoute: vi.fn<() => string>(() => ''),
     ...overrides,
   }
   window.ClyTradeNative = bridge
@@ -167,5 +170,51 @@ describe('background native bridge', () => {
 
     expect(bridge.setBackgroundMonitoring).not.toHaveBeenCalled()
     expect(tauri.invoke).not.toHaveBeenCalled()
+  })
+
+  it('consumes the pending route through the Android bridge', () => {
+    platform.current = 'android'
+    const bridge = installBridge({
+      consumePendingRoute: vi.fn(() => '/alerts/overview'),
+    })
+
+    expect(consumeNativePendingRoute()).toBe('/alerts/overview')
+    expect(bridge.consumePendingRoute).toHaveBeenCalledOnce()
+  })
+
+  it('treats the Android eabi platform as Android when consuming a route', () => {
+    platform.current = 'androideabi'
+    const bridge = installBridge({
+      consumePendingRoute: vi.fn(() => '/alerts/overview'),
+    })
+
+    expect(consumeNativePendingRoute()).toBe('/alerts/overview')
+    expect(bridge.consumePendingRoute).toHaveBeenCalledOnce()
+  })
+
+  it('returns null when Android has no pending route', () => {
+    platform.current = 'android'
+    const bridge = installBridge()
+
+    expect(consumeNativePendingRoute()).toBeNull()
+    expect(bridge.consumePendingRoute).toHaveBeenCalledOnce()
+  })
+
+  it('does not consume a route on the web or Windows', () => {
+    const webBridge = installBridge()
+    expect(consumeNativePendingRoute()).toBeNull()
+    expect(webBridge.consumePendingRoute).not.toHaveBeenCalled()
+
+    platform.current = 'windows'
+    const windowsBridge = installBridge()
+    expect(consumeNativePendingRoute()).toBeNull()
+    expect(windowsBridge.consumePendingRoute).not.toHaveBeenCalled()
+    expect(tauri.invoke).not.toHaveBeenCalled()
+  })
+
+  it('does not throw when the Android route bridge is missing', () => {
+    platform.current = 'android'
+
+    expect(consumeNativePendingRoute()).toBeNull()
   })
 })

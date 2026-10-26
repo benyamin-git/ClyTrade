@@ -218,6 +218,7 @@ describe('useBackgroundSync', () => {
       notification: {
         title: 'ClyTrade alerts',
         body: 'A price level was reached while ClyTrade was in the background.',
+        more: '+{{count}} more',
       },
     })
     expect(snapshot?.trades).toEqual([
@@ -242,6 +243,7 @@ describe('useBackgroundSync', () => {
       notification: {
         title: 'هشدارهای ClyTrade',
         body: 'در حالی که ClyTrade در پس‌زمینه بود، قیمت به یک سطح رسید.',
+        more: '+{{count}} مورد دیگر',
       },
     })
   })

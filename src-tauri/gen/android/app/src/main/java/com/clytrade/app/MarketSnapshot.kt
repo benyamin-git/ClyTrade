@@ -78,12 +78,14 @@ internal fun writeAtomicFile(file: File, text: String): Boolean {
 data class NotificationTemplate(
     val title: String = "",
     val body: String = "",
+    val more: String = "",
 ) {
     companion object {
         fun fromJson(json: JSONObject): NotificationTemplate =
             NotificationTemplate(
                 title = json.stringField("title"),
                 body = json.stringField("body"),
+                more = json.stringField("more"),
             )
     }
 }
