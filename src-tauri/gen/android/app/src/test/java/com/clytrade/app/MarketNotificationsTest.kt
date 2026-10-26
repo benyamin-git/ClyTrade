@@ -1,7 +1,11 @@
 package com.clytrade.app
 
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,6 +26,112 @@ class MarketNotificationsTest {
             body = body,
             more = more,
         )
+
+    @Test
+    fun pins_the_notification_contract_constants() {
+        assertEquals("clytrade_alerts", MarketNotifications.CHANNEL_ID)
+        assertEquals(1, MarketNotifications.NOTIFICATION_ID)
+        assertEquals("open_alerts", MarketNotifications.EXTRA_OPEN_ALERTS)
+        assertEquals("/alerts/overview", MarketNotifications.ALERTS_ROUTE)
+        assertEquals(5, MarketNotifications.MAX_ITEMS)
+        assertEquals(R.drawable.ic_stat_clytrade, MarketNotifications.SMALL_ICON)
+        assertEquals(
+            Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP,
+            MarketNotifications.ALERT_INTENT_FLAGS,
+        )
+        assertEquals(
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            MarketNotifications.PENDING_INTENT_FLAGS,
+        )
+    }
+
+    @Test
+    fun channel_spec_pins_the_channel_contract() {
+        val spec = MarketNotifications.channelSpec(template(), "ClyTrade")
+
+        assertEquals("clytrade_alerts", spec.id)
+        assertEquals("ClyTrade alerts", spec.name)
+        assertEquals(NotificationManager.IMPORTANCE_DEFAULT, spec.importance)
+        assertEquals("Background hit", spec.description)
+    }
+
+    @Test
+    fun channel_spec_falls_back_to_the_app_name() {
+        val spec = MarketNotifications.channelSpec(template(title = ""), "ClyTrade")
+
+        assertEquals("ClyTrade", spec.name)
+    }
+
+    @Test
+    fun alert_intent_spec_pins_the_tap_contract() {
+        val spec = MarketNotifications.alertIntentSpec()
+
+        assertEquals("com.clytrade.app.MainActivity", spec.target.name)
+        assertEquals("open_alerts", spec.extraKey)
+        assertTrue(spec.extraValue)
+        assertEquals(
+            Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP,
+            spec.flags,
+        )
+        assertEquals(
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            spec.pendingFlags,
+        )
+    }
+
+    @Test
+    fun notification_spec_pins_id_icon_title_body_count_and_intent() {
+        val events = (0 until 7).map { event("S$it", 100.0 + it) }
+
+        val spec = MarketNotifications.notificationSpec(template(), events, "ClyTrade")
+
+        assertEquals(1, spec.id)
+        assertEquals("clytrade_alerts", spec.channelId)
+        assertEquals(R.drawable.ic_stat_clytrade, spec.smallIcon)
+        assertEquals("ClyTrade alerts", spec.title)
+        assertEquals(
+            "Background hit\nS0 · 100\nS1 · 101\nS2 · 102\nS3 · 103\nS4 · 104\n+2 more",
+            spec.body,
+        )
+        assertEquals(7, spec.number)
+        assertTrue(spec.autoCancel)
+        assertEquals("com.clytrade.app.MainActivity", spec.intent.target.name)
+    }
+
+    @Test
+    fun notification_spec_falls_back_to_the_app_name() {
+        val spec = MarketNotifications.notificationSpec(template(title = ""), listOf(event("BTC")), "ClyTrade")
+
+        assertEquals("ClyTrade", spec.title)
+    }
+
+    @Test
+    fun notification_failure_is_caught_and_reported() {
+        var reported: Exception? = null
+
+        val shown =
+            MarketNotifications.attemptNotification(
+                onError = { reported = it },
+            ) {
+                throw IllegalStateException("boom")
+            }
+
+        assertFalse(shown)
+        assertEquals("boom", reported?.message)
+    }
+
+    @Test
+    fun notification_success_returns_true() {
+        var reported: Exception? = null
+
+        val shown =
+            MarketNotifications.attemptNotification(
+                onError = { reported = it },
+            ) {}
+
+        assertTrue(shown)
+        assertNull(reported)
+    }
 
     @Test
     fun groups_five_items_and_counts_the_rest() {

@@ -56,7 +56,9 @@ class MarketWorker(
                 Log.w(TAG, "failed to write background events")
                 return Result.retry()
             }
-            MarketNotifications.show(applicationContext, snapshot, run.queued)
+            if (!MarketNotifications.show(applicationContext, snapshot, run.queued)) {
+                Log.i(TAG, "background notification not shown")
+            }
         }
 
         if (run.ruleUpdates.isNotEmpty()) {

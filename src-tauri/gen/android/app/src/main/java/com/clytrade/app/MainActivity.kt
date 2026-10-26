@@ -17,7 +17,7 @@ class MainActivity : TauriActivity() {
     darkTheme =
       (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
         Configuration.UI_MODE_NIGHT_YES
-    setPendingRoute(routeFrom(intent))
+    routeFrom(intent)?.let(::setPendingRoute)
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     setIntent(intent)

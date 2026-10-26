@@ -87,11 +87,12 @@ large changes.
   the web app loads, and adds the `ClyTradeNative.setDarkTheme` JS bridge that
   syncs the Android status and navigation bar icon colors with the in-app theme
   (see `syncNativeSystemBar` in `src/theme/theme.ts`); `MarketNotifications.kt`
-  owns the `clytrade_alerts` channel, posts one grouped alert per worker poll and
-  opens `MainActivity` with `open_alerts`, which `consumePendingRoute` maps to
-  `/alerts/overview`, with `res/drawable/ic_stat_clytrade.xml` as its monochrome
-  small icon; `AndroidManifest.xml`
-  sets `android:allowBackup="false"` and points `android:dataExtractionRules` at
+  owns the `clytrade_alerts` channel, posts one grouped alert per worker poll
+  when new events are queued, and opens `MainActivity` with `open_alerts`, which
+  the `consumePendingRoute` bridge maps to `/alerts/overview`;
+  `res/drawable/ic_stat_clytrade.xml` is its monochrome small icon;
+  `AndroidManifest.xml` declares `POST_NOTIFICATIONS`, sets
+  `android:allowBackup="false"` and points `android:dataExtractionRules` at
   `res/xml/data_extraction_rules.xml`, which excludes every backup domain from
   cloud backup and device-to-device transfer so the local-first database cannot
   leave the device; the unused `FileProvider` (`file_paths.xml`) and the
