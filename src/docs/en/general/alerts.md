@@ -38,8 +38,8 @@ refresh, the next allowed refresh and the current error.
 
 With a trade's **Auto-close** toggle on, a single fresh target or stop hit closes
 the trade at the exact level. The trade gets the `auto-closed` tag and a note
-naming the symbol, level and reason, so the journal shows how it ended. Edit the
-trade afterwards to correct the exit price, date or note.
+naming the symbol, level, triggering market price and time, so the journal shows
+how it ended. Edit the trade afterwards to correct the exit price, date or note.
 
 Auto-close is deliberately conservative:
 
@@ -53,7 +53,8 @@ Auto-close is deliberately conservative:
   is more than 24 hours old) becomes a **conflict** review item.
 
 Review items are never applied silently. You choose to close, edit, refresh or
-dismiss.
+dismiss. Closing a gap review is a manual action: it closes the trade at the
+chosen level but does not add the `auto-closed` tag.
 
 ## Prices and limits
 
@@ -98,7 +99,9 @@ permission; if you deny it, the in-app inbox and unread badge keep working.
   the interval as best effort. A notification tap opens the Alerts tab.
 - **Windows** runs a timer every 5 minutes while ClyTrade stays in the tray. The
   first close with monitoring on asks whether to hide to the tray or quit; the
-  choice can be changed in Preferences. Quitting stops monitoring.
+  choice can be changed in Preferences. Quitting stops monitoring. Windows does
+  not expose notification tap actions, so tapping a Windows toast does not open
+  Alerts; use the tray icon to restore the app.
 - **PWA** has no background mode. Prices are checked every 5 minutes while the
   tab is open and visible; nothing runs after you close it.
 
@@ -117,7 +120,9 @@ reveal a symbol or level on a lock screen; 0.5 has no privacy mode.
 CoinGecko works without an account. ClyTrade budgets it at 6 requests per
 minute without a key; a free Demo key raises that local budget to 30 requests
 per minute and 2-second spacing, within the Demo plan's roughly 10,000 calls
-per month. That matters if you watch many coins or keep several tabs open.
+per month. That matters if you watch many coins or keep several tabs open. With
+a key, the Alerts status strip shows how many requests this month's local
+counter has spent.
 
 The key is optional, stored only on this device, masked in Preferences and
 excluded from every backup. It is sent to CoinGecko as a request header and to

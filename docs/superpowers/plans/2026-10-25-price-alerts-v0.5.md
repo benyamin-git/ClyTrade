@@ -918,6 +918,7 @@ export interface EngineOptions {
     level: number
     reason: 'target' | 'stop'
     at: number
+    price: number
   }) => string
 }
 export interface EvaluationSummary {
@@ -933,8 +934,11 @@ export async function runAlertEvaluation(options: EngineOptions): Promise<Evalua
 `updateTrade` (`status: 'closed'`, `exitPrice: level`, `closedAt: at`,
 `tags` including `auto-closed`, `notes` with the generated note), updates rule
 state with `updateAlert`, prunes to 500, and returns the summary. It dedupes a
-target/stop/gap/stale event when an unresolved event with the same trade/rule and
-level already exists.
+target/stop event when an unresolved event with the same trade/rule and level
+already exists, a gap review by trade and both levels, and a stale review by
+owner and stale price; dismissed gap/stale reviews stay suppressed until that
+condition changes. Level and percent events are not deduped because the
+evaluator's repeat state already controls them.
 
 **Verification**
 

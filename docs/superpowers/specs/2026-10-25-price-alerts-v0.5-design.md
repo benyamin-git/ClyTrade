@@ -53,8 +53,9 @@ detects and notifies, queues a close, and the app applies it on the next open.
 13. A queued close applies only when the hit is under 24 hours old and the trade
     has not changed. Otherwise it becomes a review item.
 14. Multiple hits in one poll produce one grouped OS notification. Tapping it
-    opens the Alerts tab. Denied notification permission leaves the in-app inbox
-    and badge fully functional.
+    opens the Alerts tab on Android and in the PWA; Windows has no notification
+    click action through the Tauri plugin (see Platform specifics). Denied
+    notification permission leaves the in-app inbox and badge fully functional.
 15. Backups include alert rules and history, exclude the key, price cache, symbol
     lists and native queue, and still import v1/v2 backups.
 16. History is capped at the last 500 events.
@@ -338,6 +339,10 @@ Windows:
 - The first close with monitoring enabled shows an in-app prompt: hide to tray or
   quit. The choice is stored and can be changed in Preferences.
 - The tray menu offers Show and Quit. Closing with monitoring off quits normally.
+- `tauri-plugin-notification` does not expose a click action on Windows, so a
+  Windows toast tap does not route to the Alerts tab. Tapping the tray icon
+  restores the app and its current route. Android and PWA notification taps open
+  Alerts.
 
 PWA:
 
