@@ -166,10 +166,15 @@ export function parseBackup(text: string): BackupFile {
     if (eventIds.has(event.id)) throw new BackupError('duplicate-id')
     eventIds.add(event.id)
   }
+  const isLegacy = envelope.data.schemaVersion < 3
+  const importedAssets = isLegacy
+    ? assets.map((asset) => ({ ...asset, autoPrice: asset.market === 'crypto' }))
+    : assets
   return {
     ...result.data,
     data: {
       ...result.data.data,
+      assets: importedAssets,
       settings: settings.filter((row) => row.key !== MARKET_API_KEY),
     },
   }

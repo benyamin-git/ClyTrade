@@ -166,19 +166,20 @@ Crypto prices are optional. The app fetches them directly from Binance and
 CoinGecko; no ClyTrade server is involved. **Settings → Preferences → Market
 data** chooses **Auto** (Binance first, then CoinGecko), **Binance** or
 **CoinGecko**; Auto is the default. An optional CoinGecko Demo key raises the
-local budget from 6 to 30 requests per minute. The key is stored only on the
-device, masked in the form and excluded from backups.
+local budget from 6 to 30 requests per minute, within the Demo plan's roughly
+10,000 calls per month. The key is stored only on the device, masked in the form
+and excluded from backups.
 
 One shared cache serves the Portfolio, the Alerts tab and the trade, asset and
 rule forms. List views refresh at most every 5 minutes, an open form at most
 every 30 seconds, and a manual **Refresh prices** has a 60-second cooldown. A
 price older than 15 minutes never fires an alert or closes a trade.
 
-Alerts work in-app whenever the app is open. Background monitoring is off by
-default and exists only in the native builds: Android checks about every 15
-minutes with WorkManager, and Windows every 5 minutes while ClyTrade stays in the
-tray. The PWA has no background mode. See **Alerts** in the in-app documentation
-for the review queue, exact-level auto-close and platform limits.
+Alerts work in-app whenever the app is open and visible. Background monitoring is
+off by default and exists only in the native builds: Android checks about every
+15 minutes with WorkManager, and Windows every 5 minutes while ClyTrade stays in
+the tray. The PWA has no background mode. See **Alerts** in the in-app
+documentation for the review queue, exact-level auto-close and platform limits.
 
 ## Project layout
 

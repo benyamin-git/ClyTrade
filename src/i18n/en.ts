@@ -121,10 +121,10 @@ export const en = {
     reset: {
       title: 'Reset',
       description:
-        'Delete all trades, assets and settings on this device. Export first — there is no undo.',
+        'Delete all trades, assets, settings, alert rules and alert history on this device. Export first — there is no undo.',
       button: 'Reset all data',
       confirm:
-        'This deletes every trade, asset and setting stored by ClyTrade on this device. The action cannot be undone.',
+        'This deletes all trades, assets, settings, alert rules and alert history stored by ClyTrade on this device. The action cannot be undone.',
       deleteEverything: 'Delete everything',
       cleared: 'All data cleared.',
       failed: 'Could not clear all data.',

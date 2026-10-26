@@ -116,8 +116,8 @@ reveal a symbol or level on a lock screen; 0.5 has no privacy mode.
 
 CoinGecko works without an account. ClyTrade budgets it at 6 requests per
 minute without a key; a free Demo key raises that local budget to 30 requests
-per minute and 2-second spacing, which matters if you watch many coins or keep
-several tabs open.
+per minute and 2-second spacing, within the Demo plan's roughly 10,000 calls
+per month. That matters if you watch many coins or keep several tabs open.
 
 The key is optional, stored only on this device, masked in Preferences and
 excluded from every backup. It is sent to CoinGecko as a request header and to

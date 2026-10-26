@@ -38,7 +38,7 @@ backups without `ui` still import.
 
 ## What is not in a backup
 
-Four categories are deliberately left out:
+Three categories are deliberately left out:
 
 - The optional **CoinGecko API key**. It is a secret and never exported. A
   replace import clears it with the rest of the settings, so enter it again
@@ -65,8 +65,8 @@ Imports are validated before anything is written. A file that is not valid JSON
 or not a ClyTrade backup is rejected with a message and no changes.
 
 - **v1 and v2 files still import.** They carry no alert rules or history, and
-  fields added in 0.5 fall back to safe defaults: auto-close is off and an
-  imported crypto asset starts with Automatic price off until you turn it on.
+  fields added in 0.5 fall back to safe defaults: auto-close is off, imported
+  crypto assets start with automatic pricing on, and other markets stay manual.
 - **A v3 backup cannot be read by a v2 app (0.4.x).** That build refuses it as a
   file from a newer version instead of restoring half of it. Export a backup
   before upgrading if you may need to roll back.

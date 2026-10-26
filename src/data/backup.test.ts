@@ -84,6 +84,68 @@ describe('parseBackup', () => {
     expect(legacy.data.trades[0]?.market).toBe('unspecified')
   })
 
+  it('turns automatic pricing on for crypto assets from v1 and v2 backups', () => {
+    const legacyAssets = [
+      {
+        id: 'legacy-crypto',
+        symbol: 'BTC',
+        market: 'crypto',
+        name: null,
+        quantity: 1,
+        averageCost: 100,
+        currentPrice: null,
+        notes: null,
+        createdAt: 1,
+        updatedAt: 2,
+      },
+      {
+        id: 'legacy-forex',
+        symbol: 'EURUSD',
+        market: 'forex',
+        name: null,
+        quantity: 1,
+        averageCost: 1.1,
+        currentPrice: null,
+        notes: null,
+        createdAt: 1,
+        updatedAt: 2,
+      },
+    ]
+
+    for (const schemaVersion of [1, 2]) {
+      const parsed = parseBackup(
+        JSON.stringify({
+          ...validBackup,
+          schemaVersion,
+          data: { ...validBackup.data, assets: legacyAssets },
+        }),
+      )
+      const crypto = parsed.data.assets.find((asset) => asset.id === 'legacy-crypto')
+      const forex = parsed.data.assets.find((asset) => asset.id === 'legacy-forex')
+
+      expect(crypto?.autoPrice).toBe(true)
+      expect(forex?.autoPrice).toBe(false)
+    }
+  })
+
+  it('keeps explicit automatic pricing in v3 backups', () => {
+    const parsed = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        data: {
+          ...validBackup.data,
+          assets: [
+            { ...makeAsset('v3-crypto-off'), autoPrice: false },
+            { ...makeAsset('v3-crypto-on'), autoPrice: true },
+          ],
+        },
+      }),
+    )
+
+    expect(parsed.data.assets.find((asset) => asset.id === 'v3-crypto-off')?.autoPrice).toBe(false)
+    expect(parsed.data.assets.find((asset) => asset.id === 'v3-crypto-on')?.autoPrice).toBe(true)
+  })
+
   it('accepts v3 alert rules and history', () => {
     const backup = parseBackup(
       JSON.stringify({
@@ -431,6 +493,33 @@ describe('importBackup', () => {
 
     expect((await listTrades()).map((trade) => trade.id)).toEqual(['seed-trade'])
     expect((await listAssets()).map((asset) => asset.id)).toEqual(['seed-asset'])
+  })
+
+  it('imports a v2 crypto asset with automatic pricing on', async () => {
+    const legacyCrypto = {
+      id: 'legacy-crypto',
+      symbol: 'BTC',
+      market: 'crypto',
+      name: null,
+      quantity: 1,
+      averageCost: 100,
+      currentPrice: null,
+      notes: null,
+      createdAt: 1,
+      updatedAt: 2,
+    }
+    const parsed = parseBackup(
+      JSON.stringify({
+        ...validBackup,
+        schemaVersion: 2,
+        data: { ...validBackup.data, assets: [legacyCrypto] },
+      }),
+    )
+
+    await importBackup(parsed, 'replace')
+
+    const imported = (await listAssets()).find((asset) => asset.id === 'legacy-crypto')
+    expect(imported?.autoPrice).toBe(true)
   })
 
   it('imports alert rules and history and clears them with all data', async () => {

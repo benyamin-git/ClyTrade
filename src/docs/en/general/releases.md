@@ -37,8 +37,8 @@ tab: custom price and percent rules, target/stop alerts for open trades,
 optional auto-close, and automatic portfolio prices. Background monitoring is
 opt-in and exists only in the Android and Windows builds — Android checks about
 every 15 minutes and Windows every 5 minutes while it stays in the tray. The PWA
-checks prices only while it is open. **Alerts** under Features explains the
-provider budgets, refresh intervals and review flow.
+checks prices only while it is open and visible. **Alerts** under Features
+explains the provider budgets, refresh intervals and review flow.
 
 The backup schema is now version 3. A v3 backup carries alert rules and history
 and cannot be imported by a 0.4.x build, so export a backup before upgrading if
