@@ -30,6 +30,15 @@ describe('dictionaries', () => {
     }
   })
 
+  it('keeps the reviewed Persian alert wording', () => {
+    expect(fa.alerts.review.conflictDescription).toMatch(
+      /^برخورد پس‌زمینه با این معامله دیگر هم‌خوان نیست\./,
+    )
+    expect(fa.preferences.notificationsHint).toContain('اجازه می‌خواهد')
+    expect(fa.alerts.rules.lastFired).not.toMatch(/فعال/)
+    expect(fa.alerts.rules.neverFired).not.toMatch(/فعال/)
+  })
+
   it('does not advertise the removed filtering quick bar', () => {
     expect(en.docs.items.filtering.summary).not.toMatch(/quick bar/i)
     expect(fa.docs.items.filtering.summary).not.toMatch(/نوار سریع/)

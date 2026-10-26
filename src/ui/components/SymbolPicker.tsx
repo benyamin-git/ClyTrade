@@ -1,5 +1,6 @@
 import type { SymbolCandidate } from '@/market/symbols'
 import { useI18n } from '@/i18n/I18nContext'
+import type { Translator } from '@/i18n/translate'
 import { SelectField } from './SelectField'
 
 export interface SymbolPickerProps {
@@ -14,8 +15,10 @@ function candidateKey(candidate: SymbolCandidate): string {
   return `${candidate.provider}:${candidate.priceId}`
 }
 
-function providerLabel(provider: SymbolCandidate['provider']): string {
-  return provider === 'binance' ? 'Binance' : 'CoinGecko'
+function providerLabel(provider: SymbolCandidate['provider'], t: Translator): string {
+  return provider === 'binance'
+    ? t('preferences.providerBinance')
+    : t('preferences.providerCoingecko')
 }
 
 export function SymbolPicker({ label, candidates, value, onChange, disabled }: SymbolPickerProps) {
@@ -24,7 +27,7 @@ export function SymbolPicker({ label, candidates, value, onChange, disabled }: S
     { value: '', label: t('symbolPicker.none') },
     ...candidates.map((candidate) => ({
       value: candidateKey(candidate),
-      label: `${candidate.symbol} — ${candidate.name ?? candidate.symbol} (${providerLabel(candidate.provider)})`,
+      label: `${candidate.symbol} — ${candidate.name ?? candidate.symbol} (${providerLabel(candidate.provider, t)})`,
     })),
   ]
 

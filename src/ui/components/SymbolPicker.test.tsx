@@ -92,4 +92,15 @@ describe('SymbolPicker', () => {
 
     expect(screen.getByLabelText('Coin')).toBeDisabled()
   })
+
+  it('localizes provider labels in Persian', () => {
+    render(
+      <I18nProvider preference="fa">
+        <SymbolPicker label="Coin" candidates={candidates} value={null} onChange={() => {}} />
+      </I18nProvider>,
+    )
+
+    expect(screen.getByRole('option', { name: 'BTCUSDT — BTCUSDT (بایننس)' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'ETH — Ethereum (کوین‌گکو)' })).toBeInTheDocument()
+  })
 })
