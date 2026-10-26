@@ -2,6 +2,8 @@ package com.clytrade.app
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -21,6 +23,9 @@ class MarketWorker(
     override suspend fun doWork(): Result {
         val snapshot = MarketSnapshotStore.read(applicationContext) ?: return Result.success()
         if (!snapshot.backgroundMonitoring) return Result.success()
+        if (shouldSkipForForeground(ProcessLifecycleOwner.get().lifecycle.currentState)) {
+            return Result.success()
+        }
 
         val refs = marketRefs(snapshot)
         if (refs.isEmpty()) return Result.success()
@@ -75,6 +80,9 @@ class MarketWorker(
         const val WORK_NAME = "clytrade-market-poll"
         const val INTERVAL_MINUTES = 15L
         private const val TAG = "MarketWorker"
+
+        internal fun shouldSkipForForeground(state: Lifecycle.State): Boolean =
+            state.isAtLeast(Lifecycle.State.STARTED)
 
         fun setMonitoring(
             context: Context,
