@@ -199,6 +199,11 @@ export const en = {
         title: 'Portfolio',
         summary: 'Track spot holdings, cost basis and allocation.',
       },
+      alerts: {
+        title: 'Alerts',
+        summary:
+          'Price and percent rules, trade targets and stops, auto-close and background monitoring.',
+      },
       markets: {
         title: 'Markets',
         summary: 'How trades and holdings are grouped by market.',

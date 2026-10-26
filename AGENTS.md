@@ -86,11 +86,16 @@ large changes.
   the system bar icon contrast from the current `uiMode` so it is correct before
   the web app loads, and adds the `ClyTradeNative.setDarkTheme` JS bridge that
   syncs the Android status and navigation bar icon colors with the in-app theme
-  (see `syncNativeSystemBar` in `src/theme/theme.ts`); `MarketNotifications.kt`
-  owns the `clytrade_alerts` channel, posts one grouped alert per worker poll
-  when new events are queued, and opens `MainActivity` with `open_alerts`, which
-  the `consumePendingRoute` bridge maps to `/alerts/overview`;
-  `res/drawable/ic_stat_clytrade.xml` is its monochrome small icon;
+  (see `syncNativeSystemBar` in `src/theme/theme.ts`); `MarketWorker.kt`
+  schedules the `clytrade-market-poll` unique periodic work every 15 minutes with
+  a connected-network constraint and cancels it when background monitoring is
+  off, while `MarketSnapshot.kt`, `MarketApi.kt`, `MarketEvaluator.kt`,
+  `MarketRuleState.kt` and `MarketQueue.kt` implement the native side of the
+  background contract; `MarketNotifications.kt` owns the `clytrade_alerts`
+  channel, posts one grouped alert per worker poll when new events are queued,
+  and opens `MainActivity` with `open_alerts`, which the `consumePendingRoute`
+  bridge maps to `/alerts/overview`; `res/drawable/ic_stat_clytrade.xml` is its
+  monochrome small icon;
   `AndroidManifest.xml` declares `POST_NOTIFICATIONS`, sets
   `android:allowBackup="false"` and points `android:dataExtractionRules` at
   `res/xml/data_extraction_rules.xml`, which excludes every backup domain from
@@ -142,23 +147,66 @@ large changes.
 
 ## Architecture
 
-| Layer         | Location            | Notes                                                                               |
-| ------------- | ------------------- | ----------------------------------------------------------------------------------- |
-| App shell     | `src/app/`          | Router (hash), providers, top bar, drawer, subtab bar, update banner                |
-| Features      | `src/features/`     | UI + application logic per tab (`journal`, `portfolio`, `calculations`, `settings`) |
-| Calculations  | `src/calculations/` | Pure, protected math layer                                                          |
-| Data          | `src/data/`         | Dexie schema (v2), zod models incl. `market.ts`, repositories, backup               |
-| Design system | `src/ui/`           | Primitives and layout components                                                    |
-| Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes              |
-| Localization  | `src/i18n/`         | Typed `en`/`fa` dictionaries, locale detection, formatting context and provider     |
-| Docs          | `src/docs/`         | Markdown + registry rendered in Settings → Documentation                            |
-| Native shell  | `src-tauri/`        | Tauri v2 config, Rust entry point and the committed Android project                 |
+| Layer         | Location            | Notes                                                                                         |
+| ------------- | ------------------- | --------------------------------------------------------------------------------------------- |
+| App shell     | `src/app/`          | Router (hash), providers, top bar, drawer, subtab bar, update banner                          |
+| Features      | `src/features/`     | UI + application logic per tab (`journal`, `portfolio`, `alerts`, `calculations`, `settings`) |
+| Calculations  | `src/calculations/` | Pure, protected math layer                                                                    |
+| Data          | `src/data/`         | Dexie schema (v3), zod models incl. `market.ts` and `price.ts`, repositories, backup          |
+| Market        | `src/market/`       | Price providers, shared scheduler and cache, alert evaluation and native bridge               |
+| Design system | `src/ui/`           | Primitives and layout components                                                              |
+| Theme         | `src/theme/`        | MD3 CSS-variable tokens, theme switching and generated accent palettes                        |
+| Localization  | `src/i18n/`         | Typed `en`/`fa` dictionaries, locale detection, formatting context and provider               |
+| Docs          | `src/docs/`         | Markdown + registry rendered in Settings → Documentation                                      |
+| Native shell  | `src-tauri/`        | Tauri v2 config, Rust entry point and the committed Android project                           |
 
-Rules of dependency: features may import `ui`, `data`, `lib`, `theme`, `calculations`.
+Rules of dependency: features may import `ui`, `data`, `market`, `lib`, `theme`,
+`calculations`.
 `calculations` imports nothing except its own `types.ts` and `src/lib` helpers.
+`market` may import `data` and `lib`; it must not import `features`, `ui` or
+`i18n` (the caller passes notification text in).
 `ui` imports nothing from `features`.
 `src/i18n` may import `src/lib`; `src/lib` must never import `src/i18n` (calculations
 depends on `lib`). Features, UI, theme and app layers may import `src/i18n`.
+
+Dexie v3 adds four tables: `priceCache` and `marketSymbols` are ephemeral and
+excluded from backups; `priceAlerts` and `alertEvents` hold alert rules and
+history and are backed up. `alertEvents` is pruned to the newest 500.
+
+## Market data and background
+
+- `src/market/` owns the provider adapters, symbol resolution, the shared
+  scheduler and cache, the pure evaluator and the native bridge. Nothing in
+  `src/calculations/**` may import it.
+- One ref-counted scheduler exists per provider choice plus CoinGecko key, shared
+  by every tab and form. TTLs: list pages and the foreground timer 5 minutes,
+  detail forms 30 seconds, manual refresh a 60-second cooldown. Budgets: Binance
+  60 requests and 1,200 weight per minute, CoinGecko 6 requests per minute
+  keyless or 30 per minute with a key. The stale threshold is `STALE_MS` (15
+  minutes) in `src/market/types.ts`; import it, never duplicate it.
+- Background contract: the webview owns Dexie; native code only reads
+  `background-snapshot.json` and appends to `background-events.json` in the app
+  data directory. `buildBackgroundSnapshot` publishes the provider, optional key,
+  locale, notification templates, stale threshold, open trades with levels and
+  active rules; `useBackgroundSync` rewrites it (500 ms debounce) on data or
+  preference changes and on startup, then imports and clears the queue on startup
+  and visibility resume. A queued close applies only when the hit is under 24
+  hours old and the trade's direction, target, stop and status still match;
+  otherwise it becomes a `conflict` review event. Native code never writes
+  IndexedDB.
+- Windows: `src-tauri/src/background.rs` runs a Rust timer every 5 minutes while
+  the app is tray-resident and skips a poll while the main window is visible;
+  `src-tauri/src/tray.rs` owns the tray menu and the close decision
+  (`unset`/`tray`/`quit` from the snapshot), `lib.rs` wires the close prompt, and
+  `tauri-plugin-notification` posts the grouped toast.
+- Android: `MarketWorker` schedules unique periodic work every 15 minutes with a
+  connected-network constraint and is cancelled when background monitoring is
+  off. `MarketSnapshot`, `MarketApi`, `MarketEvaluator`, `MarketRuleState` and
+  `MarketQueue` implement the snapshot/queue contract and persist rule state
+  between runs. The webview remains authoritative: queued hits are revalidated on
+  import.
+- PWA: no background mode. The foreground timer runs only while the document is
+  visible, and the Alerts background card says so.
 
 ## Design
 

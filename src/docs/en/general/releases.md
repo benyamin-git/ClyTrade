@@ -30,6 +30,20 @@ of the page, followed by the platform (`Web`, `Windows`, `Android`). The same
 version appears in the Windows file properties and in the Android app info, so
 "which build do I have?" is always answerable without opening the app.
 
+## 0.5.0 — Price alerts
+
+0.5.0 adds a serverless market-data layer for crypto and a top-level **Alerts**
+tab: custom price and percent rules, target/stop alerts for open trades,
+optional auto-close, and automatic portfolio prices. Background monitoring is
+opt-in and exists only in the Android and Windows builds — Android checks about
+every 15 minutes and Windows every 5 minutes while it stays in the tray. The PWA
+checks prices only while it is open. **Alerts** under Features explains the
+provider budgets, refresh intervals and review flow.
+
+The backup schema is now version 3. A v3 backup carries alert rules and history
+and cannot be imported by a 0.4.x build, so export a backup before upgrading if
+you may need to roll back. See **Data & Backups**.
+
 ## Where builds come from
 
 The PWA needs no download: it checks for a new version in the background and
@@ -66,8 +80,9 @@ sandboxes cannot leak your trades to another one.
 
 To move data, use **Export backup** in Settings → Data Controls on the source
 install and **Import** on the target. The backup includes your trades, assets,
-settings, theme and accent, with a schema version so a restore can tell you if
-the file came from a newer build than the one importing it.
+settings, alert rules and alert history, plus the theme and accent, with a schema
+version so a restore can tell you if the file came from a newer build than the
+one importing it.
 
 ## Updates
 

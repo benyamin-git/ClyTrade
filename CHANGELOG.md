@@ -6,6 +6,54 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-26
+
+### Added
+
+- **Price alerts** — a top-level Alerts tab with custom price rules (above,
+  below, crossing, range) and percent rules (up, down, either direction),
+  Once / Cross-back / Cooldown repeats, a status strip, a review queue, a
+  500-event history and an unread badge in the drawer and top bar.
+- **Trade target and stop alerts** — every open journal trade with a level is
+  watched with direction-aware comparisons, whether or not auto-close is on.
+- **Auto-close** — an optional per-trade switch (with a Preferences default)
+  closes a trade at the exact target or stop when one fresh level is hit, adds
+  the `auto-closed` tag and a localized note, and leaves the trade editable.
+  Gaps, stale quotes and changed background hits go to review instead of
+  closing.
+- **Live crypto prices** — Binance and CoinGecko providers behind one shared
+  cache and scheduler: 5-minute list refresh, 30-second detail refresh,
+  5-minute foreground timer and a 60-second manual cooldown. A 15-minute stale
+  guard blocks alerts and closes on old data.
+- **Automatic portfolio prices** — a per-asset switch, on for new crypto
+  assets, writes fresh prices into Current price and shows a Stale badge for old
+  quotes. Manual and non-crypto assets stay manual.
+- **Background monitoring** — opt-in grouped OS notifications on Android
+  (WorkManager, about every 15 minutes) and Windows (tray timer, every 5
+  minutes); queued hits are revalidated and applied on the next open. The PWA
+  has no background mode.
+- **Market data settings** — provider choice (Auto / Binance / CoinGecko), an
+  optional CoinGecko Demo key, notification permission status, auto-close
+  default and the Windows close behavior.
+- **Backup schema v3** — backups include alert rules and history and exclude the
+  CoinGecko key, price cache, symbol lists and native queue. v1 and v2 files
+  still import.
+
+### Changed
+
+- Dexie v3 adds `priceCache`, `marketSymbols`, `priceAlerts` and `alertEvents`;
+  existing trades get auto-close off and existing crypto assets get automatic
+  pricing on.
+- New journal entries prefill the entry price and new portfolio entries the
+  current price; ambiguous symbols resolve through a provider picker.
+- Documentation, README and AGENTS describe the price layer, alerts and platform
+  limits.
+
+### Security
+
+- The CoinGecko key is stored locally, masked in the UI, excluded from backups
+  and never written to logs.
+
 ## [0.4.1] - 2026-10-25
 
 ### Changed
@@ -143,7 +191,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.0
 [0.4.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.1
 [0.4.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.0
 [0.3.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.3.0

@@ -15,7 +15,7 @@ trade — not a dashboard.
 
 ## Layout
 
-- The **hamburger menu** switches between the four main tabs.
+- The **hamburger menu** switches between the five main tabs.
 - **Subtabs** sit in a scrollable bar under the top bar, always one tap away.
 - Pages scroll when they need to; long lists and tables scroll inside their own
   region so the controls around them stay put.

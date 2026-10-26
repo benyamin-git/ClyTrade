@@ -1,13 +1,13 @@
 # ClyTrade
 
-ClyTrade is a local-first trading app: a trade journal, a spot portfolio tracker
-and a set of calculators. It ships as an installable PWA and as Windows and
-Android wrappers built with Tauri v2. Everything runs on the device, with no
-account, server or subscription.
+ClyTrade is a local-first trading app: a trade journal, a spot portfolio tracker,
+price alerts and a set of calculators. It ships as an installable PWA and as
+Windows and Android wrappers built with Tauri v2. Everything runs on the device,
+with no account, server or subscription.
 
-> **Status:** early development. V1 covers the offline core and is usable for
-> personal record-keeping, but expect rough edges and breaking changes before
-> `1.0.0`.
+> **Status:** early development. V1 covers the offline core; 0.5 adds optional
+> crypto prices, alerts and auto-close. Expect rough edges and breaking changes
+> before `1.0.0`.
 
 ## Why it exists
 
@@ -19,12 +19,13 @@ database.
 
 ## What is in V1
 
-| Area             | What it does                                                                                                                                                                                                                                                  |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filter from one Filters button — search, market, direction, status, tags, strategy, date and numeric ranges, outcome and field presence in a sheet — with an equity curve and PnL charts. |
-| **Portfolio**    | Track holdings with blended cost basis, manual prices, unrealized PnL and allocation charts. Filter from one Filters button — search, market, quantity, cost, price, value, PnL, outcome and field presence.                                                  |
-| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                                                                                       |
-| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation.                                           |
+| Area             | What it does                                                                                                                                                                                                                                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filter from one Filters button — search, market, direction, status, tags, strategy, date and numeric ranges, outcome and field presence in a sheet — with an equity curve and PnL charts. Optional auto-close at the exact target or stop. |
+| **Portfolio**    | Track holdings with blended cost basis, manual or automatic crypto prices, unrealized PnL and allocation charts. Filter from one Filters button — search, market, quantity, cost, price, value, PnL, outcome and field presence.                                                                               |
+| **Alerts**       | Watch price and percent rules plus every open trade's target and stop. Review gaps, stale quotes and conflicts, keep a 500-event history and get grouped OS notifications. Background monitoring on Android and Windows; in-app only in the browser.                                                           |
+| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                                                                                                                                        |
+| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation.                                                                                            |
 
 ## Screenshots
 
@@ -133,17 +134,19 @@ deployment the next time it opens online.
 ## Data and storage
 
 All data is stored in IndexedDB, in a database named `clytrade`, through Dexie.
-Nothing is sent anywhere. The interface language, the accent and an explicit
-theme choice are kept in `localStorage` and applied before the first paint;
-until you pick a theme, the app follows the system light or dark setting.
+Your records are never sent anywhere; when you enable crypto prices, only the
+requested symbols go to the chosen provider. The interface language, the accent
+and an explicit theme choice are kept in `localStorage` and applied before the
+first paint; until you pick a theme, the app follows the system light or dark
+setting.
 
 Settings → Data Controls **Export backup** writes a single JSON file containing
-the journal, portfolio and settings (including the interface language and default
-market), plus the current theme and accent under `data.ui`. **Import** offers a
-merge or a replace, validates the file before writing, and applies the saved
-theme and accent. Where the browser supports it, ClyTrade also asks for
-persistent storage so the local database is less likely to be evicted; that is
-not a backup, so keep exporting files.
+the journal, portfolio, settings (including the interface language and default
+market), alert rules and alert history, plus the current theme and accent under
+`data.ui`. **Import** offers a merge or a replace, validates the file before
+writing, and applies the saved theme and accent. Where the browser supports it,
+ClyTrade also asks for persistent storage so the local database is less likely to
+be evicted; that is not a backup, so keep exporting files.
 
 Trades and holdings each carry a market (Crypto, Forex, Stocks, Futures,
 Commodities, Indices, Bonds, Options or Unspecified). In Overview and Stats, both
@@ -155,22 +158,43 @@ the Portfolio by quantity, cost, price, value, PnL, outcome and presence. Sheet
 sections start collapsed and auto-open when a section holds an active filter. New
 entries start on the default market from Preferences, and filters are page-local
 and reset when you leave the page. Records made before markets existed are
-Unspecified. Backups are schema version 2; version 1 files still import.
+Unspecified. Backups are schema version 3; version 1 and 2 files still import.
+
+## Market data and alerts
+
+Crypto prices are optional. The app fetches them directly from Binance and
+CoinGecko; no ClyTrade server is involved. **Settings → Preferences → Market
+data** chooses **Auto** (Binance first, then CoinGecko), **Binance** or
+**CoinGecko**; Auto is the default. An optional CoinGecko Demo key raises the
+local budget from 6 to 30 requests per minute. The key is stored only on the
+device, masked in the form and excluded from backups.
+
+One shared cache serves the Portfolio, the Alerts tab and the trade, asset and
+rule forms. List views refresh at most every 5 minutes, an open form at most
+every 30 seconds, and a manual **Refresh prices** has a 60-second cooldown. A
+price older than 15 minutes never fires an alert or closes a trade.
+
+Alerts work in-app whenever the app is open. Background monitoring is off by
+default and exists only in the native builds: Android checks about every 15
+minutes with WorkManager, and Windows every 5 minutes while ClyTrade stays in the
+tray. The PWA has no background mode. See **Alerts** in the in-app documentation
+for the review queue, exact-level auto-close and platform limits.
 
 ## Project layout
 
-| Path                | Contents                                                                              |
-| ------------------- | ------------------------------------------------------------------------------------- |
-| `src/app/`          | App shell: router, providers, top bar, navigation drawer, subtab bar                  |
-| `src/features/`     | Feature UI and application logic (`journal`, `portfolio`, `calculations`, `settings`) |
-| `src/calculations/` | Pure, tested math layer — the protected core of the app                               |
-| `src/data/`         | Dexie schema, zod models, repositories, backup and restore                            |
-| `src/ui/`           | Design-system primitives and layout components                                        |
-| `src/theme/`        | MD3 design tokens and the three themes                                                |
-| `src/i18n/`         | Typed English and Persian dictionaries, locale detection and the locale provider      |
-| `src/docs/`         | Markdown documentation rendered inside the app                                        |
-| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust and the Android project)      |
-| `masterplan.md`     | Product direction and design decisions                                                |
+| Path                | Contents                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `src/app/`          | App shell: router, providers, top bar, navigation drawer, subtab bar                            |
+| `src/features/`     | Feature UI and application logic (`journal`, `portfolio`, `alerts`, `calculations`, `settings`) |
+| `src/calculations/` | Pure, tested math layer — the protected core of the app                                         |
+| `src/market/`       | Price providers, shared scheduler and cache, alert evaluation and the native bridge             |
+| `src/data/`         | Dexie schema, zod models, repositories, backup and restore                                      |
+| `src/ui/`           | Design-system primitives and layout components                                                  |
+| `src/theme/`        | MD3 design tokens and the three themes                                                          |
+| `src/i18n/`         | Typed English and Persian dictionaries, locale detection and the locale provider                |
+| `src/docs/`         | Markdown documentation rendered inside the app                                                  |
+| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust and the Android project)                |
+| `masterplan.md`     | Product direction and design decisions                                                          |
 
 ## Documentation
 
@@ -196,7 +220,8 @@ platforms, opens a draft GitHub Release and deploys the PWA to GitHub Pages.
 
 V1 covers the offline core. Planned work:
 
-- Optional live market data integrations (opt-in)
+- More price providers and live data for non-crypto markets (0.5 covers crypto
+  through Binance and CoinGecko)
 - Optional synchronization between devices
 - More languages and translations
 - More calculators and statistics, and import from exchange CSV files
@@ -206,7 +231,8 @@ Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
 ## Limitations and non-goals
 
 - Not financial advice. ClyTrade is a calculator and record-keeping tool; it does
-  not execute trades, connect to an exchange, or recommend what to buy or sell.
+  not place orders, connect to an exchange account, or recommend what to buy or
+  sell. It only reads public price data when you enable that.
 - Calculations are estimates based on the inputs and the assumptions documented
   in the in-app documentation. Exchange formulas, fees and funding rates can
   differ, so verify numbers against your exchange before acting on them.

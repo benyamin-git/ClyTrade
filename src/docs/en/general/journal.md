@@ -13,6 +13,24 @@ Stats.
 - Row metrics (net PnL, R multiple) are derived, never entered by hand.
 - **Edit** reopens the same form; **Delete** asks for confirmation.
 
+## Auto-close
+
+- **Auto-close** closes a trade when its target or stop is reached. The switch
+  lives in the trade form and defaults to Preferences → **Auto-close new
+  trades**; each trade can override it.
+- A close needs a fresh live price (under 15 minutes old) and exactly one level
+  hit. If both levels are crossed in one refresh, the trade stays open and
+  Alerts asks you to choose the level.
+- The close uses the exact target or stop as the exit price, sets the close time
+  to when the hit was detected, adds the `auto-closed` tag (shown as
+  `#auto-closed` in the row) and appends a localized note:
+  `Auto-closed SOLUSDT at 150 (Target hit).` The tag is a normal tag, so it can
+  be filtered or removed.
+- Editing a close works like any other edit: open the trade, change the exit
+  price, close date or note, and save. Nothing is locked after an automatic
+  close; the tag and note are a record, not a constraint.
+- See **Alerts** for the price providers, review items and background limits.
+
 ## Stats
 
 - Filters by time range (7D / 30D / 90D / YTD / All).
