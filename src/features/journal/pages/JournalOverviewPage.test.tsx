@@ -1,9 +1,15 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import type { TradeDraft } from '@/data/models/trade'
-import { clearTrades, createTrade } from '@/data/repositories/trades.repo'
+import {
+  applyAutoClose,
+  AUTO_CLOSED_TAG,
+  clearTrades,
+  createTrade,
+  getTrade,
+} from '@/data/repositories/trades.repo'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { JournalOverviewPage } from './JournalOverviewPage'
@@ -100,5 +106,41 @@ describe('JournalOverviewPage market filter', () => {
     const closeRow = screen.getByText('CLOSEONLY').closest('tr')
     expect(closeRow).not.toBeNull()
     expect(within(closeRow as HTMLElement).getByText('Open')).toBeInTheDocument()
+  })
+})
+
+describe('JournalOverviewPage auto-closed trades', () => {
+  beforeEach(async () => {
+    await clearTrades()
+  })
+
+  it('shows the auto-closed tag and note and keeps the trade editable', async () => {
+    const trade = await createTrade(
+      draft({ symbol: 'AUTOCLOSE', targetPrice: 120, autoClose: true }),
+    )
+    const note = 'Auto-closed AUTOCLOSE at 120 (Target hit).'
+    await applyAutoClose(trade.id, { level: 120, at: Date.now(), note })
+
+    renderPage()
+
+    const row = (await screen.findByText('AUTOCLOSE')).closest('tr')
+    expect(row).not.toBeNull()
+    expect(within(row as HTMLElement).getByText(`#${AUTO_CLOSED_TAG}`)).toBeInTheDocument()
+    expect(within(row as HTMLElement).getByText('Closed')).toBeInTheDocument()
+
+    await userEvent.click(
+      within(row as HTMLElement).getByRole('button', { name: 'Edit AUTOCLOSE' }),
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Edit AUTOCLOSE' })
+    const notes = within(dialog).getByLabelText('Notes')
+    expect(notes).toHaveValue(note)
+
+    await userEvent.clear(notes)
+    await userEvent.type(notes, 'Reviewed after auto-close')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(async () => {
+      expect((await getTrade(trade.id))?.notes).toBe('Reviewed after auto-close')
+    })
   })
 })

@@ -808,6 +808,19 @@ describe('AlertsPage notification permission', () => {
     expect(within(card).queryByRole('button')).not.toBeInTheDocument()
   })
 
+  it('shows the blocked state after a denied web request', async () => {
+    const fake = stubNotification('default')
+    fake.requestPermission = vi.fn(async (): Promise<NotificationPermission> => 'denied')
+    const user = userEvent.setup()
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    await user.click(within(card).getByRole('button', { name: 'Enable notifications' }))
+
+    await waitFor(() => expect(within(card).getByRole('status')).toHaveTextContent('Blocked'))
+    expect(within(card).queryByRole('button')).not.toBeInTheDocument()
+  })
+
   it.each([
     ['granted', 'Allowed'],
     ['denied', 'Blocked'],

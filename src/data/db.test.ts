@@ -158,7 +158,8 @@ describe('v3 price and alert migration', () => {
     expect(value.currency).toBe('EUR')
   })
 
-  it('creates the v3 tables', async () => {
+  it('creates the v3 tables when upgrading a v2 database', async () => {
+    await seedV2Database()
     await db.open()
 
     expect(db.tables.map((table) => table.name)).toEqual(

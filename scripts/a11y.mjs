@@ -36,6 +36,19 @@ const ROUTES = [
     route: '/settings/themes',
     ready: (page) => page.getByRole('heading', { name: 'Accent' }),
   },
+  {
+    route: '/alerts/overview',
+    ready: (page) => page.getByRole('heading', { name: 'Alerts' }),
+  },
+  {
+    route: '/alerts/overview',
+    label: '/alerts/overview (new alert form)',
+    ready: (page) => page.getByRole('heading', { name: 'Alerts' }),
+    prepare: async (page) => {
+      await page.getByRole('button', { name: 'New alert' }).click()
+      await page.getByRole('dialog', { name: 'New alert' }).waitFor({ timeout: 15_000 })
+    },
+  },
 ]
 
 const CONTEXTS = [
@@ -96,6 +109,7 @@ async function audit(page, contextName, theme, totals) {
   for (const spec of ROUTES) {
     await page.goto(`${BASE_URL}/#${spec.route}`, { waitUntil: 'load' })
     await spec.ready(page).first().waitFor({ timeout: 15_000 })
+    if (spec.prepare) await spec.prepare(page)
     await page.waitForTimeout(SETTLE_MS)
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -103,7 +117,7 @@ async function audit(page, contextName, theme, totals) {
     const violations = results.violations.filter(
       (violation) => violation.impact === 'serious' || violation.impact === 'critical',
     )
-    const label = `[${contextName} ${theme}] ${spec.route}`
+    const label = `[${contextName} ${theme}] ${spec.label ?? spec.route}`
     if (violations.length === 0) {
       console.log(`${label}: 0 serious/critical violations`)
       continue

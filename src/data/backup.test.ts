@@ -495,7 +495,7 @@ describe('importBackup', () => {
     expect((await listAssets()).map((asset) => asset.id)).toEqual(['seed-asset'])
   })
 
-  it('imports a v2 crypto asset with automatic pricing on', async () => {
+  it.each([1, 2])('imports a v%s crypto asset with automatic pricing on', async (schemaVersion) => {
     const legacyCrypto = {
       id: 'legacy-crypto',
       symbol: 'BTC',
@@ -511,7 +511,7 @@ describe('importBackup', () => {
     const parsed = parseBackup(
       JSON.stringify({
         ...validBackup,
-        schemaVersion: 2,
+        schemaVersion,
         data: { ...validBackup.data, assets: [legacyCrypto] },
       }),
     )
@@ -520,6 +520,18 @@ describe('importBackup', () => {
 
     const imported = (await listAssets()).find((asset) => asset.id === 'legacy-crypto')
     expect(imported?.autoPrice).toBe(true)
+  })
+
+  it('round-trips alert rules and history through export and import', async () => {
+    const alert = await createAlert(makeAlertDraft())
+    const event = await createAlertEvent(makeAlertEventDraft())
+
+    const parsed = parseBackup(JSON.stringify(await exportBackup()))
+    await clearAllData()
+    await importBackup(parsed, 'replace')
+
+    expect(await listAlerts()).toEqual([alert])
+    expect(await listAlertEvents()).toEqual([event])
   })
 
   it('imports alert rules and history and clears them with all data', async () => {

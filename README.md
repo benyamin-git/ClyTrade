@@ -40,6 +40,8 @@ at 1440×900.
 | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | ![Journal overview — trade table with net PnL and R multiples](screenshots/desktop/journal-overview.png) | ![Position Size calculator — inputs and results](screenshots/desktop/position-size.png) |
 
+![Alerts — create a price or percent rule](screenshots/desktop/alerts.png)
+
 ![Settings — three themes and accent palettes](screenshots/desktop/settings-themes.png)
 
 Regenerate them with `npm run screenshots`; run `npm run screenshots:install`

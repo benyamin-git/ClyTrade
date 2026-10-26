@@ -32,6 +32,18 @@ const PAGES = [
     ready: (page) => page.getByText('BTCUSDT').first(),
   },
   {
+    slug: 'alerts',
+    route: '/alerts/overview',
+    ready: (page) => page.getByRole('heading', { name: 'Alerts' }),
+    prepare: async (page) => {
+      await page.getByRole('button', { name: 'New alert' }).click()
+      const dialog = page.getByRole('dialog', { name: 'New alert' })
+      await dialog.waitFor({ timeout: 15_000 })
+      await dialog.getByLabel('Level').fill('70000')
+      await dialog.getByLabel('Note').fill('Watch the breakout retest')
+    },
+  },
+  {
     slug: 'position-size',
     route: '/calculations/position-size',
     ready: (page) => page.getByRole('heading', { name: 'Position Size' }),

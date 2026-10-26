@@ -230,6 +230,41 @@ describe('PortfolioOverviewPage automatic prices', () => {
     expect(screen.queryByText(formatTime(fetchedAt))).not.toBeInTheDocument()
   })
 
+  it('ignores fresh provider prices for manual and non-crypto rows', async () => {
+    await createAsset(
+      draft({
+        symbol: 'BTC',
+        market: 'crypto',
+        autoPrice: false,
+        binanceSymbol: 'BTCUSDT',
+      }),
+    )
+    await createAsset(
+      draft({
+        symbol: 'ETH',
+        market: 'forex',
+        autoPrice: true,
+        binanceSymbol: 'ETHUSDT',
+      }),
+    )
+    const fetchedAt = Date.now()
+    marketState.prices = new Map([
+      ['binance:BTCUSDT', providerPrice({ key: 'binance:BTCUSDT', fetchedAt })],
+      [
+        'binance:ETHUSDT',
+        providerPrice({ key: 'binance:ETHUSDT', symbol: 'ETH', price: 3000, fetchedAt }),
+      ],
+    ])
+
+    renderPage()
+
+    expect(await screen.findByText('BTC')).toBeInTheDocument()
+    expect(screen.getByText('ETH')).toBeInTheDocument()
+    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
+    expect(screen.queryByText('Stale')).not.toBeInTheDocument()
+    expect(document.querySelector('time')).toBeNull()
+  })
+
   it('leaves stale prices unwritten and badges them', async () => {
     await createAsset(
       draft({
