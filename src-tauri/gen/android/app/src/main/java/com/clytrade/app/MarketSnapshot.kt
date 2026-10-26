@@ -54,20 +54,23 @@ internal fun JSONObject.objectArray(name: String): List<JSONObject> {
 }
 
 internal fun writeAtomicFile(file: File, text: String): Boolean {
+    var temp: File? = null
     return try {
         val parent = file.parentFile
         if (parent != null) parent.mkdirs()
-        val temp = File(parent, ".${file.name}.${System.nanoTime()}.tmp")
-        temp.writeText(text)
-        if (temp.renameTo(file)) {
+        val tempFile = File(parent, ".${file.name}.${System.nanoTime()}.tmp")
+        temp = tempFile
+        tempFile.writeText(text)
+        if (tempFile.renameTo(file)) {
             true
         } else {
             file.delete()
-            val renamed = temp.renameTo(file)
-            if (!renamed) temp.delete()
+            val renamed = tempFile.renameTo(file)
+            if (!renamed) tempFile.delete()
             renamed
         }
     } catch (_: IOException) {
+        temp?.delete()
         false
     }
 }

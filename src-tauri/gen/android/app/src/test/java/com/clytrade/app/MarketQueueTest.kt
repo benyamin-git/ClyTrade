@@ -75,7 +75,7 @@ class MarketQueueTest {
 
     @Test
     fun queue_keeps_different_levels_and_kinds_at_the_same_time() {
-        val rule = Rule(id = "r1", cooldownMinutes = 60)
+        val rule = Rule(id = "r1", repeatMode = "cooldown", cooldownMinutes = 60)
         val level =
             QueueEvent(
                 kind = "level",
@@ -83,9 +83,15 @@ class MarketQueueTest {
                 level = 100.0,
                 at = 1_000,
             )
+        val duplicate = level.copy(at = 1_500)
         val stale = level.copy(kind = "stale", level = null)
         val other = level.copy(level = 110.0)
-        val result = MarketQueue.appendEvents("[]", listOf(level, stale, other), listOf(rule))
+        val result =
+            MarketQueue.appendEvents(
+                "[]",
+                listOf(level, duplicate, stale, other),
+                listOf(rule),
+            )
         assertEquals(3, result.retained.size)
     }
 

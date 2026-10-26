@@ -10,6 +10,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import java.util.concurrent.TimeUnit
 
 class MarketWorker(
@@ -34,18 +36,35 @@ class MarketWorker(
                 return Result.retry()
             }
 
+        if (isStopped) throw CancellationException("worker stopped")
+        currentCoroutineContext().ensureActive()
+
         if (outcome.prices.isEmpty()) {
             return if (outcome.transientFailure) Result.retry() else Result.success()
         }
 
         val existing = MarketQueue.read(applicationContext)
         val cache = RuleStateCache()
-        seedRuleCacheFromQueue(cache, snapshot, existing)
+        MarketRuleStateStore.seed(applicationContext, snapshot, cache, existing)
         val run = runSnapshot(snapshot, outcome.prices, existing, now, cache)
 
+        if (isStopped) throw CancellationException("worker stopped")
+        currentCoroutineContext().ensureActive()
+
         if (run.queued.isNotEmpty()) {
-            MarketQueue.write(applicationContext, run.queueJson)
+            if (!MarketQueue.write(applicationContext, run.queueJson)) {
+                Log.w(TAG, "failed to write background events")
+                return Result.retry()
+            }
         }
+
+        if (run.ruleUpdates.isNotEmpty()) {
+            if (!MarketRuleStateStore.write(applicationContext, snapshot, cache, now)) {
+                Log.w(TAG, "failed to write background rule state")
+                return Result.retry()
+            }
+        }
+
         return Result.success()
     }
 

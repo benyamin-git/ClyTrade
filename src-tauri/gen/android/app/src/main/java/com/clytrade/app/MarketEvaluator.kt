@@ -528,12 +528,15 @@ fun seedRuleCacheFromQueue(
     cache: RuleStateCache,
     snapshot: Snapshot,
     existingJson: String,
+    savedAtByRule: Map<String, Long> = emptyMap(),
 ) {
     for (event in MarketQueue.parseEvents(existingJson)) {
         val ruleId = event.ruleId ?: continue
         val state = event.ruleState ?: continue
         val rule = snapshot.rules.firstOrNull { it.id == ruleId } ?: continue
         if (event.at < rule.updatedAt) continue
+        val savedAt = savedAtByRule[ruleId]
+        if (savedAt != null && event.at <= savedAt) continue
         val existing = cache.states[ruleId]
         if (existing != null &&
             existing.updatedAt == rule.updatedAt &&
