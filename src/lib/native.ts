@@ -9,6 +9,11 @@ export function isBackgroundPlatform(): boolean {
   return APP_PLATFORM === 'windows' || isAndroid()
 }
 
+export function setNativeBackgroundMonitoring(enabled: boolean): void {
+  if (!isAndroid()) return
+  window.ClyTradeNative?.setBackgroundMonitoring?.(enabled)
+}
+
 export async function writeNativeSnapshot(json: string): Promise<void> {
   if (APP_PLATFORM === 'windows') {
     await invoke('write_background_snapshot', { json })

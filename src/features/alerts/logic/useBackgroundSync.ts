@@ -5,7 +5,7 @@ import { getMarketApiKey } from '@/data/repositories/settings.repo'
 import { listTrades } from '@/data/repositories/trades.repo'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { useI18n } from '@/i18n/I18nContext'
-import { isBackgroundPlatform } from '@/lib/native'
+import { isBackgroundPlatform, setNativeBackgroundMonitoring } from '@/lib/native'
 import {
   buildBackgroundSnapshot,
   clearBackgroundEvents,
@@ -24,7 +24,7 @@ export function waitForNativeImport(): Promise<void> {
 }
 
 export function useBackgroundSync(): void {
-  const { preferences } = usePreferences()
+  const { preferences, ready } = usePreferences()
   const { locale, t } = useI18n()
   const stored = useLiveQuery(
     async () => ({
@@ -87,6 +87,11 @@ export function useBackgroundSync(): void {
       document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [native, importQueue])
+
+  useEffect(() => {
+    if (!native || !ready) return
+    setNativeBackgroundMonitoring(preferences.backgroundMonitoring)
+  }, [native, ready, preferences.backgroundMonitoring])
 
   useEffect(() => {
     if (!native || stored === undefined) return

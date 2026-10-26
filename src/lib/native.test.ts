@@ -3,6 +3,7 @@ import {
   clearNativeEvents,
   isBackgroundPlatform,
   readNativeEvents,
+  setNativeBackgroundMonitoring,
   writeNativeSnapshot,
 } from './native'
 
@@ -24,6 +25,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 interface FakeBridge {
   setDarkTheme: Mock<(dark: boolean) => void>
+  setBackgroundMonitoring: Mock<(enabled: boolean) => void>
   writeBackgroundSnapshot: Mock<(json: string) => void>
   readBackgroundEvents: Mock<() => string>
   clearBackgroundEvents: Mock<() => void>
@@ -32,6 +34,7 @@ interface FakeBridge {
 function installBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
   const bridge: FakeBridge = {
     setDarkTheme: vi.fn<(dark: boolean) => void>(),
+    setBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
     writeBackgroundSnapshot: vi.fn<(json: string) => void>(),
     readBackgroundEvents: vi.fn<() => string>(() => '[]'),
     clearBackgroundEvents: vi.fn<() => void>(),
@@ -72,8 +75,10 @@ describe('background native bridge', () => {
     await writeNativeSnapshot('{"version":1}')
     expect(await readNativeEvents()).toBe('')
     await clearNativeEvents()
+    setNativeBackgroundMonitoring(true)
 
     expect(tauri.invoke).not.toHaveBeenCalled()
+    expect(bridge.setBackgroundMonitoring).not.toHaveBeenCalled()
     expect(bridge.writeBackgroundSnapshot).not.toHaveBeenCalled()
     expect(bridge.readBackgroundEvents).not.toHaveBeenCalled()
     expect(bridge.clearBackgroundEvents).not.toHaveBeenCalled()
@@ -129,5 +134,38 @@ describe('background native bridge', () => {
     await expect(writeNativeSnapshot('{}')).resolves.toBeUndefined()
     expect(await readNativeEvents()).toBe('')
     await expect(clearNativeEvents()).resolves.toBeUndefined()
+    expect(() => setNativeBackgroundMonitoring(true)).not.toThrow()
+  })
+
+  it('schedules and cancels Android background work through the bridge', () => {
+    platform.current = 'android'
+    const bridge = installBridge()
+
+    setNativeBackgroundMonitoring(true)
+    expect(bridge.setBackgroundMonitoring).toHaveBeenCalledWith(true)
+
+    setNativeBackgroundMonitoring(false)
+    expect(bridge.setBackgroundMonitoring).toHaveBeenLastCalledWith(false)
+    expect(bridge.setBackgroundMonitoring).toHaveBeenCalledTimes(2)
+    expect(tauri.invoke).not.toHaveBeenCalled()
+  })
+
+  it('treats the Android eabi platform as Android when scheduling', () => {
+    platform.current = 'androideabi'
+    const bridge = installBridge()
+
+    setNativeBackgroundMonitoring(true)
+
+    expect(bridge.setBackgroundMonitoring).toHaveBeenCalledWith(true)
+  })
+
+  it('leaves Windows background scheduling to the snapshot preference', () => {
+    platform.current = 'windows'
+    const bridge = installBridge()
+
+    setNativeBackgroundMonitoring(true)
+
+    expect(bridge.setBackgroundMonitoring).not.toHaveBeenCalled()
+    expect(tauri.invoke).not.toHaveBeenCalled()
   })
 })

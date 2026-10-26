@@ -14,6 +14,7 @@ const state = vi.hoisted(() => ({
   platform: 'android' as string,
   data: undefined as { trades: Trade[]; rules: PriceAlert[]; apiKey: string | null } | undefined,
   preferences: null as Preferences | null,
+  ready: true,
 }))
 
 vi.mock('@/lib/version', () => ({
@@ -35,7 +36,7 @@ vi.mock('@/features/settings/SettingsContext', () => ({
     preferences: state.preferences,
     setPreferences: () => undefined,
     updatePreferences: () => undefined,
-    ready: true,
+    ready: state.ready,
     error: null,
   }),
 }))
@@ -170,6 +171,7 @@ async function advance(ms: number): Promise<void> {
 beforeEach(() => {
   vi.useFakeTimers()
   state.platform = 'android'
+  state.ready = true
   state.preferences = preferences()
   state.data = {
     trades: [trade()],
@@ -187,6 +189,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
+  delete window.ClyTradeNative
   document.documentElement.dir = ''
   document.documentElement.lang = 'en'
 })
@@ -432,5 +435,58 @@ describe('useBackgroundSync', () => {
     expect(background.readBackgroundEvents).not.toHaveBeenCalled()
     expect(background.clearBackgroundEvents).not.toHaveBeenCalled()
     expect(importer.importBackgroundEvents).not.toHaveBeenCalled()
+  })
+
+  it('schedules Android work while monitoring is on and cancels it when off', async () => {
+    const bridge = {
+      setDarkTheme: vi.fn(),
+      setBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
+    }
+    window.ClyTradeNative = bridge
+
+    const { rerender } = renderHook(() => useBackgroundSync(), { wrapper })
+    await flushAsync()
+
+    expect(bridge.setBackgroundMonitoring).toHaveBeenCalledWith(true)
+
+    state.preferences = preferences({ backgroundMonitoring: false })
+    rerender()
+    await flushAsync()
+
+    expect(bridge.setBackgroundMonitoring).toHaveBeenLastCalledWith(false)
+  })
+
+  it('does not schedule background work outside Android', async () => {
+    const bridge = {
+      setDarkTheme: vi.fn(),
+      setBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
+    }
+    window.ClyTradeNative = bridge
+    state.platform = 'windows'
+
+    renderHook(() => useBackgroundSync(), { wrapper })
+    await flushAsync()
+
+    expect(bridge.setBackgroundMonitoring).not.toHaveBeenCalled()
+  })
+
+  it('waits for stored preferences before touching Android scheduling', async () => {
+    const bridge = {
+      setDarkTheme: vi.fn(),
+      setBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
+    }
+    window.ClyTradeNative = bridge
+    state.ready = false
+
+    const { rerender } = renderHook(() => useBackgroundSync(), { wrapper })
+    await flushAsync()
+
+    expect(bridge.setBackgroundMonitoring).not.toHaveBeenCalled()
+
+    state.ready = true
+    rerender()
+    await flushAsync()
+
+    expect(bridge.setBackgroundMonitoring).toHaveBeenCalledWith(true)
   })
 })

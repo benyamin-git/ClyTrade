@@ -15,6 +15,12 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
+-keep class com.clytrade.app.MarketWorker { *; }
+-keep class com.clytrade.app.MainActivity { *; }
+-keepclassmembers class com.clytrade.app.MainActivity$* {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable

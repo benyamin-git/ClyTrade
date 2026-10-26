@@ -28,6 +28,24 @@ class MainActivity : TauriActivity() {
             applySystemBarAppearance()
           }
         }
+
+        @JavascriptInterface
+        fun setBackgroundMonitoring(enabled: Boolean) {
+          MarketWorker.setMonitoring(applicationContext, enabled)
+        }
+
+        @JavascriptInterface
+        fun writeBackgroundSnapshot(json: String) {
+          MarketSnapshotStore.write(applicationContext, json)
+        }
+
+        @JavascriptInterface
+        fun readBackgroundEvents(): String = MarketQueue.read(applicationContext)
+
+        @JavascriptInterface
+        fun clearBackgroundEvents() {
+          MarketQueue.clear(applicationContext)
+        }
       },
       "ClyTradeNative"
     )
