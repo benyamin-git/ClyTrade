@@ -20,22 +20,26 @@ export async function refreshSymbolLists(
   now = Date.now(),
 ): Promise<void> {
   for (const provider of providers) {
-    const cached = await listMarketSymbols(provider.id)
-    const newest = cached.reduce((latest, row) => Math.max(latest, row.updatedAt), 0)
-    if (cached.length > 0 && now - newest < SEVEN_DAYS) continue
+    try {
+      const cached = await listMarketSymbols(provider.id)
+      const newest = cached.reduce((latest, row) => Math.max(latest, row.updatedAt), 0)
+      if (cached.length > 0 && now - newest < SEVEN_DAYS) continue
 
-    const fetched = await provider.fetchSymbols()
-    const rows: MarketSymbol[] = fetched.map((row) => ({
-      id: `${provider.id}:${row.priceId}`,
-      provider: provider.id,
-      priceId: row.priceId,
-      symbol: row.symbol,
-      name: row.name,
-      quote: row.quote,
-      rank: row.rank,
-      updatedAt: now,
-    }))
-    await replaceMarketSymbols(provider.id, rows)
+      const fetched = await provider.fetchSymbols()
+      const rows: MarketSymbol[] = fetched.map((row) => ({
+        id: `${provider.id}:${row.priceId}`,
+        provider: provider.id,
+        priceId: row.priceId,
+        symbol: row.symbol,
+        name: row.name,
+        quote: row.quote,
+        rank: row.rank,
+        updatedAt: now,
+      }))
+      await replaceMarketSymbols(provider.id, rows)
+    } catch {
+      continue
+    }
   }
 }
 

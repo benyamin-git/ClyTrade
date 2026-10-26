@@ -38,8 +38,10 @@ function buildRefs(data: ForegroundData | undefined): MarketRef[] {
   const byKey = new Map<string, MarketRef>()
 
   for (const trade of data.trades) {
+    if (trade.market !== 'crypto') continue
     if (trade.status !== 'open') continue
     if (trade.targetPrice === null && trade.stopPrice === null) continue
+    if (trade.binanceSymbol === null && trade.coingeckoId === null) continue
     addRef(byKey, {
       key: priceKeyFor(trade),
       symbol: trade.symbol,
@@ -61,6 +63,7 @@ function buildRefs(data: ForegroundData | undefined): MarketRef[] {
 
   for (const asset of data.assets) {
     if (asset.market !== 'crypto' || !asset.autoPrice) continue
+    if (asset.binanceSymbol === null && asset.coingeckoId === null) continue
     addRef(byKey, {
       key: priceKeyFor(asset),
       symbol: asset.symbol,

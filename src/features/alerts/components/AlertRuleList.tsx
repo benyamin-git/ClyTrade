@@ -51,6 +51,11 @@ function lastFiredLabel(rule: PriceAlert, t: Translator): string {
   })
 }
 
+function tradePriceUnavailable(trade: Trade): boolean {
+  if (trade.market !== 'crypto') return true
+  return trade.binanceSymbol === null && trade.coingeckoId === null
+}
+
 function tradeSummary(trade: Trade, t: Translator): string {
   const target = trade.targetPrice === null ? null : formatPrice(trade.targetPrice)
   const stop = trade.stopPrice === null ? null : formatPrice(trade.stopPrice)
@@ -153,6 +158,11 @@ export function AlertRuleList({
               </span>
             </p>
             <p className="truncate text-xs text-on-surface-variant">{tradeSummary(trade, t)}</p>
+            {tradePriceUnavailable(trade) ? (
+              <p className="text-2xs text-on-surface-variant">
+                {t('alerts.rules.priceUnavailable')}
+              </p>
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-0.5">
             <IconButton

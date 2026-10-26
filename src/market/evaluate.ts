@@ -238,7 +238,8 @@ export function evaluatePrices(input: EvaluationInput): EvaluationResult {
   const ruleUpdates: AlertRuleUpdate[] = []
 
   for (const trade of input.trades) {
-    if (trade.status !== 'open') continue
+    if (trade.market !== 'crypto' || trade.status !== 'open') continue
+    if (trade.binanceSymbol === null && trade.coingeckoId === null) continue
 
     const price = input.prices.get(priceKeyFor(trade))
     if (!price) continue

@@ -110,7 +110,10 @@ export function buildBackgroundSnapshot(input: BackgroundSnapshotInput): Backgro
   const trades = input.trades
     .filter(
       (trade) =>
-        trade.status === 'open' && (trade.targetPrice !== null || trade.stopPrice !== null),
+        trade.market === 'crypto' &&
+        trade.status === 'open' &&
+        (trade.targetPrice !== null || trade.stopPrice !== null) &&
+        (trade.binanceSymbol !== null || trade.coingeckoId !== null),
     )
     .map((trade): BackgroundTrade => ({
       id: trade.id,

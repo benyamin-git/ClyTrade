@@ -168,23 +168,28 @@ export function usePrices(refs: readonly MarketRef[], reason: PriceRequestReason
   const [prices, setPrices] = useState<ReadonlyMap<string, ProviderPrice>>(EMPTY_PRICES)
   const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus | null>(null)
   const entryRef = useRef<SharedScheduler | null>(null)
-  const refsRef = useRef(refs)
+  const schedulableRefs = useMemo(
+    () => refs.filter((ref) => ref.binanceSymbol !== null || ref.coingeckoId !== null),
+    [refs],
+  )
+  const refsRef = useRef(schedulableRefs)
 
-  const refsKey = useMemo(() => serializeRefs(refs), [refs])
+  const refsKey = useMemo(() => serializeRefs(schedulableRefs), [schedulableRefs])
   const fallbackStatus = useMemo<SchedulerStatus>(
     () => ({
       provider: providerChoice,
       activeProvider: null,
       lastSuccessAt: null,
       nextAllowedAt: null,
+      monthlyUsage: null,
       error: null,
     }),
     [providerChoice],
   )
 
   useEffect(() => {
-    refsRef.current = refs
-  }, [refs])
+    refsRef.current = schedulableRefs
+  }, [schedulableRefs])
 
   useEffect(() => {
     if (!ready) return
@@ -201,11 +206,11 @@ export function usePrices(refs: readonly MarketRef[], reason: PriceRequestReason
   useEffect(() => {
     const entry = entryRef.current
     if (!entry) return
-    entry.refs.set(consumerId, refs)
+    entry.refs.set(consumerId, schedulableRefs)
     return () => {
       entry.refs.delete(consumerId)
     }
-  }, [ready, providerChoice, apiKey, refs, consumerId])
+  }, [ready, providerChoice, apiKey, schedulableRefs, consumerId])
 
   useEffect(() => {
     const entry = entryRef.current

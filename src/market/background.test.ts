@@ -210,13 +210,15 @@ describe('buildBackgroundSnapshot', () => {
     })
   })
 
-  it('omits closed and level-less trades', () => {
+  it('omits closed, level-less, non-crypto and unmapped trades', () => {
     const snapshot = buildBackgroundSnapshot({
       ...snapshotInput(),
       trades: [
         trade({ id: 'closed', status: 'closed', exitPrice: 110, closedAt: NOW - 500 }),
         trade({ id: 'no-levels', targetPrice: null, stopPrice: null }),
         trade({ id: 'stop-only', targetPrice: null }),
+        trade({ id: 'forex', market: 'forex' }),
+        trade({ id: 'unmapped', binanceSymbol: null, coingeckoId: null }),
       ],
     })
 

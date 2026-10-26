@@ -269,6 +269,60 @@ describe('evaluatePrices', () => {
     })
   })
 
+  it('ignores non-crypto and unmapped trades', () => {
+    const base: Trade = {
+      id: 'base',
+      symbol: 'BTC',
+      market: 'crypto',
+      direction: 'long',
+      status: 'open',
+      entryPrice: 100,
+      exitPrice: null,
+      size: 1,
+      leverage: 1,
+      stopPrice: 90,
+      targetPrice: 120,
+      fees: 0,
+      openedAt: 0,
+      closedAt: null,
+      strategy: null,
+      notes: null,
+      tags: [],
+      autoClose: false,
+      binanceSymbol: 'BTCUSDT',
+      coingeckoId: null,
+      createdAt: 0,
+      updatedAt: 0,
+    }
+    const prices = new Map<string, ProviderPrice>([
+      [
+        'binance:BTCUSDT',
+        {
+          key: 'binance:BTCUSDT',
+          symbol: 'BTCUSDT',
+          provider: 'binance',
+          price: 130,
+          fetchedAt: 1_699_999_999_000,
+          sourceTimestamp: null,
+        },
+      ],
+    ])
+
+    const result = evaluatePrices({
+      now: 1_700_000_000_000,
+      prices,
+      trades: [
+        { ...base, id: 'forex', market: 'forex' },
+        { ...base, id: 'unmapped', binanceSymbol: null, coingeckoId: null },
+        { ...base, id: 'mapped' },
+      ],
+      rules: [],
+      staleMs: 900_000,
+    })
+
+    expect(result.events.map((event) => event.tradeId)).toEqual(['mapped'])
+  })
+
   it('fills every event and review field and leaves new items unread', () => {
     for (const item of fixture.cases) {
       const result = evaluatePrices(buildInput(item))

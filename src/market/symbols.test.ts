@@ -103,6 +103,29 @@ describe('refreshSymbolLists', () => {
     ])
   })
 
+  it('continues to the next provider when the first refresh fails', async () => {
+    const binance = provider('binance', [])
+    binance.fetchSymbols = vi.fn(async () => {
+      throw new Error('blocked')
+    })
+    const coingecko = provider('coingecko', [
+      {
+        provider: 'coingecko',
+        priceId: 'bitcoin',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        quote: null,
+        rank: 1,
+      },
+    ])
+
+    await refreshSymbolLists([binance, coingecko], NOW)
+
+    expect(binance.fetchSymbols).toHaveBeenCalledOnce()
+    expect(coingecko.fetchSymbols).toHaveBeenCalledOnce()
+    expect((await listMarketSymbols('coingecko')).map((row) => row.priceId)).toEqual(['bitcoin'])
+  })
+
   it('skips a provider whose cache is under seven days old and refreshes after that', async () => {
     const binance = provider('binance', [
       {
