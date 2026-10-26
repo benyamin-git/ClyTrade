@@ -13,7 +13,7 @@ import type { TranslationKey } from '@/i18n/types'
 import { formatPrice } from '@/lib/format'
 import { createMarketProviders } from '@/market/providers'
 import { pickPreferredCandidate, type SymbolCandidate } from '@/market/symbols'
-import { priceKeyFor, type MarketProvider, type MarketRef } from '@/market/types'
+import { STALE_MS, priceKeyFor, type MarketProvider, type MarketRef } from '@/market/types'
 import { usePrices } from '@/market/usePrices'
 import { useSymbolCandidates } from '@/market/useSymbolCandidates'
 import { Button } from '@/ui/components/Button'
@@ -142,7 +142,9 @@ export function AlertRuleFormSheet({ alert, onClose, onSaved }: AlertRuleFormShe
   const priceRefs = useMemo<MarketRef[]>(() => (priceRef ? [priceRef] : []), [priceRef])
   const { prices } = usePrices(priceRefs, 'detail')
   const quote = priceRef ? prices.get(priceRef.key) : undefined
-  const currentPrice = quote !== undefined && quote.price > 0 ? quote.price : null
+  const [now] = useState(() => Date.now())
+  const currentPrice =
+    quote !== undefined && quote.price > 0 && now - quote.fetchedAt < STALE_MS ? quote.price : null
   const symbolUnchanged = alert !== null && alert.symbol.trim().toUpperCase() === normalizedSymbol
   const mappingUnchanged =
     alert !== null &&
@@ -231,7 +233,10 @@ export function AlertRuleFormSheet({ alert, onClose, onSaved }: AlertRuleFormShe
           <Button variant="text" onClick={onClose} disabled={saving}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={() => void handleSave()} disabled={saving}>
+          <Button
+            onClick={() => void handleSave()}
+            disabled={saving || (kind === 'percent' && referencePrice === null)}
+          >
             {alert ? t('common.saveChanges') : t('alerts.form.create')}
           </Button>
         </>

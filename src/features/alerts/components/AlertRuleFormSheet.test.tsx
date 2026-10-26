@@ -11,7 +11,7 @@ import {
 } from '@/data/repositories/alerts.repo'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import type { SymbolCandidate } from '@/market/symbols'
-import type { ProviderPrice } from '@/market/types'
+import { STALE_MS, type ProviderPrice } from '@/market/types'
 import { AlertRuleFormSheet } from './AlertRuleFormSheet'
 
 const symbolState = vi.hoisted(() => ({
@@ -44,6 +44,7 @@ vi.mock('@/market/usePrices', () => ({
         activeProvider: null,
         lastSuccessAt: null,
         nextAllowedAt: null,
+        monthlyUsage: null,
         error: null,
       },
       refresh: async () => undefined,
@@ -312,6 +313,28 @@ describe('AlertRuleFormSheet percent rules', () => {
     },
   )
 
+  it('blocks a percent rule when the cached reference is stale', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    priceState.prices.set(
+      'binance:BTCUSDT',
+      freshPrice({ fetchedAt: Date.now() - STALE_MS - 1_000 }),
+    )
+    const user = userEvent.setup()
+    const { onClose } = await renderForm(null)
+
+    await enterSymbol(user)
+    await user.click(screen.getByRole('radio', { name: 'Percent' }))
+    await user.type(screen.getByLabelText('Change'), '5')
+    expect(
+      screen.getByText(
+        'No current price for this coin yet. A percent rule needs a price before it can be saved.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create alert' })).toBeDisabled()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(await listAlerts()).toHaveLength(0)
+  })
+
   it('blocks a percent rule when no price is available', async () => {
     symbolState.bySymbol.set('BTC', [binanceCandidate()])
     const user = userEvent.setup()
@@ -325,11 +348,7 @@ describe('AlertRuleFormSheet percent rules', () => {
         'No current price for this coin yet. A percent rule needs a price before it can be saved.',
       ),
     ).toBeInTheDocument()
-    await createRule(user)
-
-    expect(
-      await screen.findByText('A percent rule needs a current price for this symbol.'),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Create alert' })).toBeDisabled()
     expect(onClose).not.toHaveBeenCalled()
     expect(await listAlerts()).toHaveLength(0)
   })
