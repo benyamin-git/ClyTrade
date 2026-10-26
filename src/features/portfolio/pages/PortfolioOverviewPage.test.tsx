@@ -1,9 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsI18nBridge } from '@/app/SettingsI18nBridge'
 import type { AssetDraft } from '@/data/models/asset'
-import { clearAssets, createAsset, listAssets, updateAsset } from '@/data/repositories/assets.repo'
+import { clearAssets, createAsset } from '@/data/repositories/assets.repo'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { formatTime } from '@/lib/dates'
@@ -22,16 +22,12 @@ vi.mock('@/market/usePrices', () => ({
       activeProvider: null,
       lastSuccessAt: null,
       nextAllowedAt: null,
+      monthlyUsage: null,
       error: null,
     },
     refresh: async () => undefined,
   }),
 }))
-
-vi.mock('@/data/repositories/assets.repo', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/data/repositories/assets.repo')>()
-  return { ...actual, updateAsset: vi.fn(actual.updateAsset) }
-})
 
 function draft(partial: Partial<AssetDraft> & Pick<AssetDraft, 'symbol'>): AssetDraft {
   return {
@@ -159,10 +155,9 @@ describe('PortfolioOverviewPage automatic prices', () => {
   beforeEach(async () => {
     await clearAssets()
     marketState.prices = new Map()
-    vi.mocked(updateAsset).mockClear()
   })
 
-  it('writes a fresh crypto price once and shows its timestamp', async () => {
+  it('shows a fresh crypto price and its timestamp', async () => {
     await createAsset(
       draft({
         symbol: 'BTC',
@@ -179,9 +174,6 @@ describe('PortfolioOverviewPage automatic prices', () => {
     renderPage()
 
     expect(await screen.findByText('68,000')).toBeInTheDocument()
-    await waitFor(() => expect(vi.mocked(updateAsset)).toHaveBeenCalledTimes(1))
-    const [assets] = await Promise.all([listAssets()])
-    expect(assets[0]?.currentPrice).toBe(68000)
     expect(screen.getByText(formatTime(fetchedAt))).toBeInTheDocument()
     expect(screen.queryByText('Stale')).not.toBeInTheDocument()
   })
@@ -203,7 +195,6 @@ describe('PortfolioOverviewPage automatic prices', () => {
     renderPage()
 
     expect(await screen.findByText('at cost')).toBeInTheDocument()
-    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
     expect(screen.queryByText('Stale')).not.toBeInTheDocument()
     expect(screen.queryByText(formatTime(fetchedAt))).not.toBeInTheDocument()
   })
@@ -225,7 +216,6 @@ describe('PortfolioOverviewPage automatic prices', () => {
     renderPage()
 
     expect(await screen.findByText('at cost')).toBeInTheDocument()
-    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
     expect(screen.queryByText('Stale')).not.toBeInTheDocument()
     expect(screen.queryByText(formatTime(fetchedAt))).not.toBeInTheDocument()
   })
@@ -260,7 +250,6 @@ describe('PortfolioOverviewPage automatic prices', () => {
 
     expect(await screen.findByText('BTC')).toBeInTheDocument()
     expect(screen.getByText('ETH')).toBeInTheDocument()
-    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
     expect(screen.queryByText('Stale')).not.toBeInTheDocument()
     expect(document.querySelector('time')).toBeNull()
   })
@@ -284,6 +273,5 @@ describe('PortfolioOverviewPage automatic prices', () => {
     expect(await screen.findByText('Stale')).toBeInTheDocument()
     expect(screen.getByText(formatTime(fetchedAt))).toBeInTheDocument()
     expect(screen.getByText('at cost')).toBeInTheDocument()
-    expect(vi.mocked(updateAsset)).not.toHaveBeenCalled()
   })
 })

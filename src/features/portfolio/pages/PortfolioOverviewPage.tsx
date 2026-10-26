@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Pencil, Plus, Trash2 } from 'lucide-react'
 import { calculatePortfolioTotals } from '@/calculations/portfolioMetrics'
 import type { Asset } from '@/data/models/asset'
-import { deleteAsset, listAssets, updateAsset } from '@/data/repositories/assets.repo'
+import { deleteAsset, listAssets } from '@/data/repositories/assets.repo'
 import { FilterBar } from '@/features/filters/FilterBar'
 import { activeGroupCount } from '@/features/filters/filterUtils'
 import { useFilterState } from '@/features/filters/useFilterState'
@@ -24,7 +24,6 @@ import { Stat } from '@/ui/components/Stat'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
 import { AssetFormSheet } from '../components/AssetFormSheet'
 import { PortfolioFilterSheet } from '../components/PortfolioFilterSheet'
-import { shouldWriteAutoPrice } from '../logic/autoPrice'
 import {
   ASSET_FILTER_GROUPS,
   DEFAULT_ASSET_FILTERS,
@@ -54,25 +53,11 @@ export function PortfolioOverviewPage() {
   )
   const { prices } = usePrices(refs, 'portfolio')
   const [now, setNow] = useState(() => Date.now())
-  const writtenFetchedAt = useRef(new Map<string, number>())
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000)
     return () => window.clearInterval(timer)
   }, [])
-
-  useEffect(() => {
-    if (!assets) return
-    const currentTime = Date.now()
-    for (const asset of assets) {
-      const price = prices.get(priceKeyFor(asset))
-      if (price === undefined) continue
-      if (!shouldWriteAutoPrice(asset, price, currentTime, STALE_MS)) continue
-      if (writtenFetchedAt.current.get(asset.id) === price.fetchedAt) continue
-      writtenFetchedAt.current.set(asset.id, price.fetchedAt)
-      void updateAsset(asset.id, { currentPrice: price.price }).catch(() => undefined)
-    }
-  }, [assets, prices])
 
   const { filters, patch, reset } = useFilterState(DEFAULT_ASSET_FILTERS)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -139,13 +124,14 @@ export function PortfolioOverviewPage() {
         const autoPriced = row.asset.market === 'crypto' && row.asset.autoPrice
         const price = autoPriced ? prices.get(priceKeyFor(row.asset)) : undefined
         const stale = price !== undefined && now - price.fetchedAt >= STALE_MS
+        const displayPrice = price !== undefined && !stale ? price.price : row.asset.currentPrice
         return (
           <span className="flex flex-col items-end gap-0.5">
             <span className="tabular">
-              {row.asset.currentPrice === null ? (
+              {displayPrice === null ? (
                 <span className="text-on-surface-variant">{t('portfolio.atCost')}</span>
               ) : (
-                formatPrice(row.asset.currentPrice)
+                formatPrice(displayPrice)
               )}
             </span>
             {price ? (
@@ -163,6 +149,10 @@ export function PortfolioOverviewPage() {
                     {t('portfolio.staleBadge')}
                   </span>
                 ) : null}
+              </span>
+            ) : autoPriced && row.asset.binanceSymbol === null && row.asset.coingeckoId === null ? (
+              <span className="text-2xs text-on-surface-variant">
+                {t('portfolio.priceUnavailable')}
               </span>
             ) : null}
           </span>

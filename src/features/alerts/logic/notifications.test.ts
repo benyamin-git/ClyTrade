@@ -216,6 +216,7 @@ describe('showNotification', () => {
     expect(plugin.sendNotification).toHaveBeenCalledWith({
       title: PAYLOAD.title,
       body: PAYLOAD.body,
+      extra: { route: '/alerts/overview' },
     })
   })
 

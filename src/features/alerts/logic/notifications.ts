@@ -11,6 +11,7 @@ export interface NotificationPayload {
 
 const GROUP_TAG = 'clytrade-alerts'
 const MAX_ITEMS = 5
+export const ALERTS_ROUTE = '/alerts/overview'
 
 export function buildGroupedNotification(
   events: readonly AlertEvent[],
@@ -34,7 +35,7 @@ export function buildGroupedNotification(
 
 function openAlerts(): void {
   window.focus()
-  window.location.hash = '#/alerts/overview'
+  window.location.hash = `#${ALERTS_ROUTE}`
 }
 
 function showWebNotification(payload: NotificationPayload): void {
@@ -50,7 +51,11 @@ function showWebNotification(payload: NotificationPayload): void {
 async function showNativeNotification(payload: NotificationPayload): Promise<void> {
   const { isPermissionGranted, sendNotification } = await import('@tauri-apps/plugin-notification')
   if (!(await isPermissionGranted())) return
-  sendNotification({ title: payload.title, body: payload.body })
+  sendNotification({
+    title: payload.title,
+    body: payload.body,
+    extra: { route: ALERTS_ROUTE },
+  })
 }
 
 export async function showNotification(payload: NotificationPayload): Promise<void> {
