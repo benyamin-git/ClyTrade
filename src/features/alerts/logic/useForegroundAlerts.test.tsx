@@ -335,7 +335,7 @@ describe('useForegroundAlerts', () => {
     const options = engine.runAlertEvaluation.mock.calls[0]?.[0]
 
     expect(options?.note({ symbol: 'BTC', level: 120, reason: 'stop', at: NOW })).toBe(
-      'بستهٔ خودکار BTC در 120 (برخورد با استاپ).',
+      'BTC به‌طور خودکار در 120 بسته شد (برخورد با استاپ).',
     )
   })
 

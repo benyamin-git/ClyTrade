@@ -797,7 +797,7 @@ export const en = {
     notificationsDefault: 'Not requested',
     notificationsDenied: 'Blocked',
     notificationsGranted: 'Allowed',
-    notificationsHint: 'Background monitoring asks when enabled.',
+    notificationsHint: 'Background monitoring asks for permission when enabled.',
     notificationsUnsupported: 'Not supported',
     priceProvider: 'Price provider',
     priceProviderHint: 'Auto tries Binance first, then CoinGecko.',
