@@ -43,6 +43,7 @@ vi.mock('@/market/usePrices', () => ({
         activeProvider: null,
         lastSuccessAt: null,
         nextAllowedAt: null,
+        monthlyUsage: null,
         error: null,
       },
       refresh: async () => undefined,
@@ -579,6 +580,21 @@ describe('TradeFormSheet symbol mapping and entry prefill', () => {
       binanceSymbol: null,
       coingeckoId: null,
     })
+  })
+
+  it('clears a machine-prefilled entry price when the market changes', async () => {
+    await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    const user = userEvent.setup()
+    renderForm(null)
+
+    await user.type(await screen.findByLabelText('Symbol'), 'BTC')
+    await waitFor(() => expect(screen.getByLabelText('Entry price')).toHaveValue('68000'))
+
+    await user.selectOptions(screen.getByLabelText('Market'), 'forex')
+
+    expect(screen.getByLabelText('Entry price')).toHaveValue('')
   })
 
   it('prefills the new symbol price after a symbol change', async () => {

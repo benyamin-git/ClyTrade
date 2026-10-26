@@ -215,6 +215,13 @@ export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps)
     setSymbol(next)
   }
 
+  function handleMarketChange(next: Market) {
+    if (next !== 'crypto') {
+      clearPrefilledPrice(mappingKey(normalizedSymbol, null, null))
+    }
+    setMarket(next)
+  }
+
   useEffect(() => {
     if (trade !== null) return
     if (entryPriceTouchedRef.current || entryPrice !== null) return
@@ -329,7 +336,7 @@ export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps)
           label={t('fields.market')}
           value={market}
           options={MARKET_IDS.map((id) => ({ value: id, label: t(`markets.${id}`) }))}
-          onChange={setMarket}
+          onChange={handleMarketChange}
         />
         <div className="flex flex-col gap-1">
           <span className="text-2xs font-medium tracking-wide text-on-surface-variant uppercase">

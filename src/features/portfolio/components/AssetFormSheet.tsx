@@ -200,6 +200,9 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
   }, [currentQuote, currentPrice, selectionKey])
 
   function handleMarketChange(next: Market) {
+    if (next !== 'crypto') {
+      clearPrefilledPrice(`${normalizedSymbol}|market:${next}`)
+    }
     setMarket(next)
     if (next !== 'crypto') {
       setAutoPrice(false)
