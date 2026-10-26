@@ -68,6 +68,35 @@ export interface SettingRow {
 
 export const PREFERENCES_KEY = 'preferences'
 export const MARKET_API_KEY = 'marketApiKey'
+export const MARKET_USAGE_KEY = 'marketUsage'
+export const COINGECKO_MONTHLY_LIMIT = 10_000
+
+export interface MarketUsage {
+  month: string
+  coingeckoRequests: number
+}
+
+export function monthKey(now: number): string {
+  return new Date(now).toISOString().slice(0, 7)
+}
+
+export function parseMarketUsage(value: unknown, now: number): MarketUsage {
+  if (value !== null && typeof value === 'object') {
+    const row = value as { month?: unknown; coingeckoRequests?: unknown }
+    if (
+      row.month === monthKey(now) &&
+      typeof row.coingeckoRequests === 'number' &&
+      Number.isFinite(row.coingeckoRequests) &&
+      row.coingeckoRequests >= 0
+    ) {
+      return {
+        month: row.month,
+        coingeckoRequests: Math.floor(row.coingeckoRequests),
+      }
+    }
+  }
+  return { month: monthKey(now), coingeckoRequests: 0 }
+}
 
 export function parsePreferences(value: unknown): Preferences {
   const source =

@@ -31,6 +31,7 @@ vi.mock('./scheduler', () => ({
       activeProvider: null,
       lastSuccessAt: null,
       nextAllowedAt: null,
+      monthlyUsage: null,
       error: null,
     }
     const scheduler: FakeScheduler = {

@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n/I18nContext'
 import type { TranslationKey } from '@/i18n/types'
 import type { Translator } from '@/i18n/translate'
 import { formatTime } from '@/lib/dates'
+import { formatNumber } from '@/lib/format'
 import type { SchedulerStatus } from '@/market/scheduler'
 import { Button } from '@/ui/components/Button'
 import { Stat } from '@/ui/components/Stat'
@@ -71,6 +72,16 @@ export function AlertStatusStrip({ status, onRefresh, refreshing }: AlertStatusS
             : t('alerts.status.now')
         }
       />
+      {status.monthlyUsage ? (
+        <Stat
+          size="sm"
+          label={t('alerts.status.monthlyUsage')}
+          value={t('alerts.status.monthlyUsageValue', {
+            used: formatNumber(status.monthlyUsage.used),
+            limit: formatNumber(status.monthlyUsage.limit),
+          })}
+        />
+      ) : null}
       <div className="ms-auto flex flex-col items-end gap-1">
         <Button
           size="sm"

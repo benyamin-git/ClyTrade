@@ -2,9 +2,12 @@ import { db } from '../db'
 import {
   DEFAULT_PREFERENCES,
   MARKET_API_KEY,
+  MARKET_USAGE_KEY,
   PREFERENCES_KEY,
+  parseMarketUsage,
   parsePreferences,
   preferencesSchema,
+  type MarketUsage,
   type Preferences,
   type SettingRow,
 } from '../models/settings'
@@ -31,6 +34,24 @@ export async function setMarketApiKey(key: string | null): Promise<void> {
     return
   }
   await setSetting(MARKET_API_KEY, trimmed)
+}
+
+export async function getMarketUsage(now: number): Promise<MarketUsage> {
+  const value = await getSetting<unknown>(MARKET_USAGE_KEY)
+  return parseMarketUsage(value, now)
+}
+
+export async function recordMarketUsage(count: number, now: number): Promise<MarketUsage> {
+  return db.transaction('rw', db.settings, async () => {
+    const value = await getSetting<unknown>(MARKET_USAGE_KEY)
+    const usage = parseMarketUsage(value, now)
+    const next: MarketUsage = {
+      month: usage.month,
+      coingeckoRequests: usage.coingeckoRequests + Math.max(0, Math.floor(count)),
+    }
+    await setSetting(MARKET_USAGE_KEY, next)
+    return next
+  })
 }
 
 export async function getPreferences(): Promise<Preferences> {

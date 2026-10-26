@@ -6,7 +6,7 @@ import { db } from './db'
 import { assetSchema } from './models/asset'
 import { settingRowSchema } from './models/backup-schemas'
 import { alertEventSchema, priceAlertSchema } from './models/price'
-import { MARKET_API_KEY } from './models/settings'
+import { MARKET_API_KEY, MARKET_USAGE_KEY } from './models/settings'
 import { tradeSchema } from './models/trade'
 import {
   listAlertEvents,
@@ -65,7 +65,9 @@ export async function exportBackup(): Promise<BackupFile> {
     data: {
       trades,
       assets,
-      settings: settings.filter((row) => row.key !== MARKET_API_KEY),
+      settings: settings.filter(
+        (row) => row.key !== MARKET_API_KEY && row.key !== MARKET_USAGE_KEY,
+      ),
       priceAlerts,
       alertEvents,
       ui: { theme: readStoredTheme(), accent: readStoredAccent() },
@@ -175,7 +177,9 @@ export function parseBackup(text: string): BackupFile {
     data: {
       ...result.data.data,
       assets: importedAssets,
-      settings: settings.filter((row) => row.key !== MARKET_API_KEY),
+      settings: settings.filter(
+        (row) => row.key !== MARKET_API_KEY && row.key !== MARKET_USAGE_KEY,
+      ),
     },
   }
 }

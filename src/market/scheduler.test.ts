@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { PriceCacheEntry } from '@/data/models/price'
+import { COINGECKO_MONTHLY_LIMIT, monthKey } from '@/data/models/settings'
 import { ProviderError } from './providers/errors'
 import { createPriceScheduler } from './scheduler'
 import type { MarketProvider, MarketRef, ProviderPrice } from './types'
@@ -231,7 +232,7 @@ describe('price scheduler', () => {
   })
 
   it('falls back to the other provider in Auto mode', async () => {
-    const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT')
+    const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT', 'bitcoin')
     const binanceFetch = vi.fn(async () => {
       throw new ProviderError('blocked', 'binance', 'HTTP 451')
     })
@@ -273,9 +274,9 @@ describe('price scheduler', () => {
 
     const prices = await scheduler.request([eth], 'portfolio')
 
-    expect(binanceFetch).toHaveBeenCalledOnce()
+    expect(binanceFetch).not.toHaveBeenCalled()
     expect(coingeckoFetch).toHaveBeenCalledOnce()
-    expect(coingeckoFetch).toHaveBeenCalledWith([eth])
+    expect(coingeckoFetch).toHaveBeenCalledWith([eth], expect.any(AbortSignal))
     expect(prices).toEqual([price(eth, 2500)])
     expect(scheduler.getStatus()).toMatchObject({
       activeProvider: 'coingecko',
@@ -302,7 +303,7 @@ describe('price scheduler', () => {
 
     expect(binanceFetch).toHaveBeenCalledOnce()
     expect(coingeckoFetch).toHaveBeenCalledOnce()
-    expect(coingeckoFetch).toHaveBeenCalledWith([eth])
+    expect(coingeckoFetch).toHaveBeenCalledWith([eth], expect.any(AbortSignal))
     expect(prices).toEqual([price(btc, 101), price(eth, 202)])
     expect(scheduler.getStatus()).toMatchObject({
       activeProvider: 'coingecko',
@@ -334,8 +335,27 @@ describe('price scheduler', () => {
     })
   })
 
-  it('reports an error when no provider can serve any needed ref', async () => {
+  it('skips unmapped refs without requesting a provider or reporting an error', async () => {
     const unknown = ref('symbol:XYZ', 'XYZ', null, null)
+    const binanceFetch = vi.fn(async () => [])
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providers: [provider('binance', binanceFetch)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+      }),
+    )
+
+    const prices = await scheduler.request([unknown], 'portfolio')
+
+    expect(prices).toEqual([])
+    expect(binanceFetch).not.toHaveBeenCalled()
+    expect(scheduler.getStatus().error).toBeNull()
+  })
+
+  it('reports an error when no provider can serve any needed ref', async () => {
+    const unknown = ref('binance:XYZ', 'XYZ', 'XYZ', null)
     const binanceFetch = vi.fn(async () => [])
     const coingeckoFetch = vi.fn(async () => [])
     const cache = memoryCache()
@@ -359,7 +379,7 @@ describe('price scheduler', () => {
 
   it('reports an error when only some needed refs are covered', async () => {
     const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT')
-    const unknown = ref('symbol:XYZ', 'XYZ', null, null)
+    const unknown = ref('binance:XYZ', 'XYZ', 'XYZ', null)
     const binanceFetch = vi.fn(async () => [price(btc)])
     const coingeckoFetch = vi.fn(async () => [])
     const cache = memoryCache()
@@ -433,6 +453,107 @@ describe('price scheduler', () => {
       kind: 'rate-limit',
     })
     expect(fetchPrices).toHaveBeenCalledTimes(2)
+  })
+
+  it('spends the Binance batch weight against the budget', async () => {
+    const batch = Array.from({ length: 21 }, (_, index) =>
+      ref(`binance:S${index}`, `S${index}`, `S${index}`),
+    )
+    const extra = ref('binance:EXTRA', 'EXTRA', 'EXTRA')
+    const fetchPrices = vi.fn(async (refs: MarketRef[]) => refs.map((item) => price(item)))
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providers: [provider('binance', fetchPrices)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+        budgets: {
+          binance: { maxRequestsPerMinute: 10, maxWeightPerMinute: 5, minSpacingMs: 0 },
+        },
+      }),
+    )
+
+    await scheduler.request(batch, 'portfolio')
+    const blocked = await scheduler.request([extra], 'portfolio')
+
+    expect(fetchPrices).toHaveBeenCalledOnce()
+    expect(blocked).toEqual([])
+    expect(scheduler.getStatus().error).toBe('budget')
+  })
+
+  it('persists and enforces the keyed CoinGecko monthly budget', async () => {
+    const first = ref('coingecko:ethereum', 'ETH', null, 'ethereum')
+    const second = ref('coingecko:bitcoin', 'BTC', null, 'bitcoin')
+    let usage = { month: monthKey(NOW), coingeckoRequests: COINGECKO_MONTHLY_LIMIT - 1 }
+    const readUsage = vi.fn(async () => usage)
+    const recordUsage = vi.fn(async (count: number) => {
+      usage = { ...usage, coingeckoRequests: usage.coingeckoRequests + count }
+      return usage
+    })
+    const fetchPrices = vi.fn(async (refs: MarketRef[]) => refs.map((item) => price(item)))
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'coingecko',
+        coingeckoKey: 'demo-key',
+        providers: [provider('coingecko', fetchPrices)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+        readUsage,
+        recordUsage,
+        budgets: {
+          coingecko: { maxRequestsPerMinute: 30, maxWeightPerMinute: 30, minSpacingMs: 0 },
+        },
+      }),
+    )
+
+    await scheduler.request([first], 'portfolio')
+    expect(recordUsage).toHaveBeenCalledWith(1, NOW)
+    expect(scheduler.getStatus().monthlyUsage).toEqual({
+      used: COINGECKO_MONTHLY_LIMIT,
+      limit: COINGECKO_MONTHLY_LIMIT,
+    })
+
+    const blocked = await scheduler.request([second], 'portfolio')
+
+    expect(blocked).toEqual([])
+    expect(fetchPrices).toHaveBeenCalledOnce()
+    expect(scheduler.getStatus().error).toBe('budget')
+    expect(scheduler.getStatus().nextAllowedAt).toBe(Date.UTC(2023, 11, 1))
+  })
+
+  it('times out a hung provider and clears the in-flight request', async () => {
+    const btc = ref('binance:BTCUSDT', 'BTC', 'BTCUSDT')
+    let current = NOW
+    let attempts = 0
+    const fetchPrices = vi.fn(
+      (_refs: MarketRef[], signal?: AbortSignal) =>
+        new Promise<ProviderPrice[]>((_, reject) => {
+          attempts += 1
+          signal?.addEventListener('abort', () => {
+            reject(new DOMException('aborted', 'AbortError'))
+          })
+        }),
+    )
+    const cache = memoryCache()
+    const scheduler = createPriceScheduler(
+      schedulerOptions({
+        providerChoice: 'auto',
+        providers: [provider('binance', fetchPrices)],
+        readCache: cache.readCache,
+        writeCache: cache.writeCache,
+        fetchTimeoutMs: 5,
+        now: () => current,
+      }),
+    )
+
+    await scheduler.request([btc], 'portfolio')
+    expect(scheduler.getStatus().error).toBe('network')
+    expect(attempts).toBe(1)
+
+    current = NOW + 31_000
+    await scheduler.request([btc], 'portfolio')
+    expect(attempts).toBe(2)
   })
 
   it('notifies subscribers when status changes', async () => {

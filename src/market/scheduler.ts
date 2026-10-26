@@ -1,5 +1,7 @@
 import type { PriceCacheEntry, PriceProviderChoice, PriceProviderId } from '@/data/models/price'
+import { COINGECKO_MONTHLY_LIMIT, type MarketUsage } from '@/data/models/settings'
 import { getPriceCache, putPriceCache } from '@/data/repositories/prices.repo'
+import { getMarketUsage, recordMarketUsage } from '@/data/repositories/settings.repo'
 import { createTokenBucket, type BudgetConfig, type TokenBucket } from './budget'
 import { ProviderError } from './providers/errors'
 import type { MarketProvider, MarketRef, ProviderPrice } from './types'
@@ -7,6 +9,7 @@ import type { MarketProvider, MarketRef, ProviderPrice } from './types'
 const FIVE_MINUTES = 5 * 60_000
 const THIRTY_SECONDS = 30_000
 const SIXTY_SECONDS = 60_000
+const DEFAULT_FETCH_TIMEOUT_MS = 15_000
 
 const TTL: Record<PriceRequestReason, number> = {
   portfolio: FIVE_MINUTES,
@@ -24,12 +27,18 @@ const DEFAULT_BUDGETS: Record<PriceProviderId, BudgetConfig> = {
 
 export type PriceRequestReason = 'portfolio' | 'journal' | 'detail' | 'timer' | 'manual' | 'alerts'
 
+export interface MonthlyUsageStatus {
+  used: number
+  limit: number
+}
+
 export interface SchedulerStatus {
   provider: PriceProviderChoice
   activeProvider: PriceProviderId | null
   lastSuccessAt: number | null
   nextAllowedAt: number | null
   error: string | null
+  monthlyUsage: MonthlyUsageStatus | null
 }
 
 export interface PriceScheduler {
@@ -49,14 +58,20 @@ export interface SchedulerOptions {
   writeCache?: (entries: readonly PriceCacheEntry[]) => Promise<void>
   budgets?: Partial<Record<PriceProviderId, BudgetConfig>>
   random?: () => number
+  fetchTimeoutMs?: number
+  readUsage?: (now: number) => Promise<MarketUsage>
+  recordUsage?: (count: number, now: number) => Promise<MarketUsage>
 }
 
 export function createPriceScheduler(options: SchedulerOptions): PriceScheduler {
   const now = options.now ?? Date.now
   const random = options.random ?? Math.random
+  const fetchTimeoutMs = options.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS
   const readCache = options.readCache ?? getPriceCache
   const writeCache =
     options.writeCache ?? ((entries: readonly PriceCacheEntry[]) => putPriceCache([...entries]))
+  const readUsage = options.readUsage ?? getMarketUsage
+  const recordUsage = options.recordUsage ?? recordMarketUsage
 
   const providerMap = new Map(options.providers.map((provider) => [provider.id, provider]))
   const order: PriceProviderId[] =
@@ -82,12 +97,19 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
 
   let disposed = false
   let lastManualAt: number | null = null
+  let usage: MarketUsage | null = null
   let status: SchedulerStatus = {
     provider: options.providerChoice,
     activeProvider: null,
     lastSuccessAt: null,
     nextAllowedAt: null,
     error: null,
+    monthlyUsage: null,
+  }
+
+  function monthlyUsageStatus(): MonthlyUsageStatus | null {
+    if (usage === null) return null
+    return { used: usage.coingeckoRequests, limit: COINGECKO_MONTHLY_LIMIT }
   }
 
   function emit(patch: Partial<SchedulerStatus>): void {
@@ -137,11 +159,20 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
       return [...first, ...(await fetchWithProvider(provider, missing))]
     }
 
-    const promise = provider.fetchPrices([...refs])
+    const controller = new AbortController()
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        controller.abort()
+        reject(new ProviderError('network', provider.id, 'request timed out'))
+      }, fetchTimeoutMs)
+    })
+    const promise = Promise.race([provider.fetchPrices([...refs], controller.signal), timeout])
     inFlight.set(provider.id, promise)
     try {
       return await promise
     } finally {
+      if (timer !== null) clearTimeout(timer)
       if (inFlight.get(provider.id) === promise) {
         inFlight.delete(provider.id)
       }
@@ -156,9 +187,14 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
     if (disposed) throw new Error('scheduler disposed')
 
     const current = now()
+    if (options.coingeckoKey && usage === null) {
+      usage = await readUsage(current).catch(() => null)
+      emit({ monthlyUsage: monthlyUsageStatus() })
+    }
     const cached = await readCached(refs)
     const ttl = TTL[reason]
     let needed = refs.filter((ref) => force || !isFresh(cached.get(ref.key), current, ttl))
+    needed = needed.filter((ref) => ref.binanceSymbol !== null || ref.coingeckoId !== null)
 
     if (needed.length === 0) {
       emit({ error: null, nextAllowedAt: nextAllowedAt(current) })
@@ -166,6 +202,7 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
     }
 
     let budgetBlocked = false
+    let monthlyBlocked = false
     let servedProvider: PriceProviderId | null = null
     let servedAt: number | null = null
     const covered = new Set<string>()
@@ -174,6 +211,9 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
     for (const id of order) {
       const provider = providerMap.get(id)
       if (!provider) continue
+
+      const providerNeeded = providerRefs(needed, id)
+      if (providerNeeded.length === 0) continue
 
       const unavailable = unavailableUntil.get(id) ?? 0
       if (current < unavailable) {
@@ -184,16 +224,38 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
 
       const bucket = buckets.get(id)
       if (!bucket) continue
+      const weight = requestWeight(id, providerNeeded.length)
+
+      if (id === 'coingecko' && options.coingeckoKey) {
+        if (usage === null) {
+          usage = await readUsage(current).catch(() => null)
+          emit({ monthlyUsage: monthlyUsageStatus() })
+        }
+        if (usage !== null && usage.coingeckoRequests + weight > COINGECKO_MONTHLY_LIMIT) {
+          monthlyBlocked = true
+          continue
+        }
+      }
+
       if (!inFlight.has(id)) {
-        if (!bucket.canSpend(1, current)) {
+        if (!bucket.canSpend(weight, current)) {
           budgetBlocked = true
           continue
         }
-        bucket.spend(1, current)
+        bucket.spend(weight, current)
+        if (id === 'coingecko' && options.coingeckoKey) {
+          const next = await recordUsage(weight, current).catch(() => null)
+          usage =
+            next ??
+            (usage === null
+              ? null
+              : { ...usage, coingeckoRequests: usage.coingeckoRequests + weight })
+          emit({ monthlyUsage: monthlyUsageStatus() })
+        }
       }
 
       try {
-        const fetched = await fetchWithProvider(provider, needed)
+        const fetched = await fetchWithProvider(provider, providerNeeded)
         failures.delete(id)
         unavailableUntil.delete(id)
         lastErrors.delete(id)
@@ -241,7 +303,9 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
       throw errors[errors.length - 1]
     }
 
-    if (budgetBlocked) {
+    if (monthlyBlocked && !budgetBlocked && errors.length === 0) {
+      emit({ error: 'budget', nextAllowedAt: nextMonthAt(current) })
+    } else if (budgetBlocked) {
       emit({ error: 'budget', nextAllowedAt: nextAllowedAt(current) })
     } else if (errors.length > 0) {
       emit({
@@ -296,6 +360,24 @@ export function createPriceScheduler(options: SchedulerOptions): PriceScheduler 
       listeners.clear()
     },
   }
+}
+
+function providerRefs(refs: readonly MarketRef[], provider: PriceProviderId): MarketRef[] {
+  if (provider === 'binance') return refs.filter((ref) => ref.binanceSymbol !== null)
+  return refs.filter((ref) => ref.coingeckoId !== null)
+}
+
+function requestWeight(provider: PriceProviderId, count: number): number {
+  if (provider !== 'binance') return 1
+  if (count <= 20) return 2
+  if (count <= 100) return 4
+  if (count <= 500) return 10
+  return 20
+}
+
+function nextMonthAt(now: number): number {
+  const date = new Date(now)
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1)
 }
 
 function dedupe(refs: readonly MarketRef[]): MarketRef[] {

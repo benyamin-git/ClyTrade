@@ -186,7 +186,7 @@ describe('parseBackup', () => {
     ).toBe('duplicate-id')
   })
 
-  it('strips the market API key from imported settings', () => {
+  it('strips the market API key and device usage counter from imported settings', () => {
     const backup = parseBackup(
       JSON.stringify({
         ...validBackup,
@@ -194,6 +194,7 @@ describe('parseBackup', () => {
           ...validBackup.data,
           settings: [
             { key: MARKET_API_KEY, value: 'secret', updatedAt: 1 },
+            { key: 'marketUsage', value: { month: '2026-10', coingeckoRequests: 4 }, updatedAt: 1 },
             { key: 'preferences', value: {}, updatedAt: 1 },
           ],
         },

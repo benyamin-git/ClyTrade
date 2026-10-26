@@ -23,6 +23,7 @@ const priceState = vi.hoisted(() => ({
     activeProvider: null,
     lastSuccessAt: null,
     nextAllowedAt: null,
+    monthlyUsage: null,
     error: null,
   } as SchedulerStatus,
 }))
@@ -121,6 +122,7 @@ beforeEach(async () => {
     activeProvider: null,
     lastSuccessAt: null,
     nextAllowedAt: null,
+    monthlyUsage: null,
     error: null,
   }
 })
