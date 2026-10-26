@@ -27,6 +27,13 @@ vi.mock('@/lib/version', async (importOriginal) => {
   }
 })
 
+const notificationPlugin = vi.hoisted(() => ({
+  isPermissionGranted: vi.fn(async () => true),
+  requestPermission: vi.fn(async () => 'granted' as NotificationPermission),
+}))
+
+vi.mock('@tauri-apps/plugin-notification', () => notificationPlugin)
+
 function renderPage() {
   render(
     <SettingsProvider>
@@ -40,6 +47,10 @@ function renderPage() {
 describe('PreferencesPage', () => {
   beforeEach(async () => {
     platform.current = 'web'
+    notificationPlugin.isPermissionGranted.mockReset()
+    notificationPlugin.isPermissionGranted.mockResolvedValue(true)
+    notificationPlugin.requestPermission.mockReset()
+    notificationPlugin.requestPermission.mockResolvedValue('granted')
     await clearSettings()
   })
 
@@ -151,6 +162,15 @@ describe('PreferencesPage', () => {
       expect(await getMarketApiKey()).toBeNull()
     })
     expect(screen.getByLabelText('CoinGecko API key')).toHaveValue('')
+  })
+
+  it('shows the native notification permission instead of unsupported', async () => {
+    platform.current = 'android'
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    expect(await screen.findByText('Allowed')).toBeInTheDocument()
+    expect(screen.queryByText('Not supported')).not.toBeInTheDocument()
   })
 
   it('shows the Windows close behavior and persists the choice', async () => {

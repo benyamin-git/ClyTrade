@@ -3,6 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { MARKET_IDS } from '@/data/models/market'
 import { PREFERENCE_LIMITS, type BoundedPreference } from '@/data/models/settings'
 import { getMarketApiKey, setMarketApiKey } from '@/data/repositories/settings.repo'
+import {
+  useNotificationPermission,
+  type NotificationPermissionState,
+} from '@/features/alerts/logic/useNotificationPermission'
 import { usePreferences } from '@/features/settings/SettingsContext'
 import { PreferencesGate } from '@/features/settings/components/PreferencesGate'
 import { useI18n } from '@/i18n/I18nContext'
@@ -26,15 +30,14 @@ function clampPreference(key: BoundedPreference, value: number): number {
   return clamp(value, limits.min, limits.max)
 }
 
-function notificationStatus(t: Translator): string {
-  if (typeof Notification === 'undefined') {
-    return t('preferences.notificationsUnsupported')
-  }
-  switch (Notification.permission) {
+function notificationStatus(permission: NotificationPermissionState, t: Translator): string {
+  switch (permission) {
     case 'granted':
       return t('preferences.notificationsGranted')
     case 'denied':
       return t('preferences.notificationsDenied')
+    case 'unsupported':
+      return t('preferences.notificationsUnsupported')
     default:
       return t('preferences.notificationsDefault')
   }
@@ -77,6 +80,7 @@ function MarketKeyField({ initial }: { initial: string }) {
 function MarketDataCard() {
   const { preferences, updatePreferences } = usePreferences()
   const { t } = useI18n()
+  const { permission } = useNotificationPermission()
   const storedKey = useLiveQuery(() => getMarketApiKey(), [])
 
   return (
@@ -111,7 +115,7 @@ function MarketDataCard() {
           <p className="text-xs font-medium tracking-wide text-on-surface-variant uppercase">
             {t('preferences.notifications')}
           </p>
-          <p className="text-sm text-on-surface">{notificationStatus(t)}</p>
+          <p className="text-sm text-on-surface">{notificationStatus(permission, t)}</p>
           <p className="text-xs text-on-surface-variant">{t('preferences.notificationsHint')}</p>
         </div>
         <div className="sm:col-span-2 lg:col-span-3">
