@@ -166,6 +166,16 @@ describe('PreferencesPage', () => {
     })
   })
 
+  it('shows the Windows close behavior select only once', async () => {
+    platform.current = 'windows'
+    await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
+    renderPage()
+
+    await screen.findByText('Defaults')
+
+    expect(screen.getAllByLabelText('When closing')).toHaveLength(1)
+  })
+
   it('hides the Windows close behavior off Windows', async () => {
     platform.current = 'web'
     await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })

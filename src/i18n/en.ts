@@ -391,6 +391,19 @@ export const en = {
   alerts: {
     at: '{{date}} at {{time}}',
     autoCloseNote: 'Auto-closed {{symbol}} at {{level}} ({{reason}}).',
+    background: {
+      cadenceAndroid: 'Android checks your alerts about every 15 minutes in the background.',
+      cadenceWindows:
+        'Windows checks your alerts every 5 minutes while ClyTrade stays in the tray.',
+      off: 'Off',
+      on: 'On',
+      permissionRequired:
+        'Allow notifications to turn on background monitoring. In-app alerts keep working.',
+      title: 'Background monitoring',
+      toggle: 'Enable background monitoring',
+      unavailable:
+        'Background monitoring is not available in the browser. Use the Android or Windows app.',
+    },
     form: {
       add: 'New alert',
       create: 'Create alert',

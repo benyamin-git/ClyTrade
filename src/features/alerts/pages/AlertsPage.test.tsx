@@ -8,6 +8,7 @@ import type {
   PriceAlertDraft,
   PriceCacheEntry,
 } from '@/data/models/price'
+import { DEFAULT_PREFERENCES } from '@/data/models/settings'
 import type { Trade, TradeDraft } from '@/data/models/trade'
 import {
   createAlert,
@@ -23,6 +24,7 @@ import {
   AUTO_CLOSED_TAG,
 } from '@/data/repositories/trades.repo'
 import { clearPriceCache, putPriceCache } from '@/data/repositories/prices.repo'
+import { getPreferences, setPreferences } from '@/data/repositories/settings.repo'
 import { useUnreadAlertCount } from '@/features/alerts/logic/useUnreadAlertCount'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { I18nProvider } from '@/i18n/I18nProvider'
@@ -59,6 +61,37 @@ vi.mock('@/market/symbols', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/market/symbols')>()
   return { ...actual, resolveSymbol: async () => [] }
 })
+
+const platform = vi.hoisted(() => ({ current: 'web' as string }))
+
+vi.mock('@/lib/version', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/version')>()
+  return {
+    ...actual,
+    get APP_PLATFORM() {
+      return platform.current
+    },
+  }
+})
+
+const native = vi.hoisted(() => ({
+  setNativeBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
+}))
+
+vi.mock('@/lib/native', () => ({
+  isBackgroundPlatform: () =>
+    platform.current === 'windows' ||
+    platform.current === 'android' ||
+    platform.current === 'androideabi',
+  setNativeBackgroundMonitoring: native.setNativeBackgroundMonitoring,
+}))
+
+const notificationPlugin = vi.hoisted(() => ({
+  isPermissionGranted: vi.fn(async () => true),
+  requestPermission: vi.fn(async () => 'granted' as NotificationPermission),
+}))
+
+vi.mock('@tauri-apps/plugin-notification', () => notificationPlugin)
 
 function alertDraft(overrides: Partial<PriceAlertDraft> = {}): PriceAlertDraft {
   return {
@@ -198,6 +231,13 @@ afterEach(() => {
 })
 
 beforeEach(async () => {
+  platform.current = 'web'
+  native.setNativeBackgroundMonitoring.mockReset()
+  notificationPlugin.isPermissionGranted.mockReset()
+  notificationPlugin.isPermissionGranted.mockResolvedValue(true)
+  notificationPlugin.requestPermission.mockReset()
+  notificationPlugin.requestPermission.mockResolvedValue('granted')
+  await setPreferences({ ...DEFAULT_PREFERENCES, language: 'en' })
   await replaceAllAlerts([])
   await replaceAllTrades([])
   await replaceAllAlertEvents([])
@@ -748,9 +788,9 @@ describe('AlertsPage notification permission', () => {
   it('shows the unsupported state without a request button', () => {
     renderPage()
 
-    const row = screen.getByRole('region', { name: 'Notifications' })
-    expect(within(row).getByRole('status')).toHaveTextContent('Not supported')
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+    const card = screen.getByTestId('alerts-background')
+    expect(within(card).getByRole('status')).toHaveTextContent('Not supported')
+    expect(within(card).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('requests permission from the default state and shows the granted status', async () => {
@@ -758,14 +798,14 @@ describe('AlertsPage notification permission', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const row = screen.getByRole('region', { name: 'Notifications' })
-    expect(within(row).getByRole('status')).toHaveTextContent('Not requested')
+    const card = screen.getByTestId('alerts-background')
+    expect(within(card).getByRole('status')).toHaveTextContent('Not requested')
 
-    await user.click(within(row).getByRole('button', { name: 'Enable notifications' }))
+    await user.click(within(card).getByRole('button', { name: 'Enable notifications' }))
 
     expect(fake.requestPermission).toHaveBeenCalledOnce()
-    await waitFor(() => expect(within(row).getByRole('status')).toHaveTextContent('Allowed'))
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+    await waitFor(() => expect(within(card).getByRole('status')).toHaveTextContent('Allowed'))
+    expect(within(card).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it.each([
@@ -775,17 +815,128 @@ describe('AlertsPage notification permission', () => {
     stubNotification(permission)
     renderPage()
 
-    const row = screen.getByRole('region', { name: 'Notifications' })
-    expect(within(row).getByRole('status')).toHaveTextContent(label)
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument()
+    const card = screen.getByTestId('alerts-background')
+    expect(within(card).getByRole('status')).toHaveTextContent(label)
+    expect(within(card).queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('localizes the permission row', () => {
+  it('localizes the permission line', () => {
     stubNotification('default')
     renderPage('fa')
 
-    const row = screen.getByRole('region', { name: 'اعلان‌ها' })
-    expect(within(row).getByRole('status')).toHaveTextContent('درخواست نشده')
-    expect(within(row).getByRole('button', { name: 'فعال‌سازی اعلان‌ها' })).toBeInTheDocument()
+    const card = screen.getByRole('region', { name: 'پایش پس‌زمینه' })
+    expect(within(card).getByRole('status')).toHaveTextContent('درخواست نشده')
+    expect(within(card).getByRole('button', { name: 'فعال‌سازی اعلان‌ها' })).toBeInTheDocument()
+  })
+})
+
+describe('AlertsPage background monitoring', () => {
+  it('disables the card in the browser with an explanation', () => {
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
+
+    expect(toggle).toBeDisabled()
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(within(card).getByText(/not available in the browser/i)).toBeInTheDocument()
+  })
+
+  it('shows the Android 15-minute cadence', async () => {
+    platform.current = 'android'
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
+    expect(within(card).getByRole('switch', { name: 'Enable background monitoring' })).toBeEnabled()
+    expect(within(card).getByText(/every 15 minutes/i)).toBeInTheDocument()
+  })
+
+  it('shows the Windows 5-minute tray cadence', async () => {
+    platform.current = 'windows'
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
+    expect(within(card).getByRole('switch', { name: 'Enable background monitoring' })).toBeEnabled()
+    expect(within(card).getByText(/every 5 minutes/i)).toBeInTheDocument()
+    expect(within(card).queryByText(/every 15 minutes/i)).not.toBeInTheDocument()
+  })
+
+  it('requests permission, persists and schedules when enabled', async () => {
+    platform.current = 'android'
+    notificationPlugin.isPermissionGranted.mockResolvedValue(false)
+    const user = userEvent.setup()
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
+    await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+
+    await user.click(toggle)
+
+    expect(notificationPlugin.requestPermission).toHaveBeenCalledOnce()
+    await waitFor(() => expect(native.setNativeBackgroundMonitoring).toHaveBeenCalledWith(true))
+    await waitFor(async () => {
+      expect((await getPreferences()).backgroundMonitoring).toBe(true)
+    })
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
+  })
+
+  it('keeps the toggle off and explains a denied permission request', async () => {
+    platform.current = 'android'
+    notificationPlugin.isPermissionGranted.mockResolvedValue(false)
+    notificationPlugin.requestPermission.mockResolvedValue('denied')
+    const user = userEvent.setup()
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
+    await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
+
+    await user.click(toggle)
+
+    expect(await within(card).findByRole('alert')).toHaveTextContent(
+      'Allow notifications to turn on background monitoring. In-app alerts keep working.',
+    )
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(native.setNativeBackgroundMonitoring).not.toHaveBeenCalled()
+    expect((await getPreferences()).backgroundMonitoring).toBe(false)
+  })
+
+  it('persists off and cancels scheduling when disabled', async () => {
+    platform.current = 'android'
+    await setPreferences({
+      ...DEFAULT_PREFERENCES,
+      language: 'en',
+      backgroundMonitoring: true,
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
+
+    await user.click(toggle)
+
+    expect(notificationPlugin.requestPermission).not.toHaveBeenCalled()
+    await waitFor(() => expect(native.setNativeBackgroundMonitoring).toHaveBeenCalledWith(false))
+    await waitFor(async () => {
+      expect((await getPreferences()).backgroundMonitoring).toBe(false)
+    })
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'))
+  })
+
+  it('localizes the background card', async () => {
+    platform.current = 'android'
+    renderPage('fa')
+
+    const card = screen.getByRole('region', { name: 'پایش پس‌زمینه' })
+    expect(
+      within(card).getByRole('switch', { name: 'فعال‌سازی پایش پس‌زمینه' }),
+    ).toBeInTheDocument()
+    expect(within(card).getByText(/15 دقیقه/)).toBeInTheDocument()
   })
 })
