@@ -21,6 +21,7 @@ import {
   createTrade,
   getTrade,
   replaceAllTrades,
+  updateTrade,
   AUTO_CLOSED_TAG,
 } from '@/data/repositories/trades.repo'
 import { clearPriceCache, putPriceCache } from '@/data/repositories/prices.repo'
@@ -44,6 +45,7 @@ const priceState = vi.hoisted(() => ({
     activeProvider: null,
     lastSuccessAt: null,
     nextAllowedAt: null,
+    monthlyUsage: null,
     error: null,
   } as SchedulerStatus,
   refresh: vi.fn(async (): Promise<void> => undefined),
@@ -249,6 +251,7 @@ beforeEach(async () => {
     activeProvider: null,
     lastSuccessAt: null,
     nextAllowedAt: null,
+    monthlyUsage: null,
     error: null,
   }
   priceState.refresh.mockReset()
@@ -279,6 +282,7 @@ describe('AlertsPage', () => {
       activeProvider: 'binance',
       lastSuccessAt: NOW,
       nextAllowedAt: null,
+      monthlyUsage: null,
       error: null,
     }
     const user = userEvent.setup()
@@ -301,6 +305,7 @@ describe('AlertsPage', () => {
       activeProvider: null,
       lastSuccessAt: null,
       nextAllowedAt: null,
+      monthlyUsage: null,
       error: 'rate-limit',
     }
     renderPage()
@@ -346,6 +351,28 @@ describe('AlertsPage', () => {
     })
   })
 
+  it('shows the keyed CoinGecko monthly usage', () => {
+    render(
+      <I18nProvider preference="en">
+        <AlertStatusStrip
+          status={{
+            provider: 'coingecko',
+            activeProvider: 'coingecko',
+            lastSuccessAt: null,
+            nextAllowedAt: null,
+            monthlyUsage: { used: 1234, limit: 10_000 },
+            error: null,
+          }}
+          onRefresh={() => undefined}
+          refreshing={false}
+        />
+      </I18nProvider>,
+    )
+
+    expect(screen.getByText('CoinGecko this month')).toBeInTheDocument()
+    expect(screen.getByText('1,234 / 10,000')).toBeInTheDocument()
+  })
+
   it('disables refresh while the manual cooldown is active', () => {
     const nextAllowedAt = Date.now() + 30_000
     priceState.status = {
@@ -354,6 +381,7 @@ describe('AlertsPage', () => {
       lastSuccessAt: null,
       nextAllowedAt,
       error: null,
+      monthlyUsage: null,
     }
     renderPage()
 
@@ -375,6 +403,7 @@ describe('AlertsPage', () => {
               lastSuccessAt: null,
               nextAllowedAt,
               error: null,
+              monthlyUsage: null,
             }}
             onRefresh={() => undefined}
             refreshing={false}
@@ -402,6 +431,7 @@ describe('AlertsPage', () => {
             activeProvider: null,
             lastSuccessAt: null,
             nextAllowedAt: null,
+            monthlyUsage: null,
             error: null,
           }}
           onRefresh={() => undefined}
@@ -545,6 +575,28 @@ describe('AlertsPage', () => {
     )
   })
 
+  it('disables gap close actions after the trade levels change', async () => {
+    const trade = await seedTrade()
+    await seedEvent({
+      kind: 'gap',
+      tradeId: trade.id,
+      price: 65_000,
+      level: null,
+      targetPrice: 70_000,
+      stopPrice: 60_000,
+      at: NOW,
+    })
+    await updateTrade(trade.id, { targetPrice: 71_000 })
+    renderPage()
+
+    const review = await screen.findByTestId('alerts-review')
+    expect(
+      await within(review).findByRole('button', { name: 'Close at target 70,000' }),
+    ).toBeDisabled()
+    expect(within(review).getByText(/This trade changed after the gap/)).toBeInTheDocument()
+    expect((await getTrade(trade.id))?.status).toBe('open')
+  })
+
   it('refreshes and dismisses a stale review', async () => {
     const trade = await seedTrade()
     const event = await seedEvent({
@@ -634,6 +686,7 @@ describe('AlertsPage', () => {
       lastSuccessAt: null,
       nextAllowedAt: Date.now() + 30_000,
       error: null,
+      monthlyUsage: null,
     }
     const trade = await seedTrade()
     await seedEvent({

@@ -1,5 +1,6 @@
 import { CircleAlert } from 'lucide-react'
 import type { AlertEvent } from '@/data/models/price'
+import type { Trade } from '@/data/models/trade'
 import { useI18n } from '@/i18n/I18nContext'
 import type { Translator } from '@/i18n/translate'
 import { formatDate, formatTime } from '@/lib/dates'
@@ -9,11 +10,19 @@ import { EmptyState } from '@/ui/components/EmptyState'
 
 export interface AlertReviewListProps {
   events: readonly AlertEvent[]
+  trades: readonly Trade[]
   refreshDisabled: boolean
   onCloseAt: (event: AlertEvent, level: 'target' | 'stop') => void
   onEdit: (event: AlertEvent) => void
   onDismiss: (event: AlertEvent) => void
   onRefresh: (event: AlertEvent) => void
+}
+
+function gapActionable(event: AlertEvent, trades: readonly Trade[]): boolean {
+  if (event.tradeId === null) return false
+  const trade = trades.find((entry) => entry.id === event.tradeId)
+  if (!trade || trade.status !== 'open') return false
+  return trade.targetPrice === event.targetPrice && trade.stopPrice === event.stopPrice
 }
 
 function description(event: AlertEvent, t: Translator): string {
@@ -26,6 +35,7 @@ function description(event: AlertEvent, t: Translator): string {
 
 export function AlertReviewList({
   events,
+  trades,
   refreshDisabled,
   onCloseAt,
   onEdit,
@@ -65,6 +75,12 @@ export function AlertReviewList({
 
           <p className="text-xs text-on-surface-variant">{description(event, t)}</p>
 
+          {event.kind === 'gap' && !gapActionable(event, trades) ? (
+            <p role="status" className="text-xs text-error">
+              {t('alerts.review.tradeChanged')}
+            </p>
+          ) : null}
+
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-on-surface-variant">
             <span>{t('alerts.price', { price: formatPrice(event.price) })}</span>
             {event.kind === 'gap' ? (
@@ -82,12 +98,22 @@ export function AlertReviewList({
 
           <div className="flex flex-wrap items-center gap-2">
             {event.kind === 'gap' && event.targetPrice !== null ? (
-              <Button size="sm" variant="tonal" onClick={() => onCloseAt(event, 'target')}>
+              <Button
+                size="sm"
+                variant="tonal"
+                onClick={() => onCloseAt(event, 'target')}
+                disabled={!gapActionable(event, trades)}
+              >
                 {t('alerts.review.closeAtTarget', { level: formatPrice(event.targetPrice) })}
               </Button>
             ) : null}
             {event.kind === 'gap' && event.stopPrice !== null ? (
-              <Button size="sm" variant="tonal" onClick={() => onCloseAt(event, 'stop')}>
+              <Button
+                size="sm"
+                variant="tonal"
+                onClick={() => onCloseAt(event, 'stop')}
+                disabled={!gapActionable(event, trades)}
+              >
                 {t('alerts.review.closeAtStop', { level: formatPrice(event.stopPrice) })}
               </Button>
             ) : null}

@@ -13,7 +13,7 @@ import {
   updateAlert,
 } from '@/data/repositories/alerts.repo'
 import { getPriceCache } from '@/data/repositories/prices.repo'
-import { listTrades, updateTrade } from '@/data/repositories/trades.repo'
+import { getTrade, listTrades, updateTrade } from '@/data/repositories/trades.repo'
 import { TradeFormSheet } from '@/features/journal/components/TradeFormSheet'
 import { useI18n } from '@/i18n/I18nContext'
 import { priceKeyFor, STALE_MS, type MarketRef } from '@/market/types'
@@ -102,11 +102,13 @@ export function AlertsPage() {
   const [tradeForm, setTradeForm] = useState<{ trade: Trade; reviewEventId?: string } | null>(null)
   const [deleting, setDeleting] = useState<PriceAlert | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
 
   const refs = useMemo<MarketRef[]>(() => {
     const byKey = new Map<string, MarketRef>()
     for (const rule of alerts ?? []) {
       if (!rule.enabled) continue
+      if (rule.binanceSymbol === null && rule.coingeckoId === null) continue
       mergeRef(byKey, {
         key: priceKeyFor(rule),
         symbol: rule.symbol,
@@ -115,8 +117,10 @@ export function AlertsPage() {
       })
     }
     for (const trade of trades ?? []) {
+      if (trade.market !== 'crypto') continue
       if (trade.status !== 'open') continue
       if (trade.targetPrice === null && trade.stopPrice === null) continue
+      if (trade.binanceSymbol === null && trade.coingeckoId === null) continue
       mergeRef(byKey, {
         key: priceKeyFor(trade),
         symbol: trade.symbol,
@@ -163,6 +167,18 @@ export function AlertsPage() {
     const price = level === 'target' ? event.targetPrice : event.stopPrice
     if (tradeId === null || price === null) return
     void (async () => {
+      const trade = await getTrade(tradeId)
+      const unchanged =
+        trade !== undefined &&
+        trade.status === 'open' &&
+        trade.targetPrice === event.targetPrice &&
+        trade.stopPrice === event.stopPrice
+      if (!unchanged) {
+        await dismissAlertEvent(event.id)
+        setReviewError(t('alerts.review.tradeChanged'))
+        return
+      }
+      setReviewError(null)
       await updateTrade(tradeId, { status: 'closed', exitPrice: price, closedAt: event.at })
       await resolveAlertEvent(event.id, level)
     })().catch(() => undefined)
@@ -181,6 +197,7 @@ export function AlertsPage() {
   }
 
   function handleDismiss(event: AlertEvent) {
+    setReviewError(null)
     void dismissAlertEvent(event.id).catch(() => undefined)
   }
 
@@ -245,14 +262,22 @@ export function AlertsPage() {
         {events === undefined ? (
           <LoadingState />
         ) : (
-          <AlertReviewList
-            events={reviewEvents}
-            refreshDisabled={refreshDisabled}
-            onCloseAt={handleCloseAt}
-            onEdit={handleEditReview}
-            onDismiss={handleDismiss}
-            onRefresh={(event) => void handleRefreshReview(event)}
-          />
+          <>
+            {reviewError ? (
+              <p role="alert" className="px-4 pt-3 text-xs text-error">
+                {reviewError}
+              </p>
+            ) : null}
+            <AlertReviewList
+              events={reviewEvents}
+              trades={trades ?? []}
+              refreshDisabled={refreshDisabled}
+              onCloseAt={handleCloseAt}
+              onEdit={handleEditReview}
+              onDismiss={handleDismiss}
+              onRefresh={(event) => void handleRefreshReview(event)}
+            />
+          </>
         )}
       </Card>
 
