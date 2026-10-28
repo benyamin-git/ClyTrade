@@ -267,3 +267,8 @@ history and are backed up. `alertEvents` is pruned to the newest 500.
   there.
 - User-facing documentation lives in `src/docs/**` and must explain the _why_ behind
   opinionated decisions, not just the how.
+
+## T3 Code
+
+Run release and tagging from the main checkout, not a T3 worktree. Use
+Current checkout for release threads and the `tauri-release` skill.
