@@ -146,7 +146,9 @@ describe('AlertsPage rule rows', () => {
     await waitFor(async () => {
       expect((await listAlerts())[0]?.enabled).toBe(true)
     })
-    expect(screen.queryByText('Paused')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText('Paused')).not.toBeInTheDocument()
+    })
   })
 
   it('describes percent and range rules', async () => {
@@ -213,8 +215,10 @@ describe('AlertsPage rule rows', () => {
     await waitFor(async () => {
       expect(await listAlerts()).toHaveLength(0)
     })
-    expect(screen.queryByText('Above 68,000')).not.toBeInTheDocument()
-    expect(screen.getByText('No alert rules yet')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText('Above 68,000')).not.toBeInTheDocument()
+      expect(screen.getByText('No alert rules yet')).toBeInTheDocument()
+    })
   })
 
   it('renders the new alert action inside the rules region', () => {
