@@ -178,6 +178,11 @@ history and are backed up. `alertEvents` is pruned to the newest 500.
 - `src/market/` owns the provider adapters, symbol resolution, the shared
   scheduler and cache, the pure evaluator and the native bridge. Nothing in
   `src/calculations/**` may import it.
+- Automatic mapping (`useSymbolMappingSync`) resolves a cross-provider tie with
+  `pickAutoCandidate` — the exact-base Binance USDT pair, else the best-ranked
+  CoinGecko coin. Forms use `pickPreferredCandidate` and leave the choice to the
+  user. Choosing a symbol while the market is Unspecified records it as crypto
+  (and turns automatic pricing on for assets).
 - One ref-counted scheduler exists per provider choice plus CoinGecko key, shared
   by every tab and form. TTLs: list pages and the foreground timer 5 minutes,
   detail forms 30 seconds, manual refresh a 60-second cooldown. Budgets: Binance
