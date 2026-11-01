@@ -12,6 +12,8 @@ const HOUR = 3_600_000
 interface SampleTradeSpec {
   symbol: string
   market?: Market
+  binanceSymbol?: string
+  coingeckoId?: string
   direction: Trade['direction']
   entryPrice: number
   exitPrice: number | null
@@ -301,6 +303,8 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     strategy: 'sampleData.strategy.trend',
     notes: 'sampleData.notes.stillHolding',
     tags: ['btc'],
+    binanceSymbol: 'BTCUSDT',
+    coingeckoId: 'bitcoin',
   },
   {
     symbol: 'SOLUSDT',
@@ -317,12 +321,16 @@ const TRADE_SPECS: readonly SampleTradeSpec[] = [
     strategy: 'sampleData.strategy.meanReversion',
     notes: null,
     tags: ['sol'],
+    binanceSymbol: 'SOLUSDT',
+    coingeckoId: 'solana',
   },
 ]
 
 interface SampleAssetSpec {
   symbol: string
   market?: Market
+  binanceSymbol?: string
+  coingeckoId?: string
   name: TranslationKey
   quantity: number
   averageCost: number
@@ -338,6 +346,8 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
     averageCost: 52000,
     currentPrice: 68200,
     notes: 'sampleData.notes.coreHolding',
+    binanceSymbol: 'BTCUSDT',
+    coingeckoId: 'bitcoin',
   },
   {
     symbol: 'ETH',
@@ -346,6 +356,8 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
     averageCost: 2800,
     currentPrice: 3410,
     notes: null,
+    binanceSymbol: 'ETHUSDT',
+    coingeckoId: 'ethereum',
   },
   {
     symbol: 'SOL',
@@ -354,6 +366,8 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
     averageCost: 120,
     currentPrice: 181.2,
     notes: null,
+    binanceSymbol: 'SOLUSDT',
+    coingeckoId: 'solana',
   },
   {
     symbol: 'LINK',
@@ -362,6 +376,8 @@ const ASSET_SPECS: readonly SampleAssetSpec[] = [
     averageCost: 14.5,
     currentPrice: 19.2,
     notes: null,
+    binanceSymbol: 'LINKUSDT',
+    coingeckoId: 'chainlink',
   },
   {
     symbol: 'USDT',
@@ -406,8 +422,8 @@ export function buildSampleData(now: number, t: Translator): { trades: Trade[]; 
       notes: spec.notes === null ? null : t(spec.notes),
       tags: [...spec.tags],
       autoClose: false,
-      binanceSymbol: null,
-      coingeckoId: null,
+      binanceSymbol: spec.binanceSymbol ?? null,
+      coingeckoId: spec.coingeckoId ?? null,
       createdAt: openedAt,
       updatedAt: closedAt ?? openedAt,
     } satisfies Trade
@@ -425,8 +441,8 @@ export function buildSampleData(now: number, t: Translator): { trades: Trade[]; 
         currentPrice: spec.currentPrice,
         notes: spec.notes === null ? null : t(spec.notes),
         autoPrice: (spec.market ?? 'crypto') === 'crypto',
-        binanceSymbol: null,
-        coingeckoId: null,
+        binanceSymbol: spec.binanceSymbol ?? null,
+        coingeckoId: spec.coingeckoId ?? null,
         createdAt: now,
         updatedAt: now,
       }) satisfies Asset,

@@ -443,6 +443,61 @@ describe('TradeFormSheet symbol mapping and entry prefill', () => {
     })
   })
 
+  it('shows the picker for an unspecified market and switches it to crypto', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate(), coinGeckoCandidate()])
+    const user = userEvent.setup()
+    renderForm(null)
+
+    await user.type(await screen.findByLabelText('Symbol'), 'BTC')
+    await user.selectOptions(await screen.findByLabelText('Market symbol'), 'coingecko:bitcoin')
+
+    expect(screen.getByLabelText('Market')).toHaveValue('crypto')
+    await waitFor(() => expect(priceState.keys.has('binance:BTCUSDT')).toBe(true))
+
+    await user.type(screen.getByLabelText('Entry price'), '100')
+    await user.type(screen.getByLabelText('Size'), '1')
+
+    const [trade] = await saveNewTrade(user)
+    expect(trade).toMatchObject({
+      market: 'crypto',
+      binanceSymbol: 'BTCUSDT',
+      coingeckoId: 'bitcoin',
+    })
+  })
+
+  it('switches an unspecified trade to crypto and prefills a live entry price', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    priceState.prices.set('binance:BTCUSDT', freshPrice())
+    const user = userEvent.setup()
+    renderForm(null)
+
+    await user.type(await screen.findByLabelText('Symbol'), 'BTC')
+    await waitFor(() => expect(screen.getByLabelText('Market')).toHaveValue('crypto'))
+    await waitFor(() => expect(screen.getByLabelText('Entry price')).toHaveValue('68000'))
+
+    await user.type(screen.getByLabelText('Size'), '1')
+
+    const [trade] = await saveNewTrade(user)
+    expect(trade).toMatchObject({
+      market: 'crypto',
+      entryPrice: 68000,
+      binanceSymbol: 'BTCUSDT',
+    })
+  })
+
+  it('keeps an existing unspecified trade unspecified until a symbol is chosen', async () => {
+    const seeded = await seedTrade({ market: 'unspecified' })
+    symbolState.bySymbol.set('BTCUSDT', [binanceCandidate()])
+    const user = userEvent.setup()
+    renderForm(seeded)
+
+    expect(await screen.findByLabelText('Market symbol')).toBeInTheDocument()
+    expect(screen.getByLabelText('Market')).toHaveValue('unspecified')
+
+    const [trade] = await saveChanges(user)
+    expect(trade?.market).toBe('unspecified')
+  })
+
   it('selects a single preferred candidate automatically', async () => {
     await setPreferences({ ...DEFAULT_PREFERENCES, defaultMarket: 'crypto' })
     symbolState.bySymbol.set('BTC', [binanceCandidate()])

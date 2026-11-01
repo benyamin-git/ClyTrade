@@ -57,13 +57,24 @@ describe('buildSampleData', () => {
     expect(assets.some((asset) => asset.currentPrice !== null)).toBe(true)
   })
 
-  it('sets safe alert and price defaults on sample records', () => {
+  it('seeds live prices for most crypto records and keeps manual examples', () => {
     expect(trades.every((trade) => trade.autoClose === false)).toBe(true)
-    expect(trades.every((trade) => trade.binanceSymbol === null)).toBe(true)
-    expect(trades.every((trade) => trade.coingeckoId === null)).toBe(true)
-    expect(assets.every((asset) => asset.autoPrice === (asset.market === 'crypto'))).toBe(true)
-    expect(assets.every((asset) => asset.binanceSymbol === null)).toBe(true)
-    expect(assets.every((asset) => asset.coingeckoId === null)).toBe(true)
+    const openCrypto = trades.filter(
+      (trade) => trade.market === 'crypto' && trade.status === 'open',
+    )
+    expect(openCrypto.length).toBeGreaterThan(0)
+    expect(openCrypto.every((trade) => trade.binanceSymbol !== null)).toBe(true)
+
+    const cryptoAssets = assets.filter((asset) => asset.market === 'crypto')
+    expect(cryptoAssets.length).toBeGreaterThan(0)
+    expect(cryptoAssets.every((asset) => asset.autoPrice && asset.binanceSymbol !== null)).toBe(
+      true,
+    )
+    expect(
+      assets.some(
+        (asset) => asset.market !== 'crypto' && !asset.autoPrice && asset.binanceSymbol === null,
+      ),
+    ).toBe(true)
   })
 
   it('spreads sample records across markets', () => {

@@ -18,7 +18,8 @@ is the one filter axis the Journal and Portfolio share.
   Features.
 - **Unspecified is a real choice.** Records made before markets existed are
   marked Unspecified, and it is the default for a fresh install. It means "no
-  market recorded", not "unknown asset".
+  market recorded", not "unknown asset". While it is selected, the market-symbol
+  picker still works: choosing a symbol records its market (Crypto today).
 - **A fixed list, on purpose.** The nine markets are built in and translated
   like the rest of the interface.
 

@@ -688,6 +688,7 @@ export const en = {
     symbolMapping: 'Market symbol',
     priceUnavailable:
       'No live price found for this symbol. You can still save and enter a price manually.',
+    priceMissing: 'No live price',
     validation: {
       symbolRequired: 'Symbol is required.',
       quantityRequired: 'Quantity is required.',

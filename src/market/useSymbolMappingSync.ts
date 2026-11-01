@@ -4,7 +4,7 @@ import { listAssets, updateAsset } from '@/data/repositories/assets.repo'
 import { getMarketApiKey } from '@/data/repositories/settings.repo'
 import { listTrades, updateTrade } from '@/data/repositories/trades.repo'
 import { createMarketProviders } from './providers'
-import { pickPreferredCandidate, resolveSymbol } from './symbols'
+import { pickAutoCandidate, resolveSymbol } from './symbols'
 
 interface PendingMapping {
   key: string
@@ -50,7 +50,7 @@ export function useSymbolMappingSync(): void {
         for (const item of pending) {
           attempted.current.add(item.key)
           const candidates = await resolveSymbol(item.symbol, providers).catch(() => [])
-          const preferred = pickPreferredCandidate(candidates)
+          const preferred = pickAutoCandidate(candidates, item.symbol)
           if (preferred === null) continue
           if (preferred.binanceSymbol === null && preferred.coingeckoId === null) continue
           const patch = {

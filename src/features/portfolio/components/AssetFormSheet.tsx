@@ -31,6 +31,7 @@ interface AssetSymbolMappingProps {
   providers: readonly MarketProvider[]
   binanceSymbol: string | null
   coingeckoId: string | null
+  autoSelect: boolean
   onSelect: (candidate: SymbolCandidate | null) => void
 }
 
@@ -65,6 +66,7 @@ function AssetSymbolMapping({
   providers,
   binanceSymbol,
   coingeckoId,
+  autoSelect,
   onSelect,
 }: AssetSymbolMappingProps) {
   const { t } = useI18n()
@@ -73,12 +75,14 @@ function AssetSymbolMapping({
   const hasMapping = binanceSymbol !== null || coingeckoId !== null
 
   useEffect(() => {
+    if (!autoSelect) return
     if (preferred === null || hasMapping) return
     if (preferred.binanceSymbol === null && preferred.coingeckoId === null) return
     onSelect(preferred)
-  }, [preferred, hasMapping, onSelect])
+  }, [autoSelect, preferred, hasMapping, onSelect])
 
-  if (preferred !== null || loading) return null
+  if (loading) return null
+  if (autoSelect && preferred !== null) return null
 
   if (!hasMapping && (error !== null || candidates.length === 0)) {
     return (
@@ -110,7 +114,9 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
   const [quantity, setQuantity] = useState<number | null>(asset?.quantity ?? null)
   const [averageCost, setAverageCost] = useState<number | null>(asset?.averageCost ?? null)
   const [currentPrice, setCurrentPrice] = useState<number | null>(asset?.currentPrice ?? null)
-  const [autoPrice, setAutoPrice] = useState(asset ? asset.autoPrice : initialMarket === 'crypto')
+  const [autoPrice, setAutoPrice] = useState(
+    asset ? asset.autoPrice : initialMarket === 'crypto' || initialMarket === 'unspecified',
+  )
   const [binanceSymbol, setBinanceSymbol] = useState<string | null>(asset?.binanceSymbol ?? null)
   const [coingeckoId, setCoingeckoId] = useState<string | null>(asset?.coingeckoId ?? null)
   const [notes, setNotes] = useState(asset?.notes ?? '')
@@ -168,8 +174,12 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
       setMappingSymbol(normalizedSymbol)
       setBinanceSymbol(nextBinanceSymbol)
       setCoingeckoId(nextCoingeckoId)
+      if (candidate !== null && market === 'unspecified') {
+        setMarket('crypto')
+        setAutoPrice(true)
+      }
     },
-    [normalizedSymbol, clearPrefilledPrice],
+    [normalizedSymbol, clearPrefilledPrice, market],
   )
 
   function handleSymbolChange(next: string) {
@@ -315,7 +325,8 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
             />
           </Field>
         ) : null}
-        {market === 'crypto' && autoPrice && normalizedSymbol !== '' ? (
+        {normalizedSymbol !== '' &&
+        (market === 'unspecified' || (market === 'crypto' && autoPrice)) ? (
           <div className="col-span-2 sm:col-span-3">
             <AssetSymbolMapping
               key={normalizedSymbol}
@@ -323,6 +334,7 @@ export function AssetFormSheet({ asset, onClose }: AssetFormSheetProps) {
               providers={providers}
               binanceSymbol={effectiveBinanceSymbol}
               coingeckoId={effectiveCoingeckoId}
+              autoSelect={market !== 'unspecified' || asset === null}
               onSelect={handleSelectMapping}
             />
           </div>

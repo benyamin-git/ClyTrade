@@ -14,8 +14,12 @@ worth now, and how the allocation is distributed.
 
 ## Automatic prices
 
-- The asset form has an **Automatic price** switch. It is on for new crypto
-  assets and off for everything else; each asset can be changed at any time.
+- The asset form has an **Automatic price** switch. It is on for new assets
+  while the market is Crypto or Unspecified, and off for the other markets;
+  each asset can be changed at any time.
+- The **Market symbol** picker also appears while the market is Unspecified.
+  Choosing a symbol records its market as Crypto and turns automatic pricing
+  on, so the symbol can drive the market instead of the other way round.
 - While it is on, the Portfolio writes the latest shared market price into
   Current price. The list refreshes at most every 5 minutes, and an open asset
   form at most every 30 seconds.
@@ -51,7 +55,7 @@ worth now, and how the allocation is distributed.
 
 ## Why it works this way
 
-- **Automatic pricing is opt-in and bounded.** A local-first app should not
+- **Automatic pricing is per-asset and bounded.** A local-first app should not
   silently depend on a price API to show you your own data. Per-asset control, a
   5-minute cache and a 15-minute stale guard keep the portfolio honest and the
   provider budget intact.

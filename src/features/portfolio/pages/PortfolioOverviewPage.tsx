@@ -151,8 +151,11 @@ export function PortfolioOverviewPage() {
                 ) : null}
               </span>
             ) : autoPriced && row.asset.binanceSymbol === null && row.asset.coingeckoId === null ? (
-              <span className="text-2xs text-on-surface-variant">
-                {t('portfolio.priceUnavailable')}
+              <span
+                className="text-2xs text-on-surface-variant"
+                title={t('portfolio.priceUnavailable')}
+              >
+                {t('portfolio.priceMissing')}
               </span>
             ) : null}
           </span>

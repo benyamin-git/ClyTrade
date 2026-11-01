@@ -6,6 +6,7 @@ import {
   replaceMarketSymbols,
 } from '@/data/repositories/prices.repo'
 import {
+  pickAutoCandidate,
   pickPreferredCandidate,
   refreshSymbolLists,
   resolveSymbol,
@@ -259,5 +260,90 @@ describe('pickPreferredCandidate', () => {
 
   it('returns null for no candidates', () => {
     expect(pickPreferredCandidate([])).toBeNull()
+  })
+})
+
+describe('pickAutoCandidate', () => {
+  it('uses the preferred candidate when one is clear', () => {
+    expect(pickAutoCandidate([candidate()], 'BTC')).toEqual(candidate())
+  })
+
+  it('picks the Binance USDT pair for a cross-provider tie', () => {
+    expect(
+      pickAutoCandidate(
+        [
+          candidate({ priceId: 'BTCUSDC', symbol: 'BTCUSDC', quote: 'USDC' }),
+          candidate(),
+          candidate({
+            provider: 'coingecko',
+            priceId: 'bitcoin',
+            symbol: 'BTC',
+            quote: null,
+            rank: 1,
+          }),
+        ],
+        'BTC',
+      )?.priceId,
+    ).toBe('BTCUSDT')
+  })
+
+  it('ignores a USDT pair whose base only starts with the input', () => {
+    expect(
+      pickAutoCandidate(
+        [
+          candidate({ priceId: 'ETHFIUSDT', symbol: 'ETHFIUSDT', quote: 'USDT' }),
+          candidate({ priceId: 'ETHUSDT', symbol: 'ETHUSDT', quote: 'USDT' }),
+          candidate({
+            provider: 'coingecko',
+            priceId: 'ethereum',
+            symbol: 'ETH',
+            quote: null,
+            rank: 2,
+          }),
+        ],
+        'ETH',
+      )?.priceId,
+    ).toBe('ETHUSDT')
+  })
+
+  it('falls back to the best-ranked CoinGecko coin without a USDT pair', () => {
+    expect(
+      pickAutoCandidate(
+        [
+          candidate({ priceId: 'BTCUSDC', symbol: 'BTCUSDC', quote: 'USDC' }),
+          candidate({
+            provider: 'coingecko',
+            priceId: 'bitcoin',
+            symbol: 'BTC',
+            quote: null,
+            rank: 1,
+          }),
+          candidate({
+            provider: 'coingecko',
+            priceId: 'wrapped-bitcoin',
+            symbol: 'BTC',
+            quote: null,
+            rank: 300,
+          }),
+        ],
+        'BTC',
+      )?.priceId,
+    ).toBe('bitcoin')
+  })
+
+  it('leaves a genuine tie unresolved', () => {
+    expect(
+      pickAutoCandidate(
+        [
+          candidate({ priceId: 'BTCUSDC', symbol: 'BTCUSDC', quote: 'USDC' }),
+          candidate({ priceId: 'BTCEUR', symbol: 'BTCEUR', quote: 'EUR' }),
+        ],
+        'BTC',
+      ),
+    ).toBeNull()
+  })
+
+  it('returns null for no candidates', () => {
+    expect(pickAutoCandidate([], 'BTC')).toBeNull()
   })
 })

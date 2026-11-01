@@ -36,6 +36,7 @@ interface TradeSymbolMappingProps {
   providers: readonly MarketProvider[]
   binanceSymbol: string | null
   coingeckoId: string | null
+  autoSelect: boolean
   onSelect: (candidate: SymbolCandidate | null) => void
 }
 
@@ -86,6 +87,7 @@ function TradeSymbolMapping({
   providers,
   binanceSymbol,
   coingeckoId,
+  autoSelect,
   onSelect,
 }: TradeSymbolMappingProps) {
   const { t } = useI18n()
@@ -94,12 +96,14 @@ function TradeSymbolMapping({
   const hasMapping = binanceSymbol !== null || coingeckoId !== null
 
   useEffect(() => {
+    if (!autoSelect) return
     if (preferred === null || hasMapping) return
     if (preferred.binanceSymbol === null && preferred.coingeckoId === null) return
     onSelect(preferred)
-  }, [preferred, hasMapping, onSelect])
+  }, [autoSelect, preferred, hasMapping, onSelect])
 
-  if (preferred !== null || loading) return null
+  if (loading) return null
+  if (autoSelect && preferred !== null) return null
 
   if (!hasMapping && (error !== null || candidates.length === 0)) {
     return (
@@ -203,8 +207,11 @@ export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps)
       setMappingSymbol(normalizedSymbol)
       setBinanceSymbol(nextBinanceSymbol)
       setCoingeckoId(nextCoingeckoId)
+      if (candidate !== null && market === 'unspecified') {
+        setMarket('crypto')
+      }
     },
-    [normalizedSymbol, clearPrefilledPrice],
+    [normalizedSymbol, clearPrefilledPrice, market],
   )
 
   function handleSymbolChange(next: string) {
@@ -403,7 +410,7 @@ export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps)
             ariaLabel={t('journal.autoClose')}
           />
         </Field>
-        {isCrypto && normalizedSymbol !== '' ? (
+        {(isCrypto || market === 'unspecified') && normalizedSymbol !== '' ? (
           <div className="col-span-2 sm:col-span-3">
             <TradeSymbolMapping
               key={normalizedSymbol}
@@ -411,6 +418,7 @@ export function TradeFormSheet({ trade, onClose, onSaved }: TradeFormSheetProps)
               providers={providers}
               binanceSymbol={effectiveBinanceSymbol}
               coingeckoId={effectiveCoingeckoId}
+              autoSelect={market !== 'unspecified' || trade === null}
               onSelect={handleSelectMapping}
             />
           </div>

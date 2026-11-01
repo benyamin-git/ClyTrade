@@ -232,6 +232,68 @@ describe('AssetFormSheet automatic prices', () => {
     expect(asset).toMatchObject({ autoPrice: false, binanceSymbol: null, coingeckoId: null })
   })
 
+  it('shows the market symbol picker for an unspecified market and switches it to crypto', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate(), coinGeckoCandidate()])
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    await user.type(screen.getByLabelText('Symbol'), 'BTC')
+    const picker = await screen.findByLabelText('Market symbol')
+    await user.selectOptions(picker, 'coingecko:bitcoin')
+
+    expect(screen.getByLabelText('Market')).toHaveValue('crypto')
+    const group = await screen.findByRole('radiogroup', { name: 'Automatic price' })
+    expect(within(group).getByRole('radio', { name: 'Automatic' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+
+    await user.type(screen.getByLabelText('Quantity'), '1')
+    await user.type(screen.getByLabelText('Average cost'), '100')
+
+    const [asset] = await saveNewAsset(user)
+    expect(asset).toMatchObject({
+      market: 'crypto',
+      autoPrice: true,
+      binanceSymbol: 'BTCUSDT',
+      coingeckoId: 'bitcoin',
+    })
+  })
+
+  it('switches an unspecified asset to crypto when the symbol has one match', async () => {
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    await renderForm(null)
+
+    await user.type(screen.getByLabelText('Symbol'), 'BTC')
+    await waitFor(() => expect(screen.getByLabelText('Market')).toHaveValue('crypto'))
+    expect(screen.queryByLabelText('Market symbol')).not.toBeInTheDocument()
+    await waitFor(() => expect(priceState.keys.has('binance:BTCUSDT')).toBe(true))
+
+    await user.type(screen.getByLabelText('Quantity'), '1')
+    await user.type(screen.getByLabelText('Average cost'), '100')
+
+    const [asset] = await saveNewAsset(user)
+    expect(asset).toMatchObject({
+      market: 'crypto',
+      autoPrice: true,
+      binanceSymbol: 'BTCUSDT',
+    })
+  })
+
+  it('keeps an existing unspecified asset unspecified until a symbol is chosen', async () => {
+    const seeded = await seedAsset({ market: 'unspecified' })
+    symbolState.bySymbol.set('BTC', [binanceCandidate()])
+    const user = userEvent.setup()
+    await renderForm(seeded)
+
+    expect(await screen.findByLabelText('Market symbol')).toBeInTheDocument()
+    expect(screen.getByLabelText('Market')).toHaveValue('unspecified')
+
+    const [asset] = await saveChanges(user)
+    expect(asset?.market).toBe('unspecified')
+  })
+
   it('keeps the stored automatic price setting when editing', async () => {
     const seeded = await seedAsset({ autoPrice: false, binanceSymbol: 'BTCUSDT' })
     symbolState.bySymbol.set('BTC', [binanceCandidate(), coinGeckoCandidate()])

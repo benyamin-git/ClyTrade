@@ -6,6 +6,33 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-01
+
+### Added
+
+- Choosing a **Market symbol** while the market is Unspecified now records the
+  symbol's market (Crypto) and turns automatic pricing on in the asset form; the
+  journal trade form uses the same picker and can prefill the entry price.
+
+### Changed
+
+- New assets default to automatic pricing when the market is Crypto or
+  Unspecified, and new journal trades prefill the entry price from the live
+  quote once their symbol is mapped.
+- Sample data ships explicit market mappings for its crypto holdings and open
+  crypto trades, so live prices appear immediately; the forex and stocks
+  examples remain manual.
+
+### Fixed
+
+- Automatic price mapping no longer stops at a cross-provider tie. It picks the
+  exact-base Binance USDT pair, or the best-ranked CoinGecko coin when no USDT
+  pair exists, so BTC, ETH, SOL, LINK and similar symbols resolve without a
+  manual pick. Choosing a symbol in the form still overrides it.
+- The portfolio price cell shows a short **No live price** label instead of the
+  full save-and-enter-manually sentence; the full hint remains in the form and
+  as a tooltip.
+
 ## [0.5.0] - 2026-10-26
 
 ### Added
@@ -193,7 +220,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.1
 [0.5.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.0
 [0.4.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.1
 [0.4.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.0

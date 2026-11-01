@@ -691,6 +691,7 @@ export const fa = {
     symbolMapping: 'نماد بازار',
     priceUnavailable:
       'قیمت زنده‌ای برای این نماد پیدا نشد. می‌توانید ذخیره کنید و قیمت را دستی وارد کنید.',
+    priceMissing: 'بدون قیمت زنده',
     validation: {
       symbolRequired: 'نماد الزامی است.',
       quantityRequired: 'مقدار الزامی است.',

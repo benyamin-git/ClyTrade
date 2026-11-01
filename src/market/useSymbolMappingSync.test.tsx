@@ -107,11 +107,25 @@ describe('useSymbolMappingSync', () => {
     })
   })
 
-  it('leaves ambiguous mappings unresolved and does not retry them', async () => {
+  it('persists the Binance USDT pair when providers tie', async () => {
     await createAsset(assetDraft())
     symbols.resolveSymbol.mockResolvedValue([
       candidate(),
       candidate({ provider: 'coingecko', priceId: 'bitcoin', binanceSymbol: null }),
+    ])
+
+    renderHook(() => useSymbolMappingSync())
+
+    await waitFor(async () => {
+      expect((await listAssets())[0]?.binanceSymbol).toBe('BTCUSDT')
+    })
+  })
+
+  it('leaves a genuine tie unresolved and does not retry it', async () => {
+    await createAsset(assetDraft())
+    symbols.resolveSymbol.mockResolvedValue([
+      candidate({ priceId: 'BTCUSDC', symbol: 'BTCUSDC', quote: 'USDC' }),
+      candidate({ priceId: 'BTCEUR', symbol: 'BTCEUR', quote: 'EUR' }),
     ])
 
     const { rerender } = renderHook(() => useSymbolMappingSync())

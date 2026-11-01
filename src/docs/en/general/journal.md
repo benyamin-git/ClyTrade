@@ -9,6 +9,9 @@ Stats.
 ## Overview
 
 - **Add trade** opens a form with the same inputs you would use on an exchange.
+- For a new trade, **Entry price** is prefilled from the live price once the
+  symbol is mapped. With the market left Unspecified, the **Market symbol**
+  picker still appears; choosing a symbol records it as Crypto.
 - **Open** trades are marked until an exit price is filled in.
 - Row metrics (net PnL, R multiple) are derived, never entered by hand.
 - **Edit** reopens the same form; **Delete** asks for confirmation.

@@ -136,6 +136,39 @@ export function pickPreferredCandidate(
   return null
 }
 
+export function pickAutoCandidate(
+  candidates: readonly SymbolCandidate[],
+  input: string,
+): SymbolCandidate | null {
+  const preferred = pickPreferredCandidate(candidates)
+  if (preferred !== null) return preferred
+
+  const normalized = input.trim().toUpperCase()
+  if (normalized === '') return null
+
+  const exactUsdt = candidates.filter(
+    (candidate) =>
+      candidate.provider === 'binance' &&
+      candidate.quote === 'USDT' &&
+      (candidate.symbol.toUpperCase() === normalized ||
+        baseSymbol(candidate.symbol, candidate.quote).toUpperCase() === normalized),
+  )
+  if (exactUsdt.length === 1) return exactUsdt[0] ?? null
+
+  const ranked = candidates.filter(
+    (candidate) => candidate.provider === 'coingecko' && candidate.rank !== null,
+  )
+  const best = ranked.reduce<SymbolCandidate | null>((current, candidate) => {
+    if (current === null) return candidate
+    return (candidate.rank ?? Number.POSITIVE_INFINITY) < (current.rank ?? Number.POSITIVE_INFINITY)
+      ? candidate
+      : current
+  }, null)
+  if (best === null) return null
+  const bestRank = best.rank ?? Number.POSITIVE_INFINITY
+  return ranked.filter((candidate) => candidate.rank === bestRank).length === 1 ? best : null
+}
+
 function matches(symbol: string, base: string, normalized: string): boolean {
   return (
     symbol.toUpperCase() === normalized ||
