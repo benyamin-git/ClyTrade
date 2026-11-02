@@ -9,7 +9,7 @@ export function Card({ title, className, children, ...props }: CardProps) {
   return (
     <section
       className={cn(
-        'flex min-h-0 flex-col rounded-app-md border border-outline-variant/60 bg-surface-container-low',
+        'flex min-h-0 flex-col overflow-hidden rounded-app-md border border-outline-variant/60 bg-surface-container-low',
         className,
       )}
       {...props}
