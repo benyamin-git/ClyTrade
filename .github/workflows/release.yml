@@ -153,17 +153,47 @@ jobs:
     needs: [windows, android]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
           path: release
           merge-multiple: true
 
+      - name: Build release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          download="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
+          notes="$RUNNER_TEMP/clytrade-release-notes.md"
+          awk -v version="$version" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "## [" version "]") == 1) found = 1
+            }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/changelog-section.md"
+          {
+            printf '## Download\n\n'
+            printf '| Platform | Download |\n| --- | --- |\n'
+            printf '| Web (PWA) | [![Open the PWA](https://img.shields.io/badge/Open-PWA-0550ae?logo=pwa&logoColor=white)](https://benyamin-git.github.io/ClyTrade/) |\n'
+            printf '| Windows (64-bit) | [![Windows x64 EXE](https://img.shields.io/badge/EXE-Portable-0550ae?logo=windows&logoColor=white)](%s/ClyTrade-%s-windows-x64.exe) [![Windows x64 installer](https://img.shields.io/badge/EXE-Installer-0969da?logo=windows&logoColor=white)](%s/ClyTrade-%s-windows-x64-setup.exe) |\n' "$download" "$version" "$download" "$version"
+            printf '| Android | [![Android universal APK](https://img.shields.io/badge/APK-Universal-2da44e?logo=android&logoColor=white)](%s/ClyTrade-%s-android-universal.apk) |\n' "$download" "$version"
+            printf '\nWindows builds are unsigned; Android APKs are signed with the release key.\n\n'
+            if [ -s "$RUNNER_TEMP/changelog-section.md" ]; then
+              cat "$RUNNER_TEMP/changelog-section.md"
+            else
+              printf 'See [CHANGELOG.md](https://github.com/%s/blob/%s/CHANGELOG.md).\n' "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
+            fi
+          } > "$notes"
+          cat "$notes"
+
       - name: Create draft release
         uses: softprops/action-gh-release@v3
         with:
           draft: true
           prerelease: "${{ startsWith(github.ref_name, 'v0.') || contains(github.ref_name, '-') }}"
-          generate_release_notes: true
+          body_path: ${{ runner.temp }}/clytrade-release-notes.md
           name: ClyTrade ${{ github.ref_name }}
           files: release/*

@@ -108,7 +108,10 @@ large changes.
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag
   `v<version>`. Artifact names are produced by `scripts/collect-artifacts.mjs`
-  in `.github/workflows/release.yml`; do not rename builds by hand. Tag pushes
+  in `.github/workflows/release.yml`; do not rename builds by hand. The draft
+  release body is generated from the matching `## [<version>]` section in
+  `CHANGELOG.md` and prefixed with the badge download table; keep that heading
+  in sync with the tag. Tag pushes
   also deploy the PWA to GitHub Pages via `.github/workflows/pages.yml` (base
   `/ClyTrade/`); that base belongs in the workflow, never in `vite.config.ts`.
   CI (`.github/workflows/ci.yml`) runs lint, typecheck, test, format:check and

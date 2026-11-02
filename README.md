@@ -1,36 +1,40 @@
 # ClyTrade
 
+[![Latest release](https://img.shields.io/github/v/release/benyamin-git/ClyTrade?include_prereleases&label=release&style=flat-square)](https://github.com/benyamin-git/ClyTrade/releases)
+[![Downloads](https://img.shields.io/github/downloads/benyamin-git/ClyTrade/total?style=flat-square)](https://github.com/benyamin-git/ClyTrade/releases)
+[![License](https://img.shields.io/github/license/benyamin-git/ClyTrade?style=flat-square)](LICENSE)
+
 ClyTrade is a local-first trading app: a trade journal, a spot portfolio tracker,
-price alerts and a set of calculators. It ships as an installable PWA and as
-Windows and Android wrappers built with Tauri v2. Everything runs on the device,
-with no account, server or subscription.
-
-> **Status:** early development. V1 covers the offline core; 0.5 adds optional
-> crypto prices, alerts and auto-close. Expect rough edges and breaking changes
-> before `1.0.0`.
-
-## Why it exists
+price alerts and seven calculators in one place. It ships as an installable PWA
+and as Windows and Android apps built with Tauri v2. Everything runs on the
+device, with no account, server or subscription.
 
 Small trading tools are scattered across paid apps, browser tabs and
-spreadsheets, and several of the paid ones are simple calculators. ClyTrade puts
-the journal, the portfolio and the calculators in one app that opens on the
-calculator you need and computes as you type, and keeps the data in one local
-database.
+spreadsheets. ClyTrade keeps the journal, the portfolio and the calculators in
+one app and one local database.
 
-## What is in V1
+> **Status:** early development. V1 covers the offline core; the 0.5 releases add
+> optional crypto prices, alerts and auto-close. Expect rough edges and breaking
+> changes before `1.0.0`.
 
-| Area             | What it does                                                                                                                                                                                                                                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Journal**      | Track trades with derived net PnL, R multiples and per-trade stats. Filter from one Filters button — search, market, direction, status, tags, strategy, date and numeric ranges, outcome and field presence in a sheet — with an equity curve and PnL charts. Optional auto-close at the exact target or stop. |
-| **Portfolio**    | Track holdings with blended cost basis, manual or automatic crypto prices, unrealized PnL and allocation charts. Filter from one Filters button — search, market, quantity, cost, price, value, PnL, outcome and field presence.                                                                               |
-| **Alerts**       | Watch price and percent rules plus every open trade's target and stop. Review gaps, stale quotes and conflicts, keep a 500-event history and get grouped OS notifications. Background monitoring on Android and Windows; in-app only in the browser.                                                           |
-| **Calculations** | Seven calculators: Position Size, Margin & Leverage, Liquidation Price, Risk / Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.                                                                                                                                                                        |
-| **Settings**     | Default inputs, a default market for new entries, English and Persian interfaces (Persian runs right-to-left), three themes with accent palettes, data export/import/reset, sample data and the full documentation.                                                                                            |
+## Download
+
+| Platform         | Download                                                                                                                                                                                                                                                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Web (PWA)        | [![Open the PWA](https://img.shields.io/badge/Open-PWA-0550ae?logo=pwa&logoColor=white)](https://benyamin-git.github.io/ClyTrade/)                                                                                                                                                                                   |
+| Windows (64-bit) | [![Windows x64 EXE](https://img.shields.io/badge/EXE-Portable-0550ae?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases) [![Windows x64 installer](https://img.shields.io/badge/EXE-Installer-0969da?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases) |
+| Android          | [![Android universal APK](https://img.shields.io/badge/APK-Universal-2da44e?logo=android&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases)                                                                                                                                                        |
+
+The PWA is the reference platform: it installs from Safari on iPhone and iPad,
+and from Chrome or Edge on desktop. Windows builds are unsigned, so SmartScreen
+warns on first run. Android APKs are signed with ClyTrade's release key and
+install in place over an older release-key build. Windows and Android files live
+on the [releases page](https://github.com/benyamin-git/ClyTrade/releases); each
+release lists the portable EXE, the installer and the universal APK.
 
 ## Screenshots
 
-Captured in the desktop layout with the sample data and the Dark theme,
-at 1440×900.
+Captured in the desktop layout with sample data and the Dark theme, at 1440×900.
 
 | Journal stats                                                                            | Portfolio stats                                                                             |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -49,209 +53,100 @@ once first to fetch the Chromium build Playwright uses. The script starts Vite o
 `127.0.0.1:5199` (`SCREENSHOTS_PORT` overrides), loads the sample data and
 captures each page into `screenshots/desktop/`.
 
-## Getting started
+## What's new in v0.5.2
 
-Requires Node 22.12 or newer and npm.
+- **Rounded cards keep their corners.** Journal and portfolio tables are clipped
+  to the card radius, so the header row no longer paints over the top corners
+  when rows are present.
+
+Older changes are in [CHANGELOG.md](./CHANGELOG.md).
+
+## Features
+
+- **Journal** — trades with derived net PnL, R multiples, per-trade stats and
+  filterable equity curve and PnL charts; optional auto-close at the exact
+  target or stop.
+- **Portfolio** — holdings with blended cost basis, manual or automatic crypto
+  prices, unrealized PnL and allocation charts.
+- **Alerts** — price and percent rules plus every open trade's target and stop,
+  with a review queue, 500-event history and grouped OS notifications on Android
+  and Windows.
+- **Calculators** — Position Size, Margin & Leverage, Liquidation Price, Risk /
+  Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.
+- **Local-first** — IndexedDB storage, JSON export/import, no account or cloud.
+- **Bilingual and themed** — English and Persian (right-to-left), Light / Dark /
+  OLED, and six accent palettes.
+- **Native wrappers** — Windows tray build and Android app share the same
+  frontend; the PWA remains the reference platform.
+
+## Install
+
+### Web
+
+Open <https://benyamin-git.github.io/ClyTrade/>. On iPhone and iPad, use Safari:
+**Share → Add to Home Screen**. The installed app runs standalone and offline.
+
+### Windows
+
+Download the portable EXE or the installer from the
+[releases page](https://github.com/benyamin-git/ClyTrade/releases). The build is
+unsigned; SmartScreen warns about the unknown publisher on first run.
+
+### Android
+
+Download `ClyTrade-<version>-android-universal.apk` from the
+[releases page](https://github.com/benyamin-git/ClyTrade/releases) and open it.
+Allow installation from your file manager or browser when Android asks. Newer
+release-key APKs install in place without losing local data.
+
+## Development
+
+Requires Node 22.12 or newer.
 
 ```bash
 npm install
-npm run dev        # Vite dev server on http://localhost:5173
-npm run dev:lan    # dev server on http://0.0.0.0:7401 (strict; PORT overrides)
+npm run dev        # Vite on http://localhost:5173
+npm run dev:lan    # 0.0.0.0:7401 (strict; PORT overrides)
 ./scripts/live.sh  # same server in the background (LIVE_SERVER_PORT overrides)
+npm run build      # typecheck, production build and PWA service worker
+npm test           # Vitest
+npm run typecheck
+npm run lint
 ```
 
-`npm run dev:lan` and `./scripts/live.sh` bind `0.0.0.0:7401` so the app can be
-opened from a phone or another device on the same network. `live.sh` writes its
-output to `/tmp/clytrade-liveserver.log` and its pid to
-`/tmp/clytrade-liveserver.pid`; stop it with
-`kill $(cat /tmp/clytrade-liveserver.pid)`.
+`npm run dev:lan` and `./scripts/live.sh` bind `0.0.0.0:7401` for phone or LAN
+testing. `live.sh` logs to `/tmp/clytrade-liveserver.log` and writes its pid to
+`/tmp/clytrade-liveserver.pid`.
 
-To test installability and offline mode, run `npm run build && npm run preview`.
-The service worker is disabled in the dev server.
-
-Other commands:
-
-| Command                                | Purpose                                                                       |
-| -------------------------------------- | ----------------------------------------------------------------------------- |
-| `npm run build`                        | Typecheck, production build and PWA service worker                            |
-| `npm run preview`                      | Serve the production build                                                    |
-| `npm test`                             | Vitest run (jsdom, fake-indexeddb)                                            |
-| `npm run typecheck`                    | `tsc -b` across the app and node configs                                      |
-| `npm run lint`                         | ESLint (flat config)                                                          |
-| `npm run format`                       | Prettier write                                                                |
-| `npm run icons`                        | Regenerate PWA icons into `public/icons/`                                     |
-| `npm run splash`                       | Regenerate Apple touch splash screens into `public/splash/`                   |
-| `npm run icons:native`                 | Regenerate Tauri and Android icons from `public/icons/icon-512.png`           |
-| `npm run accents`                      | Regenerate the accent palettes into `src/theme/accents.css`                   |
-| `npm run a11y`                         | Local axe audit: key pages × 3 themes × desktop and mobile (serious/critical) |
-| `npm run screenshots`                  | Capture desktop screenshots into `screenshots/desktop/`                       |
-| `npm run screenshots:install`          | Fetch the Chromium build Playwright needs                                     |
-| `npm run tauri:build`                  | Windows desktop build (needs Windows and Rust)                                |
-| `npm run android:apk`                  | Android release APK (needs JDK 17, Android SDK/NDK and Rust)                  |
-| `./scripts/android-signing.sh --setup` | Create/verify the Android release keystore and set the four GitHub secrets    |
-| `npm run version:set -- <version>`     | Bump the version in `package.json`, both lockfiles and `src-tauri/Cargo.toml` |
-
-### Platforms and native builds
-
-The Windows and Android wrappers are Tauri v2 projects in `src-tauri/` and reuse
-the same frontend build. `npm run build` always produces the PWA; when Tauri runs
-the build it sets `TAURI_ENV_PLATFORM`, which disables the service worker for the
-native bundle. The PWA remains the reference platform. Native iOS builds are not
-planned; the PWA is the supported iOS path.
-
-`.github/workflows/release.yml` produces the artifacts for both platforms. Run
-the workflow from the Actions tab to download test builds, or push a `v*` tag to
-get a draft GitHub Release. Windows builds are not code-signed. Android builds
-are signed with ClyTrade's release key, so newer release-key APKs install in
-place without uninstalling the app or losing local data. Builds up to 0.3.0 used
-per-run debug keys, so the first release-key install from one of those needs a
-one-time backup, uninstall and restore. Artifact names are:
-
-| Platform            | Artifact                                   |
-| ------------------- | ------------------------------------------ |
-| Windows (portable)  | `ClyTrade-<version>-windows-x64.exe`       |
-| Windows (installer) | `ClyTrade-<version>-windows-x64-setup.exe` |
-| Android             | `ClyTrade-<version>-android-universal.apk` |
-
-The Android release keystore and its passwords must be stored in repository
-secrets. Run `./scripts/android-signing.sh --setup` once to create the keystore
-and upload them; see the release-signing notes in [`AGENTS.md`](./AGENTS.md).
-
-### Install on iPhone and iPad
-
-The PWA is deployed to GitHub Pages by `.github/workflows/pages.yml` on every
-`v*` tag, or manually from the Actions tab. One-time setup is **Settings → Pages
-→ Source: GitHub Actions**. To verify the Pages base locally:
-
-```bash
-VITE_BASE=/ClyTrade/ npm run build
-VITE_BASE=/ClyTrade/ npm run preview
-```
-
-To install on iPhone or iPad, open <https://benyamin-git.github.io/ClyTrade/> in
-Safari (Home Screen installs are Safari-only), tap **Share**, then **Add to Home
-Screen**. The installed app runs standalone and offline and picks up a new
-deployment the next time it opens online.
-
-## Data and storage
-
-All data is stored in IndexedDB, in a database named `clytrade`, through Dexie.
-Your records are never sent anywhere; when you enable crypto prices, only the
-requested symbols go to the chosen provider. The interface language, the accent
-and an explicit theme choice are kept in `localStorage` and applied before the
-first paint; until you pick a theme, the app follows the system light or dark
-setting.
-
-Settings → Data Controls **Export backup** writes a single JSON file containing
-the journal, portfolio, settings (including the interface language and default
-market), alert rules and alert history, plus the current theme and accent under
-`data.ui`. **Import** offers a merge or a replace, validates the file before
-writing, and applies the saved theme and accent. Where the browser supports it,
-ClyTrade also asks for persistent storage so the local database is less likely to
-be evicted; that is not a backup, so keep exporting files.
-
-Trades and holdings each carry a market (Crypto, Forex, Stocks, Futures,
-Commodities, Indices, Bonds, Options or Unspecified). In Overview and Stats, both
-the Journal and Portfolio open their filters from a single **Filters** button,
-whose badge counts the active filter groups. The sheet holds every control:
-search and market, plus feature-specific fields — the Journal by direction,
-status, tags, strategy, dates, price and size, performance, outcome and presence;
-the Portfolio by quantity, cost, price, value, PnL, outcome and presence. Sheet
-sections start collapsed and auto-open when a section holds an active filter. New
-entries start on the default market from Preferences, and filters are page-local
-and reset when you leave the page. Records made before markets existed are
-Unspecified. Backups are schema version 3; version 1 and 2 files still import.
-
-## Market data and alerts
-
-Crypto prices are optional. The app fetches them directly from Binance and
-CoinGecko; no ClyTrade server is involved. **Settings → Preferences → Market
-data** chooses **Auto** (Binance first, then CoinGecko), **Binance** or
-**CoinGecko**; Auto is the default. An optional CoinGecko Demo key raises the
-local budget from 6 to 30 requests per minute, within the Demo plan's roughly
-10,000 calls per month. The key is stored only on the device, masked in the form
-and excluded from backups.
-
-One shared cache serves the Portfolio, the Alerts tab and the trade, asset and
-rule forms. List views refresh at most every 5 minutes, an open form at most
-every 30 seconds, and a manual **Refresh prices** has a 60-second cooldown. A
-price older than 15 minutes never fires an alert or closes a trade.
-
-Alerts work in-app whenever the app is open and visible. Background monitoring is
-off by default and exists only in the native builds: Android checks about every
-15 minutes with WorkManager, and Windows every 5 minutes while ClyTrade stays in
-the tray. The PWA has no background mode. See **Alerts** in the in-app
-documentation for the review queue, exact-level auto-close and platform limits.
-
-## Project layout
-
-| Path                | Contents                                                                                        |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
-| `src/app/`          | App shell: router, providers, top bar, navigation drawer, subtab bar                            |
-| `src/features/`     | Feature UI and application logic (`journal`, `portfolio`, `alerts`, `calculations`, `settings`) |
-| `src/calculations/` | Pure, tested math layer — the protected core of the app                                         |
-| `src/market/`       | Price providers, shared scheduler and cache, alert evaluation and the native bridge             |
-| `src/data/`         | Dexie schema, zod models, repositories, backup and restore                                      |
-| `src/ui/`           | Design-system primitives and layout components                                                  |
-| `src/theme/`        | MD3 design tokens and the three themes                                                          |
-| `src/i18n/`         | Typed English and Persian dictionaries, locale detection and the locale provider                |
-| `src/docs/`         | Markdown documentation rendered inside the app                                                  |
-| `src-tauri/`        | Tauri v2 shell for the Windows and Android builds (Rust and the Android project)                |
-| `masterplan.md`     | Product direction and design decisions                                                          |
+Pushing a `v*` tag runs lint, typecheck and tests, builds Windows and Android
+artifacts, and deploys the PWA to GitHub Pages. All `0.x` tags publish as
+pre-releases. Version bumps use `npm run version:set -- <version>`. See
+[`AGENTS.md`](./AGENTS.md) for the full command list, architecture and native
+signing notes.
 
 ## Documentation
 
 The full user documentation is inside the app under **Settings →
-Documentation**, with its source in `src/docs/**` — complete in English and
-Persian. Product direction, scope and the reasoning behind the major decisions
-live in [`masterplan.md`](./masterplan.md).
-User-facing text is in typed dictionaries in `src/i18n/`, in English and Persian
-(Persian runs right-to-left).
-
-## Releases and versioning
-
-ClyTrade follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`.
-Until `1.0.0`, breaking changes may land in minor releases, and every `0.x` tag
-is published as a GitHub pre-release. Changelog entries live in
-[`CHANGELOG.md`](./CHANGELOG.md).
-
-`npm run version:set -- <version>` updates the version in `package.json`, both
-lockfiles and `src-tauri/Cargo.toml`. Pushing a `v<version>` tag builds both
-platforms, opens a draft GitHub Release and deploys the PWA to GitHub Pages.
-
-## Roadmap
-
-V1 covers the offline core. Planned work:
-
-- More price providers and live data for non-crypto markets (0.5 covers crypto
-  through Binance and CoinGecko)
-- Optional synchronization between devices
-- More languages and translations
-- More calculators and statistics, and import from exchange CSV files
-
-Open ideas and known bugs are tracked in [`TODO.md`](./TODO.md).
+Documentation**, with its source in `src/docs/**` in English and Persian. Product
+direction and design decisions live in [`masterplan.md`](./masterplan.md).
 
 ## Limitations and non-goals
 
-- Not financial advice. ClyTrade is a calculator and record-keeping tool; it does
-  not place orders, connect to an exchange account, or recommend what to buy or
-  sell. It only reads public price data when you enable that.
-- Calculations are estimates based on the inputs and the assumptions documented
-  in the in-app documentation. Exchange formulas, fees and funding rates can
-  differ, so verify numbers against your exchange before acting on them.
-- The native builds are test builds. Windows builds are unsigned, so SmartScreen
-  warns about the unknown publisher on first run. Android builds are signed with
-  ClyTrade's release key, so a newer APK installs in place and keeps local data.
-- Each install has its own storage sandbox, so the browser PWA, the Windows build
-  and the Android build do not share data. Move data with export and import.
-- There is no cloud sync or account in V1.
+- Not financial advice. ClyTrade does not place orders or connect to an exchange
+  account; it only reads public price data when you enable that.
+- Calculations are estimates. Exchange formulas, fees and funding rates can
+  differ, so verify the numbers before acting on them.
+- The Windows build is unsigned. Android builds are signed with the release key.
+- Each install has its own storage sandbox, so the PWA, Windows and Android
+  builds do not share data. Move data with export and import.
+- There is no cloud sync or account.
 
 ## AI-assisted development
 
 ClyTrade is written almost entirely by AI. The maintainer directs the work, makes
 the product decisions, reviews every change and runs the tests; the code and
-documentation are AI-generated. The same statement, with more detail, is
-included in the app under **Settings → Documentation → AI Usage**.
+documentation are AI-generated. The same statement, with more detail, is in the
+app under **Settings → Documentation → AI Usage**.
 
 ## License
 
