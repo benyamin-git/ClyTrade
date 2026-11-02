@@ -6,6 +6,16 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-11-02
+
+### Changed
+
+- The Alerts page uses one consistent section-header pattern: **New alert**,
+  **Mark all read** and **Refresh prices** sit in their card headers with
+  breathing room, the status card is a compact stats grid, and the history
+  **All/Unread** filter matches the journal's **Long/Short** control and stays
+  beside the event-type filter on phones.
+
 ## [0.5.2] - 2026-11-02
 
 ### Fixed
@@ -227,7 +237,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.3
 [0.5.2]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.2
 [0.5.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.1
 [0.5.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.0
