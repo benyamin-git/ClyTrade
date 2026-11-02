@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import {
@@ -135,6 +135,7 @@ export function AlertsPage() {
   const cooldownActive = useCooldownActive(status.nextAllowedAt)
   const refreshDisabled = refreshing || cooldownActive
   const reviewEvents = useMemo(() => (events ?? []).filter(isReviewEvent), [events])
+  const unreadCount = (events ?? []).filter((event) => event.status === 'unread').length
   const statusLabel = t('alerts.sections.status')
   const rulesLabel = t('alerts.sections.rules')
   const reviewLabel = t('alerts.sections.review')
@@ -211,18 +212,25 @@ export function AlertsPage() {
   }
 
   return (
-    <ViewportPage className="gap-3 overflow-y-auto">
+    <ViewportPage className="gap-4 overflow-y-auto">
       <Card
         className="shrink-0"
         title={statusLabel}
         aria-label={statusLabel}
         data-testid="alerts-status"
+        actions={
+          <Button
+            size="sm"
+            variant="outlined"
+            icon={<RefreshCw />}
+            onClick={() => void runRefresh()}
+            disabled={refreshDisabled}
+          >
+            {refreshing ? t('alerts.status.refreshing') : t('alerts.status.refresh')}
+          </Button>
+        }
       >
-        <AlertStatusStrip
-          status={status}
-          onRefresh={() => void runRefresh()}
-          refreshing={refreshing}
-        />
+        <AlertStatusStrip status={status} />
       </Card>
 
       <BackgroundMonitoringCard />
@@ -232,13 +240,12 @@ export function AlertsPage() {
         title={rulesLabel}
         aria-label={rulesLabel}
         data-testid="alerts-rules"
-      >
-        <div className="flex shrink-0 items-center justify-end px-4 pt-3">
+        actions={
           <Button size="sm" icon={<Plus />} onClick={() => setRuleForm({ alert: null })}>
             {t('alerts.form.add')}
           </Button>
-        </div>
-
+        }
+      >
         {alerts === undefined || trades === undefined ? (
           <LoadingState />
         ) : (
@@ -286,16 +293,21 @@ export function AlertsPage() {
         title={historyLabel}
         aria-label={historyLabel}
         data-testid="alerts-history"
+        actions={
+          <Button
+            size="sm"
+            variant="outlined"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0}
+          >
+            {t('alerts.history.markAllRead')}
+          </Button>
+        }
       >
         {events === undefined ? (
           <LoadingState />
         ) : (
-          <AlertHistory
-            events={events}
-            filter={historyFilter}
-            onMarkAllRead={handleMarkAllRead}
-            onFilter={setHistoryFilter}
-          />
+          <AlertHistory events={events} filter={historyFilter} onFilter={setHistoryFilter} />
         )}
       </Card>
 

@@ -67,7 +67,7 @@ export function BackgroundMonitoringCard() {
 
   return (
     <Card title={title} aria-label={title} data-testid="alerts-background" className="shrink-0">
-      <div className="flex flex-col gap-2 px-4 py-3">
+      <div className="flex flex-col gap-2 px-4 py-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <button
             type="button"
@@ -99,7 +99,7 @@ export function BackgroundMonitoringCard() {
           <span className="text-sm font-medium text-on-surface">
             {t('alerts.background.toggle')}
           </span>
-          <span className="text-xs text-on-surface-variant">
+          <span className="rounded-app-full bg-surface-container-highest px-2 py-0.5 text-2xs font-medium text-on-surface-variant">
             {enabled ? t('alerts.background.on') : t('alerts.background.off')}
           </span>
           <span role="status" className="ms-auto text-xs text-on-surface-variant">

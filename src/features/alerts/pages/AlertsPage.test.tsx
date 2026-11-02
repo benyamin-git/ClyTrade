@@ -363,8 +363,6 @@ describe('AlertsPage', () => {
             monthlyUsage: { used: 1234, limit: 10_000 },
             error: null,
           }}
-          onRefresh={() => undefined}
-          refreshing={false}
         />
       </I18nProvider>,
     )
@@ -394,24 +392,18 @@ describe('AlertsPage', () => {
     vi.useFakeTimers()
     try {
       const nextAllowedAt = Date.now() + 2_000
-      render(
-        <I18nProvider preference="en">
-          <AlertStatusStrip
-            status={{
-              provider: 'auto',
-              activeProvider: null,
-              lastSuccessAt: null,
-              nextAllowedAt,
-              error: null,
-              monthlyUsage: null,
-            }}
-            onRefresh={() => undefined}
-            refreshing={false}
-          />
-        </I18nProvider>,
-      )
+      priceState.status = {
+        provider: 'auto',
+        activeProvider: null,
+        lastSuccessAt: null,
+        nextAllowedAt,
+        error: null,
+        monthlyUsage: null,
+      }
+      renderPage()
 
-      const refresh = screen.getByRole('button', { name: 'Refresh prices' })
+      const region = screen.getByTestId('alerts-status')
+      const refresh = within(region).getByRole('button', { name: 'Refresh prices' })
       expect(refresh).toBeDisabled()
       act(() => {
         vi.advanceTimersByTime(2_500)
@@ -422,25 +414,28 @@ describe('AlertsPage', () => {
     }
   })
 
-  it('disables refresh while a refresh is running', () => {
-    render(
-      <I18nProvider preference="en">
-        <AlertStatusStrip
-          status={{
-            provider: 'auto',
-            activeProvider: null,
-            lastSuccessAt: null,
-            nextAllowedAt: null,
-            monthlyUsage: null,
-            error: null,
-          }}
-          onRefresh={() => undefined}
-          refreshing
-        />
-      </I18nProvider>,
+  it('disables refresh while a refresh is running', async () => {
+    let finish: () => void = () => undefined
+    priceState.refresh.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
     )
+    const user = userEvent.setup()
+    renderPage()
 
-    expect(screen.getByRole('button', { name: 'Refreshing…' })).toBeDisabled()
+    const region = screen.getByTestId('alerts-status')
+    await user.click(within(region).getByRole('button', { name: 'Refresh prices' }))
+    await waitFor(() =>
+      expect(within(region).getByRole('button', { name: 'Refreshing…' })).toBeDisabled(),
+    )
+    await act(async () => {
+      finish()
+    })
+    await waitFor(() =>
+      expect(within(region).getByRole('button', { name: 'Refresh prices' })).toBeEnabled(),
+    )
   })
 
   it('shows loading instead of the empty states until the live queries resolve', async () => {
