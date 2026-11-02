@@ -6,6 +6,13 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-02
+
+### Fixed
+
+- Rounded cards clip their contents, so the journal and portfolio table headers
+  no longer paint over the card's top corners when rows are present.
+
 ## [0.5.1] - 2026-11-01
 
 ### Added
@@ -220,7 +227,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.2
 [0.5.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.1
 [0.5.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.0
 [0.4.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.4.1
