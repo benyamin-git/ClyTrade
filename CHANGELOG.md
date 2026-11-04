@@ -6,6 +6,16 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-11-04
+
+### Fixed
+
+- A blocked notification permission now offers **Open settings** on Android and
+  iOS, and the status refreshes when you return to the app. The browser shows
+  where to allow notifications instead of leaving a dead end.
+- Background monitoring no longer stays greyed out on Android when notifications
+  are already allowed.
+
 ## [0.5.3] - 2026-11-02
 
 ### Changed
@@ -237,7 +247,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.4
 [0.5.3]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.3
 [0.5.2]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.2
 [0.5.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.1

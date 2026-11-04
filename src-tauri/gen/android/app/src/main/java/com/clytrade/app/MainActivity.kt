@@ -2,7 +2,9 @@ package com.clytrade.app
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
@@ -60,6 +62,23 @@ class MainActivity : TauriActivity() {
 
         @JavascriptInterface
         fun consumePendingRoute(): String = takePendingRoute()
+
+        @JavascriptInterface
+        fun openNotificationSettings() {
+          runOnUiThread {
+            try {
+              startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                  .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+              )
+            } catch (_: Exception) {
+              startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                  .setData(Uri.parse("package:$packageName"))
+              )
+            }
+          }
+        }
       },
       "ClyTradeNative"
     )

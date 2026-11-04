@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { isAndroid, openNotificationSettings } from '@/lib/native'
 import { APP_PLATFORM } from '@/lib/version'
 
 export type NotificationPermissionState = 'default' | 'granted' | 'denied' | 'unsupported'
@@ -6,6 +7,7 @@ export type NotificationPermissionState = 'default' | 'granted' | 'denied' | 'un
 export interface NotificationPermissionHook {
   permission: NotificationPermissionState
   request: () => Promise<boolean>
+  openSettings: (() => void) | null
 }
 
 function webPermission(): NotificationPermissionState {
@@ -13,23 +15,40 @@ function webPermission(): NotificationPermissionState {
   return Notification.permission
 }
 
+async function nativePermission(): Promise<'granted' | 'denied' | 'unsupported'> {
+  try {
+    const { isPermissionGranted } = await import('@tauri-apps/plugin-notification')
+    return (await isPermissionGranted()) ? 'granted' : 'denied'
+  } catch {
+    return 'unsupported'
+  }
+}
+
+function applyNative(
+  next: 'granted' | 'denied' | 'unsupported',
+  current: NotificationPermissionState,
+): NotificationPermissionState {
+  if (next === 'unsupported') return 'unsupported'
+  if (next === 'granted') return 'granted'
+  return current === 'default' ? 'default' : 'denied'
+}
+
 export function useNotificationPermission(): NotificationPermissionHook {
   const native = APP_PLATFORM !== 'web'
   const [permission, setPermission] = useState<NotificationPermissionState>(() =>
     native ? 'default' : webPermission(),
   )
+  const requestVersion = useRef(0)
 
   useEffect(() => {
     if (!native) return
 
     let active = true
+    const version = requestVersion.current
     void (async () => {
-      try {
-        const { isPermissionGranted } = await import('@tauri-apps/plugin-notification')
-        const granted = await isPermissionGranted()
-        if (active) setPermission(granted ? 'granted' : 'default')
-      } catch {
-        if (active) setPermission('unsupported')
+      const next = await nativePermission()
+      if (active && version === requestVersion.current) {
+        setPermission((current) => applyNative(next, current))
       }
     })()
 
@@ -38,10 +57,40 @@ export function useNotificationPermission(): NotificationPermissionHook {
     }
   }, [native])
 
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState !== 'visible') return
+      if (!native) {
+        setPermission(webPermission())
+        return
+      }
+
+      const version = requestVersion.current
+      void (async () => {
+        const next = await nativePermission()
+        if (version === requestVersion.current) {
+          setPermission((current) => applyNative(next, current))
+        }
+      })()
+    }
+
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [native])
+
   const request = useCallback(async (): Promise<boolean> => {
+    if (permission === 'granted') return true
+
+    requestVersion.current += 1
+
     if (native) {
       try {
-        const { requestPermission } = await import('@tauri-apps/plugin-notification')
+        const { isPermissionGranted, requestPermission } =
+          await import('@tauri-apps/plugin-notification')
+        if (await isPermissionGranted()) {
+          setPermission('granted')
+          return true
+        }
         const result = await requestPermission()
         const next: NotificationPermissionState =
           result === 'granted' ? 'granted' : result === 'denied' ? 'denied' : 'default'
@@ -65,7 +114,13 @@ export function useNotificationPermission(): NotificationPermissionHook {
     } catch {
       return false
     }
-  }, [native])
+  }, [native, permission])
 
-  return { permission, request }
+  const canOpenSettings = isAndroid() || APP_PLATFORM === 'ios'
+
+  return {
+    permission,
+    request,
+    openSettings: canOpenSettings ? openNotificationSettings : null,
+  }
 }

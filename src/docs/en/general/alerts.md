@@ -92,7 +92,10 @@ Only crypto is covered in 0.5. Forex, stocks and the other markets stay manual.
 ## Background monitoring
 
 Background monitoring is off by default. Turning it on asks for notification
-permission; if you deny it, the in-app inbox and unread badge keep working.
+permission; if you deny it, the in-app inbox and unread badge keep working. Once
+the system stops showing its permission prompt, the Alerts card offers **Open
+settings** so you can allow notifications there. The status refreshes when you
+return to the app.
 
 - **Android** runs a WorkManager job about every 15 minutes when a network is
   available. Android may delay it under Doze or battery optimization, so treat
@@ -102,6 +105,9 @@ permission; if you deny it, the in-app inbox and unread badge keep working.
   choice can be changed in Preferences. Quitting stops monitoring. Windows does
   not expose notification tap actions, so tapping a Windows toast does not open
   Alerts; use the tray icon to restore the app.
+- **iOS** has no background mode yet. Alerts are checked while the app is open;
+  if notifications are blocked, the Alerts card's **Open settings** button takes
+  you to the app's settings.
 - **PWA** has no background mode. Prices are checked every 5 minutes while the
   tab is open and visible; nothing runs after you close it.
 

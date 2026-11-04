@@ -14,6 +14,33 @@ struct TrayAvailability {
 }
 
 #[tauri::command]
+#[allow(deprecated)]
+fn open_notification_settings(app: tauri::AppHandle) -> Result<(), String> {
+  #[cfg(target_os = "ios")]
+  {
+    use objc2::MainThreadMarker;
+    use objc2_foundation::NSURL;
+    use objc2_ui_kit::{UIApplication, UIApplicationOpenSettingsURLString};
+
+    app
+      .run_on_main_thread(|| {
+        let Some(mtm) = MainThreadMarker::new() else {
+          return;
+        };
+        let application = UIApplication::sharedApplication(mtm);
+        if let Some(url) = NSURL::URLWithString(UIApplicationOpenSettingsURLString) {
+          application.openURL(&url);
+        }
+      })
+      .map_err(|error| error.to_string())?;
+  }
+  #[cfg(not(target_os = "ios"))]
+  let _ = app;
+
+  Ok(())
+}
+
+#[tauri::command]
 fn resolve_windows_close(app: tauri::AppHandle, behavior: String) -> Result<(), String> {
   match behavior.as_str() {
     "tray" => {
@@ -56,6 +83,7 @@ pub fn run() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
+      open_notification_settings,
       resolve_windows_close,
       background::write_background_snapshot,
       background::read_background_events,

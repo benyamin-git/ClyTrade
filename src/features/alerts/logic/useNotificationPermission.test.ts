@@ -103,6 +103,26 @@ describe('useNotificationPermission on the web', () => {
 
     expect(result.current.permission).toBe('unsupported')
   })
+
+  it('rechecks the permission when the page becomes visible', async () => {
+    stubNotification('denied')
+    const { result } = renderHook(() => useNotificationPermission())
+    expect(result.current.permission).toBe('denied')
+
+    FakeNotification.permission = 'granted'
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    expect(result.current.permission).toBe('granted')
+  })
+
+  it('does not expose the native settings action', () => {
+    stubNotification('denied')
+    const { result } = renderHook(() => useNotificationPermission())
+
+    expect(result.current.openSettings).toBeNull()
+  })
 })
 
 describe('useNotificationPermission on native', () => {
@@ -125,9 +145,36 @@ describe('useNotificationPermission on native', () => {
     expect(plugin.requestPermission).not.toHaveBeenCalled()
   })
 
-  it('requests permission through the plugin', async () => {
+  it('does not prompt when the plugin permission is already granted', async () => {
+    platform.current = 'android'
+    const { result } = renderHook(() => useNotificationPermission())
+    await waitFor(() => expect(result.current.permission).toBe('granted'))
+
+    await act(async () => {
+      await expect(result.current.request()).resolves.toBe(true)
+    })
+
+    expect(plugin.requestPermission).not.toHaveBeenCalled()
+  })
+
+  it('rechecks the plugin before prompting when the state is stale', async () => {
     platform.current = 'android'
     plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    const { result } = renderHook(() => useNotificationPermission())
+    await waitFor(() => expect(result.current.permission).toBe('default'))
+
+    plugin.isPermissionGranted.mockResolvedValue(true)
+    await act(async () => {
+      await expect(result.current.request()).resolves.toBe(true)
+    })
+
+    expect(plugin.requestPermission).not.toHaveBeenCalled()
+    expect(result.current.permission).toBe('granted')
+  })
+
+  it('requests permission through the plugin', async () => {
+    platform.current = 'android'
+    plugin.isPermissionGranted.mockResolvedValue(false)
     const { result } = renderHook(() => useNotificationPermission())
     await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
 
@@ -141,7 +188,7 @@ describe('useNotificationPermission on native', () => {
 
   it('reports a denied plugin request', async () => {
     platform.current = 'android'
-    plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    plugin.isPermissionGranted.mockResolvedValue(false)
     plugin.requestPermission.mockResolvedValueOnce('denied')
     const { result } = renderHook(() => useNotificationPermission())
     await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
@@ -155,7 +202,7 @@ describe('useNotificationPermission on native', () => {
 
   it('normalizes an unexpected plugin result to default', async () => {
     platform.current = 'android'
-    plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    plugin.isPermissionGranted.mockResolvedValue(false)
     plugin.requestPermission.mockResolvedValueOnce('prompt' as NotificationPermission)
     const { result } = renderHook(() => useNotificationPermission())
     await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
@@ -177,7 +224,7 @@ describe('useNotificationPermission on native', () => {
 
   it('returns false when the plugin request fails', async () => {
     platform.current = 'android'
-    plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    plugin.isPermissionGranted.mockResolvedValue(false)
     plugin.requestPermission.mockRejectedValueOnce(new Error('missing plugin'))
     const { result } = renderHook(() => useNotificationPermission())
     await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
@@ -187,5 +234,54 @@ describe('useNotificationPermission on native', () => {
     })
 
     expect(result.current.permission).toBe('unsupported')
+  })
+
+  it('exposes the settings action on Android and iOS', () => {
+    platform.current = 'android'
+    const android = renderHook(() => useNotificationPermission())
+    expect(android.result.current.openSettings).not.toBeNull()
+
+    platform.current = 'ios'
+    const ios = renderHook(() => useNotificationPermission())
+    expect(ios.result.current.openSettings).not.toBeNull()
+
+    platform.current = 'windows'
+    const windows = renderHook(() => useNotificationPermission())
+    expect(windows.result.current.openSettings).toBeNull()
+  })
+
+  it('rechecks the native permission when the app becomes visible', async () => {
+    platform.current = 'android'
+    plugin.isPermissionGranted.mockResolvedValueOnce(false)
+    const { result } = renderHook(() => useNotificationPermission())
+    await waitFor(() => expect(result.current.permission).toBe('default'))
+
+    plugin.isPermissionGranted.mockResolvedValue(true)
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    await waitFor(() => expect(result.current.permission).toBe('granted'))
+  })
+
+  it('keeps the denied state when a refresh still reports no permission', async () => {
+    platform.current = 'android'
+    plugin.isPermissionGranted.mockResolvedValue(false)
+    plugin.requestPermission.mockResolvedValueOnce('denied')
+    const { result } = renderHook(() => useNotificationPermission())
+    await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledOnce())
+
+    await act(async () => {
+      await result.current.request()
+    })
+    expect(result.current.permission).toBe('denied')
+
+    plugin.isPermissionGranted.mockResolvedValue(false)
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    await waitFor(() => expect(plugin.isPermissionGranted).toHaveBeenCalledTimes(3))
+    expect(result.current.permission).toBe('denied')
   })
 })

@@ -1,8 +1,18 @@
 import { invoke } from '@tauri-apps/api/core'
 import { APP_PLATFORM } from './version'
 
-function isAndroid(): boolean {
+export function isAndroid(): boolean {
   return APP_PLATFORM === 'android' || APP_PLATFORM === 'androideabi'
+}
+
+export function openNotificationSettings(): void {
+  if (isAndroid()) {
+    window.ClyTradeNative?.openNotificationSettings?.()
+    return
+  }
+  if (APP_PLATFORM === 'ios') {
+    void invoke('open_notification_settings').catch(() => undefined)
+  }
 }
 
 export function isBackgroundPlatform(): boolean {

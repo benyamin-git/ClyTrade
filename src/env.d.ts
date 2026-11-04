@@ -11,6 +11,7 @@ interface ClyTradeNativeBridge {
   readBackgroundEvents?: () => string
   clearBackgroundEvents?: () => void
   consumePendingRoute?: () => string
+  openNotificationSettings?: () => void
 }
 
 interface Window {

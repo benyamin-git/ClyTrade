@@ -78,14 +78,17 @@ vi.mock('@/lib/version', async (importOriginal) => {
 
 const native = vi.hoisted(() => ({
   setNativeBackgroundMonitoring: vi.fn<(enabled: boolean) => void>(),
+  openNotificationSettings: vi.fn<() => void>(),
 }))
 
 vi.mock('@/lib/native', () => ({
+  isAndroid: () => platform.current === 'android' || platform.current === 'androideabi',
   isBackgroundPlatform: () =>
     platform.current === 'windows' ||
     platform.current === 'android' ||
     platform.current === 'androideabi',
   setNativeBackgroundMonitoring: native.setNativeBackgroundMonitoring,
+  openNotificationSettings: native.openNotificationSettings,
 }))
 
 const notificationPlugin = vi.hoisted(() => ({
@@ -235,6 +238,7 @@ afterEach(() => {
 beforeEach(async () => {
   platform.current = 'web'
   native.setNativeBackgroundMonitoring.mockReset()
+  native.openNotificationSettings.mockReset()
   notificationPlugin.isPermissionGranted.mockReset()
   notificationPlugin.isPermissionGranted.mockResolvedValue(true)
   notificationPlugin.requestPermission.mockReset()
@@ -867,6 +871,9 @@ describe('AlertsPage notification permission', () => {
 
     await waitFor(() => expect(within(card).getByRole('status')).toHaveTextContent('Blocked'))
     expect(within(card).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(card).getByRole('alert')).toHaveTextContent(
+      'Notifications are blocked. Allow them for this site in your browser settings, then reload.',
+    )
   })
 
   it.each([
@@ -911,6 +918,18 @@ describe('AlertsPage background monitoring', () => {
     await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
     expect(within(card).getByRole('switch', { name: 'Enable background monitoring' })).toBeEnabled()
     expect(within(card).getByText(/every 15 minutes/i)).toBeInTheDocument()
+  })
+
+  it('explains that background monitoring is unavailable on iOS', () => {
+    platform.current = 'ios'
+    renderPage()
+
+    const card = screen.getByTestId('alerts-background')
+    expect(
+      within(card).getByText(
+        'Background monitoring is not available on iOS. Alerts still appear while the app is open.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('shows the Windows 5-minute tray cadence', async () => {
@@ -959,11 +978,14 @@ describe('AlertsPage background monitoring', () => {
     await user.click(toggle)
 
     expect(await within(card).findByRole('alert')).toHaveTextContent(
-      'Allow notifications to turn on background monitoring. In-app alerts keep working.',
+      'Notifications are blocked. Allow them in system settings, then return here.',
     )
     expect(toggle).toHaveAttribute('aria-checked', 'false')
     expect(native.setNativeBackgroundMonitoring).not.toHaveBeenCalled()
     expect((await getPreferences()).backgroundMonitoring).toBe(false)
+
+    await user.click(within(card).getByRole('button', { name: 'Open settings' }))
+    expect(native.openNotificationSettings).toHaveBeenCalledOnce()
   })
 
   it('persists off and cancels scheduling when disabled', async () => {

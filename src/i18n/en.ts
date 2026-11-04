@@ -409,6 +409,8 @@ export const en = {
       toggle: 'Enable background monitoring',
       unavailable:
         'Background monitoring is not available in the browser. Use the Android or Windows app.',
+      unavailableIos:
+        'Background monitoring is not available on iOS. Alerts still appear while the app is open.',
     },
     form: {
       add: 'New alert',
@@ -584,6 +586,11 @@ export const en = {
       default: 'Not requested',
       unsupported: 'Not supported',
       request: 'Enable notifications',
+      openSettings: 'Open settings',
+      blockedSettings:
+        'Notifications are blocked. Allow them in system settings, then return here.',
+      blockedBrowser:
+        'Notifications are blocked. Allow them for this site in your browser settings, then reload.',
     },
   },
   journal: {

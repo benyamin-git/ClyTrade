@@ -27,13 +27,20 @@ function cadenceLabel(t: Translator): string {
 export function BackgroundMonitoringCard() {
   const { preferences, updatePreferences } = usePreferences()
   const { t } = useI18n()
-  const { permission, request } = useNotificationPermission()
+  const { permission, request, openSettings } = useNotificationPermission()
   const [busy, setBusy] = useState(false)
   const [permissionFailed, setPermissionFailed] = useState(false)
   const descriptionId = useId()
   const available = isBackgroundPlatform()
   const enabled = available && preferences.backgroundMonitoring
   const title = t('alerts.background.title')
+  const unavailable =
+    APP_PLATFORM === 'ios'
+      ? t('alerts.background.unavailableIos')
+      : t('alerts.background.unavailable')
+  const blockedHint = openSettings
+    ? t('notifications.permission.blockedSettings')
+    : t('notifications.permission.blockedBrowser')
 
   async function enable() {
     setBusy(true)
@@ -105,16 +112,25 @@ export function BackgroundMonitoringCard() {
           <span role="status" className="ms-auto text-xs text-on-surface-variant">
             {t('notifications.permission.label')}: {permissionStatus(permission, t)}
           </span>
-          {permission === 'default' ? (
+          {permission === 'default' || (permission === 'denied' && openSettings) ? (
             <Button size="sm" variant="outlined" disabled={busy} onClick={() => void request()}>
               {t('notifications.permission.request')}
             </Button>
           ) : null}
+          {permission === 'denied' && openSettings ? (
+            <Button size="sm" variant="outlined" onClick={openSettings}>
+              {t('notifications.permission.openSettings')}
+            </Button>
+          ) : null}
         </div>
         <p id={descriptionId} className="text-xs text-on-surface-variant">
-          {available ? cadenceLabel(t) : t('alerts.background.unavailable')}
+          {available ? cadenceLabel(t) : unavailable}
         </p>
-        {permissionFailed ? (
+        {permission === 'denied' ? (
+          <p role="alert" className="text-xs text-error">
+            {blockedHint}
+          </p>
+        ) : permissionFailed ? (
           <p role="alert" className="text-xs text-error">
             {t('alerts.background.permissionRequired')}
           </p>

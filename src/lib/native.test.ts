@@ -3,6 +3,7 @@ import {
   clearNativeEvents,
   consumeNativePendingRoute,
   isBackgroundPlatform,
+  openNotificationSettings,
   readNativeEvents,
   setNativeBackgroundMonitoring,
   writeNativeSnapshot,
@@ -31,6 +32,7 @@ interface FakeBridge {
   readBackgroundEvents: Mock<() => string>
   clearBackgroundEvents: Mock<() => void>
   consumePendingRoute: Mock<() => string>
+  openNotificationSettings: Mock<() => void>
 }
 
 function installBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
@@ -41,6 +43,7 @@ function installBridge(overrides: Partial<FakeBridge> = {}): FakeBridge {
     readBackgroundEvents: vi.fn<() => string>(() => '[]'),
     clearBackgroundEvents: vi.fn<() => void>(),
     consumePendingRoute: vi.fn<() => string>(() => ''),
+    openNotificationSettings: vi.fn<() => void>(),
     ...overrides,
   }
   window.ClyTradeNative = bridge
@@ -216,5 +219,44 @@ describe('background native bridge', () => {
     platform.current = 'android'
 
     expect(consumeNativePendingRoute()).toBeNull()
+  })
+
+  it('opens the Android notification settings through the bridge', () => {
+    platform.current = 'android'
+    const bridge = installBridge()
+
+    openNotificationSettings()
+
+    expect(bridge.openNotificationSettings).toHaveBeenCalledOnce()
+  })
+
+  it('opens the iOS notification settings through the Tauri command', () => {
+    platform.current = 'ios'
+
+    openNotificationSettings()
+
+    expect(tauri.invoke).toHaveBeenCalledWith('open_notification_settings')
+  })
+
+  it('does not use the Android bridge off Android', () => {
+    const webBridge = installBridge()
+    openNotificationSettings()
+    expect(webBridge.openNotificationSettings).not.toHaveBeenCalled()
+
+    platform.current = 'windows'
+    const windowsBridge = installBridge()
+    openNotificationSettings()
+    expect(windowsBridge.openNotificationSettings).not.toHaveBeenCalled()
+
+    platform.current = 'ios'
+    const iosBridge = installBridge()
+    openNotificationSettings()
+    expect(iosBridge.openNotificationSettings).not.toHaveBeenCalled()
+  })
+
+  it('does not throw when the Android settings bridge is missing', () => {
+    platform.current = 'android'
+
+    expect(() => openNotificationSettings()).not.toThrow()
   })
 })

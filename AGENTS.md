@@ -84,9 +84,13 @@ large changes.
   signing values from the environment and selects the release signing config
   when they are present; `MainActivity.kt` keeps `enableEdgeToEdge()`, seeds
   the system bar icon contrast from the current `uiMode` so it is correct before
-  the web app loads, and adds the `ClyTradeNative.setDarkTheme` JS bridge that
+  the web app loads, adds the `ClyTradeNative.setDarkTheme` JS bridge that
   syncs the Android status and navigation bar icon colors with the in-app theme
-  (see `syncNativeSystemBar` in `src/theme/theme.ts`); `MarketWorker.kt`
+  (see `syncNativeSystemBar` in `src/theme/theme.ts`), and the
+  `ClyTradeNative.openNotificationSettings` bridge that opens the app's
+  notification settings when the system will not show the permission prompt
+  again; `lib.rs` exposes the matching `open_notification_settings` command for
+  iOS through `UIApplicationOpenSettingsURLString`; `MarketWorker.kt`
   schedules the `clytrade-market-poll` unique periodic work every 15 minutes with
   a connected-network constraint and cancels it when background monitoring is
   off, while `MarketSnapshot.kt`, `MarketApi.kt`, `MarketEvaluator.kt`,
