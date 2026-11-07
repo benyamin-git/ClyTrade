@@ -5,6 +5,7 @@ import {
   createAlert,
   createAlertEvent,
   deleteAlert,
+  deleteAlertEvent,
   dismissAlertEvent,
   getAlert,
   listAlertEvents,
@@ -110,6 +111,29 @@ describe('alert repository', () => {
 
     expect((await listAlertEvents(2)).map((event) => event.at)).toEqual([3, 2])
     expect((await listAlertEvents()).map((event) => event.at)).toEqual([3, 2, 1])
+  })
+
+  it('deletes one event and keeps the rest', async () => {
+    const first = await createAlertEvent(eventDraft(1))
+    await createAlertEvent(eventDraft(2))
+
+    await deleteAlertEvent(first.id)
+
+    expect((await listAlertEvents()).map((event) => event.at)).toEqual([2])
+  })
+
+  it('ignores deleting an unknown event', async () => {
+    await expect(deleteAlertEvent('missing')).resolves.toBeUndefined()
+    expect(await listAlertEvents()).toEqual([])
+  })
+
+  it('clears every event', async () => {
+    await createAlertEvent(eventDraft(1))
+    await createAlertEvent(eventDraft(2))
+
+    await clearAlertEvents()
+
+    expect(await listAlertEvents()).toEqual([])
   })
 
   it('marks one event and all events read', async () => {

@@ -1,9 +1,10 @@
-import { History } from 'lucide-react'
+import { History, Trash2 } from 'lucide-react'
 import { alertEventKindSchema, type AlertEvent } from '@/data/models/price'
 import { useI18n } from '@/i18n/I18nContext'
 import { formatDate, formatTime } from '@/lib/dates'
 import { formatPrice } from '@/lib/format'
 import { EmptyState } from '@/ui/components/EmptyState'
+import { IconButton } from '@/ui/components/IconButton'
 import { SegmentedControl } from '@/ui/components/SegmentedControl'
 import { SelectField } from '@/ui/components/SelectField'
 import { filterAlertEvents, type AlertHistoryFilter } from '../logic/alertHistory'
@@ -12,9 +13,10 @@ export interface AlertHistoryProps {
   events: readonly AlertEvent[]
   filter: AlertHistoryFilter
   onFilter: (filter: AlertHistoryFilter) => void
+  onDelete: (event: AlertEvent) => void
 }
 
-export function AlertHistory({ events, filter, onFilter }: AlertHistoryProps) {
+export function AlertHistory({ events, filter, onFilter, onDelete }: AlertHistoryProps) {
   const { t } = useI18n()
   const filtered = filterAlertEvents(events, filter)
   const kindFilter = filter === 'all' || filter === 'unread' ? 'all' : filter
@@ -88,12 +90,24 @@ export function AlertHistory({ events, filter, onFilter }: AlertHistoryProps) {
                     )}
                   </p>
                 </div>
-                <time
-                  dateTime={new Date(event.at).toISOString()}
-                  className="shrink-0 text-2xs text-on-surface-variant"
-                >
-                  {t('alerts.at', { date: formatDate(event.at), time: formatTime(event.at) })}
-                </time>
+                <div className="flex shrink-0 items-center gap-1">
+                  <time
+                    dateTime={new Date(event.at).toISOString()}
+                    className="text-2xs text-on-surface-variant"
+                  >
+                    {t('alerts.at', { date: formatDate(event.at), time: formatTime(event.at) })}
+                  </time>
+                  <IconButton
+                    label={t('alerts.history.deleteAria', {
+                      symbol: event.symbol,
+                      kind: t(`alerts.kinds.${event.kind}`),
+                    })}
+                    size="sm"
+                    onClick={() => onDelete(event)}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </div>
               </li>
             )
           })}

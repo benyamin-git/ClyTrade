@@ -516,6 +516,96 @@ describe('AlertsPage', () => {
     expect(within(history).getByRole('button', { name: 'Mark all read' })).toBeDisabled()
   })
 
+  it('deletes one history event and keeps the rest', async () => {
+    await seedEvent({ symbol: 'BTC', at: NOW - 1_000 })
+    await seedEvent({ symbol: 'ETH', price: 3000, level: 3000, at: NOW - 2_000 })
+    const user = userEvent.setup()
+    renderPage()
+
+    const history = await screen.findByTestId('alerts-history')
+    await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(2))
+    await user.click(
+      within(history).getByRole('button', { name: 'Delete Target hit event for BTC' }),
+    )
+
+    await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(1))
+    expect(within(history).getByText('ETH')).toBeInTheDocument()
+    expect((await listAlertEvents()).map((event) => event.symbol)).toEqual(['ETH'])
+  })
+
+  it('removes a deleted review event from the review list', async () => {
+    await seedEvent({
+      kind: 'gap',
+      symbol: 'SOL',
+      price: 180,
+      level: null,
+      targetPrice: 200,
+      stopPrice: 150,
+      at: NOW - 1_000,
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const history = await screen.findByTestId('alerts-history')
+    const review = screen.getByTestId('alerts-review')
+    await waitFor(() => expect(within(review).getAllByRole('listitem')).toHaveLength(1))
+    await user.click(
+      within(history).getByRole('button', { name: 'Delete Both levels crossed event for SOL' }),
+    )
+
+    await waitFor(() =>
+      expect(within(review).getByText('Nothing needs review')).toBeInTheDocument(),
+    )
+    expect(await listAlertEvents()).toEqual([])
+  })
+
+  it('clears all history after confirmation', async () => {
+    await seedEvent({ symbol: 'BTC', at: NOW - 1_000 })
+    await seedEvent({
+      kind: 'gap',
+      symbol: 'SOL',
+      price: 180,
+      level: null,
+      targetPrice: 200,
+      stopPrice: 150,
+      at: NOW - 2_000,
+    })
+    const user = userEvent.setup()
+    renderPage()
+
+    const history = await screen.findByTestId('alerts-history')
+    await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(2))
+    await user.click(within(history).getByRole('button', { name: 'Clear history' }))
+
+    const dialog = screen.getByRole('dialog', { name: 'Clear alert history?' })
+    expect(
+      within(dialog).getByText(
+        'Delete all 2 history entries? Alert rules and journal trades are not affected. This cannot be undone.',
+      ),
+    ).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Clear history' }))
+
+    await waitFor(() => expect(within(history).getByText('No alerts yet')).toBeInTheDocument())
+    expect(screen.getByText('Nothing needs review')).toBeInTheDocument()
+    expect(within(history).getByRole('button', { name: 'Clear history' })).toBeDisabled()
+    expect(await listAlertEvents()).toEqual([])
+  })
+
+  it('keeps history when the clear confirmation is cancelled', async () => {
+    await seedEvent({ symbol: 'BTC', at: NOW - 1_000 })
+    const user = userEvent.setup()
+    renderPage()
+
+    const history = await screen.findByTestId('alerts-history')
+    await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(1))
+    await user.click(within(history).getByRole('button', { name: 'Clear history' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(within(history).getAllByRole('listitem')).toHaveLength(1)
+    expect(await listAlertEvents()).toHaveLength(1)
+  })
+
   it('shows only the newest 500 events', async () => {
     const events = Array.from({ length: 501 }, (_, index) => ({
       ...eventDraft({

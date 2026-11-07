@@ -12,7 +12,9 @@ It covers two things:
 
 Hits land in the in-app inbox and, when the platform allows it, as an operating
 system notification. The tab shows a status strip, the active rules, a review
-queue and the last 500 events.
+queue and the last 500 events. History entries can be deleted one at a time with
+the trash button, or all at once with **Clear history**. Clearing removes only
+the in-app record; alert rules and journal trades are untouched.
 
 ## Rules
 

@@ -160,6 +160,10 @@ export async function mergeAlertEvents(events: AlertEvent[]): Promise<void> {
   }
 }
 
+export async function deleteAlertEvent(id: string): Promise<void> {
+  await db.alertEvents.delete(id)
+}
+
 export async function clearAlertEvents(): Promise<void> {
   await db.alertEvents.clear()
 }

@@ -4,7 +4,9 @@ import { Plus, RefreshCw } from 'lucide-react'
 import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import {
+  clearAlertEvents,
   deleteAlert,
+  deleteAlertEvent,
   dismissAlertEvent,
   listAlertEvents,
   listAlerts,
@@ -101,6 +103,7 @@ export function AlertsPage() {
   } | null>(null)
   const [tradeForm, setTradeForm] = useState<{ trade: Trade; reviewEventId?: string } | null>(null)
   const [deleting, setDeleting] = useState<PriceAlert | null>(null)
+  const [clearingHistory, setClearingHistory] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
 
@@ -211,6 +214,15 @@ export function AlertsPage() {
     void markAllAlertEventsRead().catch(() => undefined)
   }
 
+  function handleDeleteEvent(event: AlertEvent) {
+    void deleteAlertEvent(event.id).catch(() => undefined)
+  }
+
+  function handleClearHistory() {
+    void clearAlertEvents().catch(() => undefined)
+    setClearingHistory(false)
+  }
+
   return (
     <ViewportPage className="gap-4 overflow-y-auto">
       <Card
@@ -294,20 +306,35 @@ export function AlertsPage() {
         aria-label={historyLabel}
         data-testid="alerts-history"
         actions={
-          <Button
-            size="sm"
-            variant="outlined"
-            onClick={handleMarkAllRead}
-            disabled={unreadCount === 0}
-          >
-            {t('alerts.history.markAllRead')}
-          </Button>
+          <>
+            <Button
+              size="sm"
+              variant="outlined"
+              onClick={handleMarkAllRead}
+              disabled={unreadCount === 0}
+            >
+              {t('alerts.history.markAllRead')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outlined"
+              onClick={() => setClearingHistory(true)}
+              disabled={(events ?? []).length === 0}
+            >
+              {t('alerts.history.clear')}
+            </Button>
+          </>
         }
       >
         {events === undefined ? (
           <LoadingState />
         ) : (
-          <AlertHistory events={events} filter={historyFilter} onFilter={setHistoryFilter} />
+          <AlertHistory
+            events={events}
+            filter={historyFilter}
+            onFilter={setHistoryFilter}
+            onDelete={handleDeleteEvent}
+          />
         )}
       </Card>
 
@@ -352,6 +379,26 @@ export function AlertsPage() {
       >
         <p className="text-sm">
           {t('alerts.rules.deleteConfirm', { symbol: deleting?.symbol ?? '' })}
+        </p>
+      </Sheet>
+
+      <Sheet
+        open={clearingHistory}
+        onClose={() => setClearingHistory(false)}
+        title={t('alerts.history.clearTitle')}
+        footer={
+          <>
+            <Button variant="text" onClick={() => setClearingHistory(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" onClick={handleClearHistory}>
+              {t('alerts.history.clear')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm">
+          {t('alerts.history.clearConfirm', { count: events?.length ?? 0 })}
         </p>
       </Sheet>
     </ViewportPage>

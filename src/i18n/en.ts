@@ -470,6 +470,11 @@ export const en = {
     history: {
       all: 'All',
       allTypes: 'All types',
+      clear: 'Clear history',
+      clearConfirm:
+        'Delete all {{count}} history entries? Alert rules and journal trades are not affected. This cannot be undone.',
+      clearTitle: 'Clear alert history?',
+      deleteAria: 'Delete {{kind}} event for {{symbol}}',
       emptyTitle: 'No alerts yet',
       emptyDescription: 'Fired alerts stay here so you can check them later.',
       filterLabel: 'History filter',
