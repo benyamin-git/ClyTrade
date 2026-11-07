@@ -6,6 +6,14 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-11-07
+
+### Added
+
+- Alert history entries can be deleted one at a time with the trash button, or
+  all at once with **Clear history**; clearing removes the in-app record only
+  and leaves alert rules and journal trades untouched.
+
 ## [0.5.4] - 2026-11-04
 
 ### Fixed
@@ -247,7 +255,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.4...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.5...HEAD
+[0.5.5]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.5
 [0.5.4]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.4
 [0.5.3]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.3
 [0.5.2]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.2
