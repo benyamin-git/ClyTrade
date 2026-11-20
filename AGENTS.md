@@ -111,8 +111,8 @@ large changes.
   `app/proguard-rules.pro` keeps `@android.webkit.JavascriptInterface` methods
   so the bridge survives release minification;
   `scripts/patch-android-icons.mjs` sets the adaptive launcher background to
-  black after `tauri icon`, and `generate-icons.mjs` keeps the mark inside the
-  adaptive and maskable safe zones.
+  black and insets the foreground into the 72dp mask after `tauri icon`, and
+  `generate-icons.mjs` keeps the mark inside the maskable safe zone.
 - Releases: the version lives in `package.json`; `src-tauri/tauri.conf.json`
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag
