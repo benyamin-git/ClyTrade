@@ -6,6 +6,13 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-11-20
+
+### Changed
+
+- New app mark: an abstract white symbol on a pure black background, used for
+  the favicon, PWA icons, splash screens and native builds.
+
 ## [0.5.5] - 2026-11-07
 
 ### Added
@@ -255,7 +262,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.5...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.6...HEAD
+[0.5.6]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.6
 [0.5.5]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.5
 [0.5.4]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.4
 [0.5.3]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.3
