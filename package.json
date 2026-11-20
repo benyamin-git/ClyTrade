@@ -36,7 +36,7 @@
     "test:watch": "vitest",
     "icons": "node scripts/generate-icons.mjs",
     "splash": "node scripts/generate-splash.mjs",
-    "icons:native": "tauri icon public/icons/icon-512.png",
+    "icons:native": "tauri icon public/icons/icon-512.png && node scripts/patch-android-icons.mjs",
     "accents": "node scripts/generate-accents.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:install": "playwright install chromium",
