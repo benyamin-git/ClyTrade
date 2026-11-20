@@ -46,7 +46,7 @@ export default defineConfig({
       disable: isNativeBuild,
       registerType: 'prompt',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      includeAssets: ['logo.svg', 'icons/*.png'],
       manifest: {
         name: 'ClyTrade',
         short_name: 'ClyTrade',

@@ -63,6 +63,8 @@ large changes.
   doc). Registry titles and summaries live in the i18n dictionaries, not in the
   markdown; fenced code blocks render `dir="ltr"` so formulas stay aligned under
   RTL.
+- The app mark is `public/logo.svg` (pure white on pure black); the favicon,
+  PWA icons and splash screens all render from it.
 - Never hand-edit generated files (`public/icons/`, `public/splash/`,
   `src/theme/accents.css`). Regenerate them with `npm run icons` /
   `npm run splash` / `npm run accents`. Accent ids and labels live in

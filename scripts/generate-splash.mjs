@@ -1,15 +1,18 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createCanvas, drawMark, encodePng, fillRect } from './png.mjs'
+import { chromium } from 'playwright'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const outDir = join(root, 'public', 'splash')
 const screens = JSON.parse(readFileSync(join(root, 'src', 'pwa', 'splash-screens.json'), 'utf8'))
 mkdirSync(outDir, { recursive: true })
 
-const BACKGROUND = [28, 27, 31, 255]
-const ACCENT = [125, 174, 236, 255]
+const logo = readFileSync(join(root, 'public', 'logo.svg'), 'utf8')
+const source = `data:image/svg+xml;base64,${Buffer.from(logo).toString('base64')}`
+
+const browser = await chromium.launch()
+const page = await browser.newPage({ deviceScaleFactor: 1 })
 
 const seen = new Set()
 for (const screen of screens) {
@@ -24,12 +27,14 @@ for (const screen of screens) {
     if (seen.has(file)) continue
     seen.add(file)
 
-    const canvas = createCanvas(width, height)
-    fillRect(canvas, 0, 0, width, height, BACKGROUND)
-    const mark = Math.round(Math.min(width, height) * 0.26)
-    drawMark(canvas, Math.round((width - mark) / 2), Math.round((height - mark) / 2), mark, ACCENT)
-    writeFileSync(join(outDir, file), encodePng(width, height, canvas.pixels))
+    const mark = Math.round(Math.min(width, height) * 0.34)
+    await page.setViewportSize({ width, height })
+    await page.setContent(
+      `<style>html,body{margin:0;height:100%;background:#000;display:flex;align-items:center;justify-content:center}img{display:block;width:${mark}px;height:${mark}px}</style><img src="${source}">`,
+    )
+    writeFileSync(join(outDir, file), await page.screenshot())
   }
 }
 
 console.log(`generated ${seen.size} splash screens`)
+await browser.close()
