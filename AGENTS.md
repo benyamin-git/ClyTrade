@@ -110,10 +110,9 @@ large changes.
   template `activity_main.xml` layout were deliberately removed;
   `app/proguard-rules.pro` keeps `@android.webkit.JavascriptInterface` methods
   so the bridge survives release minification;
-  `mipmap-anydpi-v26/ic_launcher.xml`, `drawable/ic_launcher_foreground_inset.xml`
-  and `values/ic_launcher_background.xml` inset the generated foreground into
-  the 72dp adaptive mask over a black background so the mark is not cropped, and
-  `scripts/patch-android-icons.mjs` rewrites them after `tauri icon`.
+  `scripts/patch-android-icons.mjs` sets the adaptive launcher background to
+  black after `tauri icon`, and `generate-icons.mjs` keeps the mark inside the
+  adaptive and maskable safe zones.
 - Releases: the version lives in `package.json`; `src-tauri/tauri.conf.json`
   reads it from there and Tauri derives the Android `versionCode`. Use
   `npm run version:set -- <version>`, add a `CHANGELOG.md` entry, then tag

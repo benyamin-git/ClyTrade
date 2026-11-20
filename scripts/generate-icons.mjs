@@ -22,9 +22,10 @@ const page = await browser.newPage({ deviceScaleFactor: 1 })
 
 for (const target of targets) {
   const radius = target.rounded ? Math.round(target.size * 0.22) : 0
+  const mark = Math.round(target.size * 0.8)
   await page.setViewportSize({ width: target.size, height: target.size })
   await page.setContent(
-    `<style>html,body{margin:0;background:transparent}img{display:block;width:${target.size}px;height:${target.size}px;border-radius:${radius}px}</style><img src="${source}">`,
+    `<style>html,body{margin:0;background:transparent}.tile{display:flex;align-items:center;justify-content:center;width:${target.size}px;height:${target.size}px;background:#000;border-radius:${radius}px}img{display:block;width:${mark}px;height:${mark}px}</style><div class="tile"><img src="${source}"></div>`,
   )
   writeFileSync(join(outDir, target.file), await page.screenshot({ omitBackground: true }))
   console.log(`generated ${target.file}`)
