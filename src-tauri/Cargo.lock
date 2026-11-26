@@ -490,7 +490,7 @@ dependencies = [
 
 [[package]]
 name = "clytrade"
-version = "0.5.6"
+version = "0.6.0"
 dependencies = [
  "objc2",
  "objc2-foundation",

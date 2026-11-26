@@ -6,6 +6,32 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-26
+
+### Added
+
+- **One live position calculator.** The Calculations tab is now a single page
+  with shared inputs for risk, entry, target, stop, per-side fee, leverage,
+  maintenance margin and win rate. It returns required margin, R/R, P&L,
+  notional, unit size, stop and target distances, liquidation distance and
+  price, break-even win rate, expectancy and recommended risk as you type.
+
+### Changed
+
+- Position sizing charges the fee on entry and exit, infers direction from the
+  stop and then the target, and pre-fills leverage, fee per side and maintenance
+  margin from Preferences.
+- Recommended risk uses one-eighth Kelly and clamps a negative edge to 0%.
+- Calculator inputs survive tab changes but clear on a full reload; **Clear**
+  empties them.
+- The Calculations tab hides its subtab bar and keeps Inputs and Results on one
+  page.
+
+### Removed
+
+- The seven separate calculator pages and their documentation, replaced by the
+  new overview page.
+
 ## [0.5.6] - 2026-11-20
 
 ### Changed
@@ -262,7 +288,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.5.6...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.6.0
 [0.5.6]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.6
 [0.5.5]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.5
 [0.5.4]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.4
