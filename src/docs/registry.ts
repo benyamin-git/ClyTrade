@@ -135,46 +135,10 @@ export const DOCS: readonly DocMeta[] = [
     summaryKey: 'docs.items.language.summary',
   },
   {
-    slug: 'calculator-position-size',
+    slug: 'calculator-overview',
     groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-position-size.title',
-    summaryKey: 'docs.items.calculator-position-size.summary',
-  },
-  {
-    slug: 'calculator-margin-leverage',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-margin-leverage.title',
-    summaryKey: 'docs.items.calculator-margin-leverage.summary',
-  },
-  {
-    slug: 'calculator-liquidation-price',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-liquidation-price.title',
-    summaryKey: 'docs.items.calculator-liquidation-price.summary',
-  },
-  {
-    slug: 'calculator-risk-reward',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-risk-reward.title',
-    summaryKey: 'docs.items.calculator-risk-reward.summary',
-  },
-  {
-    slug: 'calculator-fees-pnl',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-fees-pnl.title',
-    summaryKey: 'docs.items.calculator-fees-pnl.summary',
-  },
-  {
-    slug: 'calculator-average-entry',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-average-entry.title',
-    summaryKey: 'docs.items.calculator-average-entry.summary',
-  },
-  {
-    slug: 'calculator-spot-futures',
-    groupKey: 'docs.groups.calculators',
-    titleKey: 'docs.items.calculator-spot-futures.title',
-    summaryKey: 'docs.items.calculator-spot-futures.summary',
+    titleKey: 'docs.items.calculator-overview.title',
+    summaryKey: 'docs.items.calculator-overview.summary',
   },
 ]
 

@@ -24,18 +24,20 @@ function renderApp(initialPath = '/') {
 }
 
 describe('App', () => {
-  it('opens on the Position Size calculator', async () => {
+  it('opens on the calculator', async () => {
     renderApp()
-    expect(await screen.findByRole('heading', { name: 'Position Size' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Position Calculator' })).toBeInTheDocument()
     expect(
-      await screen.findByText('Fill in entry and stop prices to see results.'),
+      await screen.findByText('Enter what you have and leave the rest blank'),
     ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Inputs' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Results' })).not.toBeInTheDocument()
   })
 
   it('navigates between tabs through the drawer', async () => {
     const user = userEvent.setup()
     renderApp()
-    await screen.findByRole('heading', { name: 'Position Size' })
+    await screen.findByRole('heading', { name: 'Position Calculator' })
 
     await user.click(screen.getByRole('button', { name: 'Open navigation' }))
     await user.click(screen.getByRole('link', { name: 'Journal' }))
@@ -55,13 +57,13 @@ describe('App', () => {
 
   it('redirects unknown routes to the default calculator', async () => {
     renderApp('/does-not-exist')
-    expect(await screen.findByRole('heading', { name: 'Position Size' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Position Calculator' })).toBeInTheDocument()
   })
 
   it('renders persian when the stored preference is persian', async () => {
     await setPreferences({ ...DEFAULT_PREFERENCES, language: 'fa' })
     renderApp()
-    expect(await screen.findByRole('heading', { name: 'سایز پوزیشن' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'ماشین‌حساب موقعیت' })).toBeInTheDocument()
     expect(await screen.findByText('ژورنال')).toBeInTheDocument()
     expect(document.documentElement.dir).toBe('rtl')
   })

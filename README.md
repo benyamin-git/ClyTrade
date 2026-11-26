@@ -5,25 +5,26 @@
 [![License](https://img.shields.io/github/license/benyamin-git/ClyTrade?style=flat-square)](LICENSE)
 
 ClyTrade is a local-first trading app: a trade journal, a spot portfolio tracker,
-price alerts and seven calculators in one place. It ships as an installable PWA
-and as Windows and Android apps built with Tauri v2. Everything runs on the
-device, with no account, server or subscription.
+price alerts and a live position calculator in one place. It ships as an
+installable PWA and as Windows and Android apps built with Tauri v2. Everything
+runs on the device, with no account, server or subscription.
 
 Small trading tools are scattered across paid apps, browser tabs and
 spreadsheets. ClyTrade keeps the journal, the portfolio and the calculators in
 one app and one local database.
 
 > **Status:** early development. V1 covers the offline core; the 0.5 releases add
-> optional crypto prices, alerts and auto-close. Expect rough edges and breaking
-> changes before `1.0.0`.
+> optional crypto prices, alerts and auto-close, and 0.6 consolidates the
+> calculators into one live page. Expect rough edges and breaking changes before
+> `1.0.0`.
 
 ## Download
 
-| Platform         | Download                                                                                                                                                                                                                                                                                                             |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web (PWA)        | [![Open the PWA](https://img.shields.io/badge/Open-PWA-0550ae?logo=pwa&logoColor=white)](https://benyamin-git.github.io/ClyTrade/)                                                                                                                                                                                   |
-| Windows (64-bit) | [![Windows x64 EXE](https://img.shields.io/badge/EXE-Portable-0550ae?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases) [![Windows x64 installer](https://img.shields.io/badge/EXE-Installer-0969da?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases) |
-| Android          | [![Android universal APK](https://img.shields.io/badge/APK-Universal-2da44e?logo=android&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases)                                                                                                                                                        |
+| Platform         | Download                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web (PWA)        | [![Open the PWA](https://img.shields.io/badge/Open-PWA-0550ae?logo=pwa&logoColor=white)](https://benyamin-git.github.io/ClyTrade/)                                                                                                                                                                                                                                                                                       |
+| Windows (64-bit) | [![Windows x64 EXE](https://img.shields.io/badge/EXE-Portable-0550ae?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases/download/v0.6.0/ClyTrade-0.6.0-windows-x64.exe) [![Windows x64 installer](https://img.shields.io/badge/EXE-Installer-0969da?logo=windows&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases/download/v0.6.0/ClyTrade-0.6.0-windows-x64-setup.exe) |
+| Android          | [![Android universal APK](https://img.shields.io/badge/APK-Universal-2da44e?logo=android&logoColor=white)](https://github.com/benyamin-git/ClyTrade/releases/download/v0.6.0/ClyTrade-0.6.0-android-universal.apk)                                                                                                                                                                                                       |
 
 The PWA is the reference platform: it installs from Safari on iPhone and iPad,
 and from Chrome or Edge on desktop. Windows builds are unsigned, so SmartScreen
@@ -40,9 +41,9 @@ Captured in the desktop layout with sample data and the Dark theme, at 1440×900
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | ![Journal stats — equity curve and PnL per trade](screenshots/desktop/journal-stats.png) | ![Portfolio stats — allocation and unrealized PnL](screenshots/desktop/portfolio-stats.png) |
 
-| Journal overview                                                                                         | Position Size calculator                                                                |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| ![Journal overview — trade table with net PnL and R multiples](screenshots/desktop/journal-overview.png) | ![Position Size calculator — inputs and results](screenshots/desktop/position-size.png) |
+| Journal overview                                                                                         | Calculations                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| ![Journal overview — trade table with net PnL and R multiples](screenshots/desktop/journal-overview.png) | ![Calculations — position sizing, margin, R/R, P&L and liquidation from one shared input form](screenshots/desktop/calculations.png) |
 
 ![Alerts — create a price or percent rule](screenshots/desktop/alerts.png)
 
@@ -53,11 +54,13 @@ once first to fetch the Chromium build Playwright uses. The script starts Vite o
 `127.0.0.1:5199` (`SCREENSHOTS_PORT` overrides), loads the sample data and
 captures each page into `screenshots/desktop/`.
 
-## What's new in v0.5.2
+## What's new in v0.6.0
 
-- **Rounded cards keep their corners.** Journal and portfolio tables are clipped
-  to the card radius, so the header row no longer paints over the top corners
-  when rows are present.
+- **One live calculator.** The seven separate calculators are now one page with
+  shared inputs and instant results for size, margin, R/R, P&L, liquidation and
+  recommended risk.
+- **Fees and risk included.** Sizing charges the fee on both sides, direction is
+  inferred from the stop or target, and recommended risk uses one-eighth Kelly.
 
 Older changes are in [CHANGELOG.md](./CHANGELOG.md).
 
@@ -71,8 +74,9 @@ Older changes are in [CHANGELOG.md](./CHANGELOG.md).
 - **Alerts** — price and percent rules plus every open trade's target and stop,
   with a review queue, 500-event history and grouped OS notifications on Android
   and Windows.
-- **Calculators** — Position Size, Margin & Leverage, Liquidation Price, Risk /
-  Reward, Fees & PnL, Average Entry / DCA, Spot ↔ Futures.
+- **Calculations** — one live position calculator for size, margin, R/R, P&L and
+  liquidation, with per-side fees, win rate, expectancy and 1/8-Kelly recommended
+  risk.
 - **Local-first** — IndexedDB storage, JSON export/import, no account or cloud.
 - **Bilingual and themed** — English and Persian (right-to-left), Light / Dark /
   OLED, and six accent palettes.

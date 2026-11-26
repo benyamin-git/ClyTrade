@@ -44,13 +44,18 @@ const PAGES = [
     },
   },
   {
-    slug: 'position-size',
-    route: '/calculations/position-size',
-    ready: (page) => page.getByRole('heading', { name: 'Position Size' }),
+    slug: 'calculations',
+    route: '/calculations/overview',
+    ready: (page) => page.getByRole('heading', { name: 'Position Calculator' }),
     prepare: async (page) => {
-      await page.getByLabel('Account size').fill('25000')
+      await page.getByLabel('Risk').fill('250')
       await page.getByLabel('Entry price').fill('68200')
+      await page.getByLabel('Target price').fill('72000')
       await page.getByLabel('Stop price').fill('66800')
+      await page.getByLabel('Fee per side').fill('0.05')
+      await page.getByLabel('Leverage').fill('10')
+      await page.getByLabel('Maintenance margin').fill('0.5')
+      await page.getByLabel('Win rate').fill('52')
     },
   },
   {

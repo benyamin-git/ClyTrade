@@ -26,8 +26,8 @@ describe('docs registry', () => {
   })
 
   it('translates metadata with the locale dictionary', () => {
-    const doc = getDoc('calculator-position-size', 'fa', createTranslator(fa))
-    expect(doc?.title).toBe('سایز پوزیشن')
+    const doc = getDoc('calculator-overview', 'fa', createTranslator(fa))
+    expect(doc?.title).toBe('ماشین‌حساب موقعیت')
     expect(doc?.summary).not.toBe('')
   })
 

@@ -185,6 +185,17 @@ Dexie v3 adds four tables: `priceCache` and `marketSymbols` are ephemeral and
 excluded from backups; `priceAlerts` and `alertEvents` hold alert rules and
 history and are backed up. `alertEvents` is pruned to the newest 500.
 
+## Calculations page
+
+The Calculations tab is one live page (`CalculatorPage`) with an Inputs card and
+a Results card; the registry has one entry, so `SubTabBar` hides itself. Inputs
+live in an in-memory module store (`logic/calculatorInputs.ts`): they survive tab
+navigation, clear on a full reload, and Clear empties them. Leverage, fee per
+side and maintenance margin are prefilled from Preferences only until the store
+is touched. The math is pure and lives in `logic/positionCalculator.ts`; the fee
+is per side and charged on entry and exit, and recommended risk is one-eighth
+Kelly. Do not move this math into `src/calculations/**` without owner approval.
+
 ## Market data and background
 
 - `src/market/` owns the provider adapters, symbol resolution, the shared
@@ -244,9 +255,11 @@ history and are backed up. `alertEvents` is pruned to the newest 500.
 - Base styles belong inside `@layer base` in `src/styles/global.css`. Never add
   unlayered CSS rules: unlayered rules beat every Tailwind utility and silently
   break padding, button backgrounds and link colors.
-- Navigation is registry-driven: adding a calculator means adding a page, a registry
-  entry in `src/features/calculations/registry.ts`, and a doc entry in
-  `src/docs/registry.ts`.
+- Navigation is registry-driven: the Calculations tab currently has one registry
+  entry in `src/features/calculations/registry.ts`, so its subtab bar is hidden.
+  A separate calculator page needs a registry entry and a doc entry in
+  `src/docs/registry.ts`; shared calculator math belongs in
+  `src/features/calculations/logic/`.
 - Direction-aware styling uses logical utilities (`ms-`, `me-`, `ps-`, `pe-`,
   `start-`, `end-`, `text-start`, `text-end`, `border-s`) and `rtl:` variants for
   transforms; never physical `left`/`right`. Charts are wrapped in `dir="ltr"`.
