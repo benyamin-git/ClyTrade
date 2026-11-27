@@ -11,10 +11,11 @@ It covers two things:
   auto-close is on.
 
 Hits land in the in-app inbox and, when the platform allows it, as an operating
-system notification. The tab shows a status strip, the active rules, a review
-queue and the last 500 events. History entries can be deleted one at a time with
-the trash button, or all at once with **Clear history**. Clearing removes only
-the in-app record; alert rules and journal trades are untouched.
+system notification. The tab shows a compact status line, the active rules and
+one **Activity** timeline for the last 500 events. Review items sit in the same
+timeline as warning cards; the rest are compact rows. Events can be deleted one
+at a time with the trash button, or all at once with **Clear history**. Clearing
+removes only the in-app record; alert rules and journal trades are untouched.
 
 ## Rules
 
@@ -32,9 +33,11 @@ the in-app record; alert rules and journal trades are untouched.
   trade with a target or stop is watched even when auto-close is off, because
   you still want to know the level was reached.
 
-Rules can be paused, resumed, edited and deleted. The status strip names the
-selected provider, the provider that actually answered, the last successful
-refresh, the next allowed refresh and the current error.
+Rules can be paused, resumed, edited and deleted. The compact status line names
+the selected provider and the last or next refresh, with a health dot for live,
+stale, waiting or error. Open it for the full status details, including the
+provider that actually answered, the current error and the background
+monitoring card.
 
 ## Automatic close
 
@@ -54,9 +57,11 @@ Auto-close is deliberately conservative:
 - A background hit that no longer matches the trade (it was edited, closed, or
   is more than 24 hours old) becomes a **conflict** review item.
 
-Review items are never applied silently. You choose to close, edit, refresh or
-dismiss. Closing a gap review is a manual action: it closes the trade at the
-chosen level but does not add the `auto-closed` tag.
+Review items are never applied silently. You choose to close, edit, refresh,
+dismiss or delete. Use the **Needs review** filter in Activity to see only those
+items; **Unread** shows every unread event and **All** is the default. Closing a
+gap review is a manual action: it closes the trade at the chosen level but does
+not add the `auto-closed` tag.
 
 ## Prices and limits
 
@@ -93,11 +98,12 @@ Only crypto is covered in 0.5. Forex, stocks and the other markets stay manual.
 
 ## Background monitoring
 
-Background monitoring is off by default. Turning it on asks for notification
+Background monitoring is off by default. Open the status details from the
+compact status line to reach its card. Turning it on asks for notification
 permission; if you deny it, the in-app inbox and unread badge keep working. Once
-the system stops showing its permission prompt, the Alerts card offers **Open
-settings** so you can allow notifications there. The status refreshes when you
-return to the app.
+the system stops showing its permission prompt, the card offers **Open settings**
+so you can allow notifications there. The status refreshes when you return to
+the app.
 
 - **Android** runs a WorkManager job about every 15 minutes when a network is
   available. Android may delay it under Doze or battery optimization, so treat
@@ -108,8 +114,8 @@ return to the app.
   not expose notification tap actions, so tapping a Windows toast does not open
   Alerts; use the tray icon to restore the app.
 - **iOS** has no background mode yet. Alerts are checked while the app is open;
-  if notifications are blocked, the Alerts card's **Open settings** button takes
-  you to the app's settings.
+  if notifications are blocked, the status details card's **Open settings**
+  button takes you to the app's settings.
 - **PWA** has no background mode. Prices are checked every 5 minutes while the
   tab is open and visible; nothing runs after you close it.
 
@@ -129,7 +135,7 @@ CoinGecko works without an account. ClyTrade budgets it at 6 requests per
 minute without a key; a free Demo key raises that local budget to 30 requests
 per minute and 2-second spacing, within the Demo plan's roughly 10,000 calls
 per month. That matters if you watch many coins or keep several tabs open. With
-a key, the Alerts status strip shows how many requests this month's local
+a key, the Alerts status details show how many requests this month's local
 counter has spent.
 
 The key is optional, stored only on this device, masked in Preferences and

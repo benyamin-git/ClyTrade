@@ -13,11 +13,13 @@ import { createTrade, replaceAllTrades } from '@/data/repositories/trades.repo'
 import { SettingsProvider } from '@/features/settings/SettingsProvider'
 import { I18nProvider } from '@/i18n/I18nProvider'
 import type { SchedulerStatus } from '@/market/scheduler'
+import type { ProviderPrice } from '@/market/types'
 import { AlertsPage } from './AlertsPage'
 
 const NOW = 1_700_000_000_000
 
 const priceState = vi.hoisted(() => ({
+  prices: new Map<string, ProviderPrice>(),
   status: {
     provider: 'auto',
     activeProvider: null,
@@ -30,7 +32,7 @@ const priceState = vi.hoisted(() => ({
 
 vi.mock('@/market/usePrices', () => ({
   usePrices: () => ({
-    prices: new Map(),
+    prices: priceState.prices,
     status: priceState.status,
     refresh: async () => undefined,
   }),
@@ -117,6 +119,7 @@ beforeEach(async () => {
   await replaceAllAlerts([])
   await replaceAllTrades([])
   await replaceAllAlertEvents([])
+  priceState.prices = new Map()
   priceState.status = {
     provider: 'auto',
     activeProvider: null,
@@ -133,7 +136,8 @@ describe('AlertsPage rule rows', () => {
     const user = userEvent.setup()
     renderPage()
 
-    expect(await screen.findByText('Above 68,000')).toBeInTheDocument()
+    expect(await screen.findByText('68,000')).toBeInTheDocument()
+    expect(screen.getByText('Above')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit BTC alert' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Pause BTC alert' }))
@@ -149,6 +153,28 @@ describe('AlertsPage rule rows', () => {
     await waitFor(() => {
       expect(screen.queryByText('Paused')).not.toBeInTheDocument()
     })
+  })
+
+  it('shows the live price and distance to the level', async () => {
+    priceState.prices = new Map([
+      [
+        'binance:BTCUSDT',
+        {
+          key: 'binance:BTCUSDT',
+          symbol: 'BTC',
+          provider: 'binance',
+          price: 64_000,
+          fetchedAt: NOW,
+          sourceTimestamp: null,
+        },
+      ],
+    ])
+    await seedAlert()
+    renderPage()
+
+    expect(await screen.findByText('64,000')).toBeInTheDocument()
+    expect(screen.getByText('Current')).toBeInTheDocument()
+    expect(screen.getByText('6.25% away')).toBeInTheDocument()
   })
 
   it('describes percent and range rules', async () => {
@@ -171,8 +197,10 @@ describe('AlertsPage rule rows', () => {
     })
     renderPage()
 
-    expect(await screen.findByText('Down 5%')).toBeInTheDocument()
-    expect(await screen.findByText('Outside 2,000 – 3,000')).toBeInTheDocument()
+    expect(await screen.findByText('5%')).toBeInTheDocument()
+    expect(screen.getByText('Down')).toBeInTheDocument()
+    expect(await screen.findByText('2,000 – 3,000')).toBeInTheDocument()
+    expect(screen.getAllByText('Range')).toHaveLength(2)
   })
 
   it('shows repeat mode, last fired time and reference price', async () => {
@@ -188,7 +216,8 @@ describe('AlertsPage rule rows', () => {
     })
     renderPage()
 
-    expect(await screen.findByText('Up 5%')).toBeInTheDocument()
+    expect(await screen.findByText('5%')).toBeInTheDocument()
+    expect(screen.getByText('Up')).toBeInTheDocument()
     expect(screen.getByText('Repeat: Cooldown')).toBeInTheDocument()
     expect(screen.getByText(/Last fired/)).toBeInTheDocument()
     expect(screen.getByText('Reference 68,000')).toBeInTheDocument()
@@ -216,7 +245,7 @@ describe('AlertsPage rule rows', () => {
       expect(await listAlerts()).toHaveLength(0)
     })
     await waitFor(() => {
-      expect(screen.queryByText('Above 68,000')).not.toBeInTheDocument()
+      expect(screen.queryByText('68,000')).not.toBeInTheDocument()
       expect(screen.getByText('No alert rules yet')).toBeInTheDocument()
     })
   })

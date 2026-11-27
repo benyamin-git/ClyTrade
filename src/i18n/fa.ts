@@ -371,6 +371,9 @@ export const fa = {
         cooldownRange: 'دورهٔ انتظار باید بین 15 و 1440 دقیقه باشد.',
       },
     },
+    activity: {
+      filterLabel: 'فیلتر فعالیت',
+    },
     history: {
       all: 'همه',
       allTypes: 'همهٔ انواع',
@@ -381,7 +384,6 @@ export const fa = {
       deleteAria: 'حذف رویداد {{kind}} برای {{symbol}}',
       emptyTitle: 'هنوز هشداری ثبت نشده',
       emptyDescription: 'هشدارهای فعال‌شده اینجا می‌مانند تا بعداً بررسی کنید.',
-      filterLabel: 'فیلتر تاریخچه',
       markAllRead: 'همه را خوانده‌شده کنید',
       noMatchDescription: 'فیلتر دیگری را امتحان کنید یا همهٔ رویدادها را نشان دهید.',
       noMatchTitle: 'رویدادی با این فیلتر نیست',
@@ -420,6 +422,9 @@ export const fa = {
         'آخرین قیمت {{symbol}} بیش از 15 دقیقه قدیمی است، بنابراین چیزی بسته نشد. برای بررسی دوباره به‌روزرسانی کنید.',
     },
     rules: {
+      current: 'قیمت فعلی',
+      distance: '{{percent}} فاصله',
+      rangeValue: '{{low}} تا {{high}}',
       emptyTitle: 'هنوز قاعدهٔ هشداری ندارید',
       emptyDescription:
         'یک قاعدهٔ قیمتی یا درصدی بسازید تا با رسیدن بازار به سطح مورد نظرتان خبردار شوید.',
@@ -441,18 +446,9 @@ export const fa = {
       tradeTarget: 'تارگت {{level}}',
       deleteTitle: 'حذف هشدار',
       deleteConfirm: 'هشدار {{symbol}} حذف شود؟ این کار قابل بازگشت نیست.',
-      summary: {
-        above: 'بالاتر از {{level}}',
-        below: 'پایین‌تر از {{level}}',
-        crossing: 'عبور از {{level}}',
-        range: 'خارج از بازهٔ {{low}} تا {{high}}',
-        percentUp: 'صعودی {{percent}}',
-        percentDown: 'نزولی {{percent}}',
-        percentBoth: 'هر دو جهت {{percent}}',
-      },
     },
     sections: {
-      history: 'تاریخچه',
+      activity: 'فعالیت',
       review: 'نیازمند بررسی',
       rules: 'قواعد فعال',
       status: 'وضعیت قیمت',
@@ -470,6 +466,7 @@ export const fa = {
         unknown: 'به‌روزرسانی قیمت ناموفق بود.',
       },
       lastSuccess: 'آخرین موفقیت',
+      live: 'قیمت‌ها به‌روزند',
       monthlyUsage: 'CoinGecko در این ماه',
       monthlyUsageValue: '{{used}} / {{limit}}',
       never: 'هرگز',
@@ -478,6 +475,8 @@ export const fa = {
       provider: 'ارائه‌دهنده',
       refresh: 'به‌روزرسانی قیمت‌ها',
       refreshing: 'در حال به‌روزرسانی…',
+      stale: 'قیمت‌ها قدیمی شده‌اند',
+      waiting: 'در انتظار نخستین همگام‌سازی',
     },
     unread: {
       one: '{{count}} هشدار خوانده‌نشده',

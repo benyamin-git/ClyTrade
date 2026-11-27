@@ -216,6 +216,10 @@ function renderPageWithProbe() {
   )
 }
 
+async function openStatusDetails(): Promise<void> {
+  await userEvent.setup().click(screen.getByTestId('alerts-status-details'))
+}
+
 class FakeNotification {
   static permission: NotificationPermission = 'default'
   static requestPermission = vi.fn(async () => 'granted' as NotificationPermission)
@@ -263,7 +267,7 @@ beforeEach(async () => {
 })
 
 describe('AlertsPage', () => {
-  it('renders the status, rules, review and history regions', () => {
+  it('renders the status, rules and activity regions', () => {
     renderPage()
 
     expect(screen.getByRole('region', { name: 'Price status' })).toBe(
@@ -272,11 +276,8 @@ describe('AlertsPage', () => {
     expect(screen.getByRole('region', { name: 'Active rules' })).toBe(
       screen.getByTestId('alerts-rules'),
     )
-    expect(screen.getByRole('region', { name: 'Needs review' })).toBe(
-      screen.getByTestId('alerts-review'),
-    )
-    expect(screen.getByRole('region', { name: 'History' })).toBe(
-      screen.getByTestId('alerts-history'),
+    expect(screen.getByRole('region', { name: 'Activity' })).toBe(
+      screen.getByTestId('alerts-activity'),
     )
   })
 
@@ -301,6 +302,17 @@ describe('AlertsPage', () => {
     expect(refresh).toBeEnabled()
     await user.click(refresh)
     expect(priceState.refresh).toHaveBeenCalledOnce()
+  })
+
+  it('opens the price status details sheet', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByTestId('alerts-status-details'))
+
+    expect(screen.getByRole('dialog', { name: 'Price status' })).toBeInTheDocument()
+    expect(screen.getByText('Provider')).toBeInTheDocument()
+    expect(screen.getByTestId('alerts-background')).toBeInTheDocument()
   })
 
   it('shows the scheduler error message', () => {
@@ -343,7 +355,7 @@ describe('AlertsPage', () => {
     })
     renderPage()
 
-    await screen.findByText('Above 68,000')
+    await screen.findByText('68,000')
     expect(priceState.reasons).toContain('alerts')
     expect(priceState.refs.map((ref) => ref.key).sort()).toEqual([
       'binance:BTCUSDT',
@@ -449,7 +461,6 @@ describe('AlertsPage', () => {
     expect(screen.queryByText('No alert rules yet')).not.toBeInTheDocument()
 
     expect(await screen.findByText('No alert rules yet')).toBeInTheDocument()
-    expect(screen.getByText('Nothing needs review')).toBeInTheDocument()
     expect(screen.getByText('No alerts yet')).toBeInTheDocument()
   })
 
@@ -478,7 +489,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
+    const history = await screen.findByTestId('alerts-activity')
     await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(3))
     expect(within(history).getAllByRole('listitem')[0]).toHaveTextContent('Target hit')
     expect(within(history).getAllByRole('listitem')[1]).toHaveTextContent('Price level')
@@ -506,7 +517,7 @@ describe('AlertsPage', () => {
     renderPageWithProbe()
 
     await waitFor(() => expect(screen.getByTestId('unread-count')).toHaveTextContent('2'))
-    const history = screen.getByTestId('alerts-history')
+    const history = screen.getByTestId('alerts-activity')
     await user.click(within(history).getByRole('button', { name: 'Mark all read' }))
 
     await waitFor(() => expect(screen.getByTestId('unread-count')).toHaveTextContent('0'))
@@ -522,7 +533,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
+    const history = await screen.findByTestId('alerts-activity')
     await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(2))
     await user.click(
       within(history).getByRole('button', { name: 'Delete Target hit event for BTC' }),
@@ -533,7 +544,7 @@ describe('AlertsPage', () => {
     expect((await listAlertEvents()).map((event) => event.symbol)).toEqual(['ETH'])
   })
 
-  it('removes a deleted review event from the review list', async () => {
+  it('removes a deleted review event from the activity list', async () => {
     await seedEvent({
       kind: 'gap',
       symbol: 'SOL',
@@ -546,16 +557,13 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
-    const review = screen.getByTestId('alerts-review')
-    await waitFor(() => expect(within(review).getAllByRole('listitem')).toHaveLength(1))
+    const activity = await screen.findByTestId('alerts-activity')
+    await waitFor(() => expect(within(activity).getAllByRole('listitem')).toHaveLength(1))
     await user.click(
-      within(history).getByRole('button', { name: 'Delete Both levels crossed event for SOL' }),
+      within(activity).getByRole('button', { name: 'Delete Both levels crossed event for SOL' }),
     )
 
-    await waitFor(() =>
-      expect(within(review).getByText('Nothing needs review')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(within(activity).getByText('No alerts yet')).toBeInTheDocument())
     expect(await listAlertEvents()).toEqual([])
   })
 
@@ -573,7 +581,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
+    const history = await screen.findByTestId('alerts-activity')
     await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(2))
     await user.click(within(history).getByRole('button', { name: 'Clear history' }))
 
@@ -586,7 +594,6 @@ describe('AlertsPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Clear history' }))
 
     await waitFor(() => expect(within(history).getByText('No alerts yet')).toBeInTheDocument())
-    expect(screen.getByText('Nothing needs review')).toBeInTheDocument()
     expect(within(history).getByRole('button', { name: 'Clear history' })).toBeDisabled()
     expect(await listAlertEvents()).toEqual([])
   })
@@ -596,7 +603,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
+    const history = await screen.findByTestId('alerts-activity')
     await waitFor(() => expect(within(history).getAllByRole('listitem')).toHaveLength(1))
     await user.click(within(history).getByRole('button', { name: 'Clear history' }))
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
@@ -621,7 +628,7 @@ describe('AlertsPage', () => {
     await replaceAllAlertEvents(events)
     renderPage()
 
-    const history = await screen.findByTestId('alerts-history')
+    const history = await screen.findByTestId('alerts-activity')
     expect(await within(history).findByText('S500')).toBeInTheDocument()
     expect(within(history).getAllByRole('listitem')).toHaveLength(500)
     expect(within(history).queryByText('S0')).not.toBeInTheDocument()
@@ -644,7 +651,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: label }))
 
     await waitFor(async () => {
@@ -660,7 +667,7 @@ describe('AlertsPage', () => {
       })
     })
     await waitFor(() =>
-      expect(within(review).queryByText('Both levels crossed')).not.toBeInTheDocument(),
+      expect(within(review).queryByRole('button', { name: label })).not.toBeInTheDocument(),
     )
   })
 
@@ -678,7 +685,7 @@ describe('AlertsPage', () => {
     await updateTrade(trade.id, { targetPrice: 71_000 })
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     expect(
       await within(review).findByRole('button', { name: 'Close at target 70,000' }),
     ).toBeDisabled()
@@ -698,7 +705,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Refresh price' }))
     expect(priceState.refresh).toHaveBeenCalledOnce()
 
@@ -710,7 +717,11 @@ describe('AlertsPage', () => {
         resolution: 'dismiss',
       })
     })
-    await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        within(review).queryByRole('button', { name: 'Refresh price' }),
+      ).not.toBeInTheDocument(),
+    )
   })
 
   it('clears a stale review after a successful refresh with a fresh price', async () => {
@@ -728,7 +739,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Refresh price' }))
 
     await waitFor(async () => {
@@ -738,7 +749,11 @@ describe('AlertsPage', () => {
         resolution: 'refresh',
       })
     })
-    await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        within(review).queryByRole('button', { name: 'Refresh price' }),
+      ).not.toBeInTheDocument(),
+    )
   })
 
   it('keeps a stale review when the refreshed price is still stale', async () => {
@@ -756,7 +771,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Refresh price' }))
     await waitFor(() => expect(priceState.refresh).toHaveBeenCalledOnce())
     await act(async () => {
@@ -765,7 +780,7 @@ describe('AlertsPage', () => {
 
     const events = await listAlertEvents()
     expect(events.find((entry) => entry.id === event.id)).toMatchObject({ status: 'unread' })
-    expect(within(review).getByText('Stale price')).toBeInTheDocument()
+    expect(within(review).getByRole('button', { name: 'Refresh price' })).toBeInTheDocument()
   })
 
   it('disables the stale review refresh during the manual cooldown', async () => {
@@ -787,7 +802,7 @@ describe('AlertsPage', () => {
     })
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     expect(await within(review).findByRole('button', { name: 'Refresh price' })).toBeDisabled()
   })
 
@@ -810,7 +825,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     const status = screen.getByTestId('alerts-status')
     await user.click(within(status).getByRole('button', { name: 'Refresh prices' }))
     await waitFor(() =>
@@ -836,7 +851,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Edit trade' }))
     const dialog = await screen.findByRole('dialog', { name: 'Edit BTC' })
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
@@ -848,7 +863,9 @@ describe('AlertsPage', () => {
         resolution: 'edit',
       })
     })
-    await waitFor(() => expect(within(review).queryByText('Trade changed')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(within(review).queryByRole('button', { name: 'Edit trade' })).not.toBeInTheDocument(),
+    )
   })
 
   it('resolves a review event after saving an edited rule', async () => {
@@ -863,7 +880,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Edit alert' }))
     const dialog = await screen.findByRole('dialog', { name: 'Edit BTC alert' })
     await user.click(within(dialog).getByRole('button', { name: 'Save changes' }))
@@ -875,7 +892,9 @@ describe('AlertsPage', () => {
         resolution: 'edit',
       })
     })
-    await waitFor(() => expect(within(review).queryByText('Stale price')).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(within(review).queryByRole('button', { name: 'Edit alert' })).not.toBeInTheDocument(),
+    )
   })
 
   it('opens the trade form from a conflict review', async () => {
@@ -890,7 +909,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     expect(within(review).queryByRole('button', { name: /Close at/ })).not.toBeInTheDocument()
     await user.click(await within(review).findByRole('button', { name: 'Edit trade' }))
 
@@ -909,7 +928,7 @@ describe('AlertsPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    const review = await screen.findByTestId('alerts-review')
+    const review = await screen.findByTestId('alerts-activity')
     await user.click(await within(review).findByRole('button', { name: 'Edit alert' }))
 
     expect(await screen.findByRole('dialog', { name: 'Edit BTC alert' })).toBeInTheDocument()
@@ -927,8 +946,9 @@ describe('AlertsPage', () => {
 })
 
 describe('AlertsPage notification permission', () => {
-  it('shows the unsupported state without a request button', () => {
+  it('shows the unsupported state without a request button', async () => {
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     expect(within(card).getByRole('status')).toHaveTextContent('Not supported')
@@ -939,6 +959,7 @@ describe('AlertsPage notification permission', () => {
     const fake = stubNotification('default')
     const user = userEvent.setup()
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     expect(within(card).getByRole('status')).toHaveTextContent('Not requested')
@@ -955,6 +976,7 @@ describe('AlertsPage notification permission', () => {
     fake.requestPermission = vi.fn(async (): Promise<NotificationPermission> => 'denied')
     const user = userEvent.setup()
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     await user.click(within(card).getByRole('button', { name: 'Enable notifications' }))
@@ -969,18 +991,20 @@ describe('AlertsPage notification permission', () => {
   it.each([
     ['granted', 'Allowed'],
     ['denied', 'Blocked'],
-  ] as const)('shows the %s state without a request button', (permission, label) => {
+  ] as const)('shows the %s state without a request button', async (permission, label) => {
     stubNotification(permission)
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     expect(within(card).getByRole('status')).toHaveTextContent(label)
     expect(within(card).queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('localizes the permission line', () => {
+  it('localizes the permission line', async () => {
     stubNotification('default')
     renderPage('fa')
+    await openStatusDetails()
 
     const card = screen.getByRole('region', { name: 'پایش پس‌زمینه' })
     expect(within(card).getByRole('status')).toHaveTextContent('درخواست نشده')
@@ -989,8 +1013,9 @@ describe('AlertsPage notification permission', () => {
 })
 
 describe('AlertsPage background monitoring', () => {
-  it('disables the card in the browser with an explanation', () => {
+  it('disables the card in the browser with an explanation', async () => {
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
@@ -1003,6 +1028,7 @@ describe('AlertsPage background monitoring', () => {
   it('shows the Android 15-minute cadence', async () => {
     platform.current = 'android'
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
@@ -1010,9 +1036,10 @@ describe('AlertsPage background monitoring', () => {
     expect(within(card).getByText(/every 15 minutes/i)).toBeInTheDocument()
   })
 
-  it('explains that background monitoring is unavailable on iOS', () => {
+  it('explains that background monitoring is unavailable on iOS', async () => {
     platform.current = 'ios'
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     expect(
@@ -1025,6 +1052,7 @@ describe('AlertsPage background monitoring', () => {
   it('shows the Windows 5-minute tray cadence', async () => {
     platform.current = 'windows'
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     await waitFor(() => expect(notificationPlugin.isPermissionGranted).toHaveBeenCalledOnce())
@@ -1038,6 +1066,7 @@ describe('AlertsPage background monitoring', () => {
     notificationPlugin.isPermissionGranted.mockResolvedValue(false)
     const user = userEvent.setup()
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
@@ -1060,6 +1089,7 @@ describe('AlertsPage background monitoring', () => {
     notificationPlugin.requestPermission.mockResolvedValue('denied')
     const user = userEvent.setup()
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
@@ -1087,6 +1117,7 @@ describe('AlertsPage background monitoring', () => {
     })
     const user = userEvent.setup()
     renderPage()
+    await openStatusDetails()
 
     const card = screen.getByTestId('alerts-background')
     const toggle = within(card).getByRole('switch', { name: 'Enable background monitoring' })
@@ -1105,6 +1136,7 @@ describe('AlertsPage background monitoring', () => {
   it('localizes the background card', async () => {
     platform.current = 'android'
     renderPage('fa')
+    await openStatusDetails()
 
     const card = screen.getByRole('region', { name: 'پایش پس‌زمینه' })
     expect(

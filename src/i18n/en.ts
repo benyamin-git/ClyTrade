@@ -368,6 +368,9 @@ export const en = {
         cooldownRange: 'The cooldown must be between 15 and 1440 minutes.',
       },
     },
+    activity: {
+      filterLabel: 'Activity filter',
+    },
     history: {
       all: 'All',
       allTypes: 'All types',
@@ -378,7 +381,6 @@ export const en = {
       deleteAria: 'Delete {{kind}} event for {{symbol}}',
       emptyTitle: 'No alerts yet',
       emptyDescription: 'Fired alerts stay here so you can check them later.',
-      filterLabel: 'History filter',
       markAllRead: 'Mark all read',
       noMatchDescription: 'Try another filter or show all events.',
       noMatchTitle: 'No events match this filter',
@@ -417,6 +419,9 @@ export const en = {
         'The last price for {{symbol}} is older than 15 minutes, so nothing was closed. Refresh to check again.',
     },
     rules: {
+      current: 'Current',
+      distance: '{{percent}} away',
+      rangeValue: '{{low}} – {{high}}',
       emptyTitle: 'No alert rules yet',
       emptyDescription:
         'Create a price or percent rule to be notified when the market reaches your level.',
@@ -438,18 +443,9 @@ export const en = {
       tradeTarget: 'Target {{level}}',
       deleteTitle: 'Delete alert',
       deleteConfirm: 'Delete the {{symbol}} alert? This cannot be undone.',
-      summary: {
-        above: 'Above {{level}}',
-        below: 'Below {{level}}',
-        crossing: 'Crosses {{level}}',
-        range: 'Outside {{low}} – {{high}}',
-        percentUp: 'Up {{percent}}',
-        percentDown: 'Down {{percent}}',
-        percentBoth: 'Either direction {{percent}}',
-      },
     },
     sections: {
-      history: 'History',
+      activity: 'Activity',
       review: 'Needs review',
       rules: 'Active rules',
       status: 'Price status',
@@ -466,6 +462,7 @@ export const en = {
         unknown: 'Price refresh failed.',
       },
       lastSuccess: 'Last success',
+      live: 'Prices live',
       monthlyUsage: 'CoinGecko this month',
       monthlyUsageValue: '{{used}} / {{limit}}',
       never: 'Never',
@@ -474,6 +471,8 @@ export const en = {
       provider: 'Provider',
       refresh: 'Refresh prices',
       refreshing: 'Refreshing…',
+      stale: 'Prices stale',
+      waiting: 'Waiting for first sync',
     },
     unread: {
       one: '{{count}} unread alert',

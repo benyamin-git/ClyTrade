@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Plus, RefreshCw } from 'lucide-react'
-import type { AlertEvent, AlertEventKind, PriceAlert } from '@/data/models/price'
+import { Plus } from 'lucide-react'
+import type { AlertEvent, PriceAlert } from '@/data/models/price'
 import type { Trade } from '@/data/models/trade'
 import {
   clearAlertEvents,
@@ -21,23 +21,16 @@ import { useI18n } from '@/i18n/I18nContext'
 import { priceKeyFor, STALE_MS, type MarketRef } from '@/market/types'
 import { usePrices } from '@/market/usePrices'
 import { Button } from '@/ui/components/Button'
-import { Card } from '@/ui/components/Card'
 import { Sheet } from '@/ui/components/Sheet'
 import { ViewportPage } from '@/ui/layout/ViewportPage'
-import { AlertHistory } from '../components/AlertHistory'
-import { AlertReviewList } from '../components/AlertReviewList'
+import { AlertActivity } from '../components/AlertActivity'
 import { AlertRuleFormSheet } from '../components/AlertRuleFormSheet'
 import { AlertRuleList } from '../components/AlertRuleList'
+import { AlertStatusLine } from '../components/AlertStatusLine'
 import { AlertStatusStrip } from '../components/AlertStatusStrip'
 import { BackgroundMonitoringCard } from '../components/BackgroundMonitoringCard'
-import type { AlertHistoryFilter } from '../logic/alertHistory'
+import { isReviewEvent } from '../logic/alertActivity'
 import { useCooldownActive } from '../logic/useCooldownActive'
-
-const REVIEW_KINDS: readonly AlertEventKind[] = ['gap', 'stale', 'conflict']
-
-function isReviewEvent(event: AlertEvent): boolean {
-  return (event.status === 'unread' || event.status === 'read') && REVIEW_KINDS.includes(event.kind)
-}
 
 function mergeRef(byKey: Map<string, MarketRef>, ref: MarketRef): void {
   const existing = byKey.get(ref.key)
@@ -96,7 +89,7 @@ export function AlertsPage() {
   const alerts = useLiveQuery(() => listAlerts(), [], undefined)
   const trades = useLiveQuery(() => listTrades(), [], undefined)
   const events = useLiveQuery(() => listAlertEvents(500), [], undefined)
-  const [historyFilter, setHistoryFilter] = useState<AlertHistoryFilter>('all')
+  const [statusOpen, setStatusOpen] = useState(false)
   const [ruleForm, setRuleForm] = useState<{
     alert: PriceAlert | null
     reviewEventId?: string
@@ -134,15 +127,14 @@ export function AlertsPage() {
     return [...byKey.values()]
   }, [alerts, trades])
 
-  const { status, refresh } = usePrices(refs, 'alerts')
+  const { prices, status, refresh } = usePrices(refs, 'alerts')
   const cooldownActive = useCooldownActive(status.nextAllowedAt)
   const refreshDisabled = refreshing || cooldownActive
   const reviewEvents = useMemo(() => (events ?? []).filter(isReviewEvent), [events])
   const unreadCount = (events ?? []).filter((event) => event.status === 'unread').length
   const statusLabel = t('alerts.sections.status')
   const rulesLabel = t('alerts.sections.rules')
-  const reviewLabel = t('alerts.sections.review')
-  const historyLabel = t('alerts.sections.history')
+  const activityLabel = t('alerts.sections.activity')
 
   async function runRefresh() {
     setRefreshing(true)
@@ -224,89 +216,59 @@ export function AlertsPage() {
   }
 
   return (
-    <ViewportPage className="gap-4 overflow-y-auto">
-      <Card
-        className="shrink-0"
-        title={statusLabel}
-        aria-label={statusLabel}
-        data-testid="alerts-status"
-        actions={
+    <ViewportPage className="gap-5 overflow-y-auto">
+      <AlertStatusLine
+        status={status}
+        onOpen={() => setStatusOpen(true)}
+        onRefresh={() => void runRefresh()}
+        refreshDisabled={refreshDisabled}
+        refreshing={refreshing}
+      />
+
+      <section aria-label={rulesLabel} data-testid="alerts-rules" className="flex flex-col gap-3">
+        <header className="flex flex-wrap items-center gap-3">
+          <h2 className="min-w-0 truncate text-xs font-semibold tracking-wide text-on-surface-variant uppercase">
+            {rulesLabel}
+          </h2>
           <Button
             size="sm"
-            variant="outlined"
-            icon={<RefreshCw />}
-            onClick={() => void runRefresh()}
-            disabled={refreshDisabled}
+            icon={<Plus />}
+            className="ms-auto"
+            onClick={() => setRuleForm({ alert: null })}
           >
-            {refreshing ? t('alerts.status.refreshing') : t('alerts.status.refresh')}
-          </Button>
-        }
-      >
-        <AlertStatusStrip status={status} />
-      </Card>
-
-      <BackgroundMonitoringCard />
-
-      <Card
-        className="shrink-0"
-        title={rulesLabel}
-        aria-label={rulesLabel}
-        data-testid="alerts-rules"
-        actions={
-          <Button size="sm" icon={<Plus />} onClick={() => setRuleForm({ alert: null })}>
             {t('alerts.form.add')}
           </Button>
-        }
-      >
+        </header>
         {alerts === undefined || trades === undefined ? (
           <LoadingState />
         ) : (
           <AlertRuleList
             rules={alerts}
             trades={trades}
+            prices={prices}
             onEdit={(rule) => setRuleForm({ alert: rule })}
             onDelete={setDeleting}
             onToggle={handleToggle}
             onEditTrade={(trade) => setTradeForm({ trade })}
           />
         )}
-      </Card>
+      </section>
 
-      <Card
-        className="shrink-0"
-        title={reviewLabel}
-        aria-label={reviewLabel}
-        data-testid="alerts-review"
+      <section
+        aria-label={activityLabel}
+        data-testid="alerts-activity"
+        className="flex flex-col gap-3"
       >
-        {events === undefined ? (
-          <LoadingState />
-        ) : (
-          <>
-            {reviewError ? (
-              <p role="alert" className="px-4 pt-3 text-xs text-error">
-                {reviewError}
-              </p>
-            ) : null}
-            <AlertReviewList
-              events={reviewEvents}
-              trades={trades ?? []}
-              refreshDisabled={refreshDisabled}
-              onCloseAt={handleCloseAt}
-              onEdit={handleEditReview}
-              onDismiss={handleDismiss}
-              onRefresh={(event) => void handleRefreshReview(event)}
-            />
-          </>
-        )}
-      </Card>
-
-      <Card
-        className="shrink-0"
-        title={historyLabel}
-        aria-label={historyLabel}
-        data-testid="alerts-history"
-        actions={
-          <>
+        <header className="flex flex-wrap items-center gap-3">
+          <h2 className="min-w-0 truncate text-xs font-semibold tracking-wide text-on-surface-variant uppercase">
+            {activityLabel}
+          </h2>
+          {reviewEvents.length === 0 ? null : (
+            <span className="rounded-app-full bg-warning/15 px-2 py-0.5 text-2xs font-medium text-warning">
+              {reviewEvents.length}
+            </span>
+          )}
+          <div className="ms-auto flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="outlined"
@@ -317,26 +279,41 @@ export function AlertsPage() {
             </Button>
             <Button
               size="sm"
-              variant="outlined"
+              variant="text"
               onClick={() => setClearingHistory(true)}
               disabled={(events ?? []).length === 0}
             >
               {t('alerts.history.clear')}
             </Button>
-          </>
-        }
-      >
+          </div>
+        </header>
+        {reviewError ? (
+          <p role="alert" className="text-xs text-error">
+            {reviewError}
+          </p>
+        ) : null}
         {events === undefined ? (
           <LoadingState />
         ) : (
-          <AlertHistory
+          <AlertActivity
             events={events}
-            filter={historyFilter}
-            onFilter={setHistoryFilter}
+            trades={trades ?? []}
+            refreshDisabled={refreshDisabled}
+            onCloseAt={handleCloseAt}
+            onEdit={handleEditReview}
+            onDismiss={handleDismiss}
+            onRefresh={(event) => void handleRefreshReview(event)}
             onDelete={handleDeleteEvent}
           />
         )}
-      </Card>
+      </section>
+
+      <Sheet open={statusOpen} onClose={() => setStatusOpen(false)} title={statusLabel}>
+        <div className="flex flex-col gap-5">
+          <AlertStatusStrip status={status} />
+          <BackgroundMonitoringCard />
+        </div>
+      </Sheet>
 
       {ruleForm ? (
         <AlertRuleFormSheet

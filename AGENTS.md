@@ -234,7 +234,23 @@ Kelly. Do not move this math into `src/calculations/**` without owner approval.
   between runs. The webview remains authoritative: queued hits are revalidated on
   import.
 - PWA: no background mode. The foreground timer runs only while the document is
-  visible, and the Alerts background card says so.
+  visible, and the background card in the Alerts status details says so.
+
+### Alerts page
+
+- `AlertsPage` renders a compact `AlertStatusLine` (health dot plus selected and
+  active provider and last/next refresh) and opens a details sheet containing the
+  full `AlertStatusStrip` and `BackgroundMonitoringCard`. The sheet is the only
+  place for monthly usage and background controls.
+- `AlertActivity` is the single timeline: `Needs review` / `Unread` / `All`
+  scope plus an event-kind filter. Review events render as `AlertReviewItem`
+  warning cards with their actions and per-event delete; other events render as
+  `AlertHistoryRow`. `Mark all read` stays in the header, and `Clear history` is a
+  subordinate text action with the confirmation sheet.
+- `logic/status.ts` owns the provider and error labels; `logic/alertActivity.ts`
+  owns review detection and activity filtering. `AlertHistory`,
+  `AlertReviewList` and `logic/alertHistory.ts` are gone — do not reintroduce a
+  separate history list.
 
 ## Design
 
