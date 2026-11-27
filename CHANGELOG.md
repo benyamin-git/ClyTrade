@@ -6,6 +6,26 @@ All notable changes to ClyTrade are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-27
+
+### Changed
+
+- **Alerts** now use a compact status line with a live, stale, waiting or error
+  health dot, the selected provider and the last or next refresh. The full
+  status strip, CoinGecko monthly usage and background monitoring open in a
+  details sheet.
+- Alert rule cards show the current price, distance to the target or stop and
+  the range position at a glance.
+- Review items and history share one **Activity** timeline. Filter it by
+  **Needs review**, **Unread** or **All**, and by event type.
+- **Mark all read** stays in the activity header; **Clear history** is a
+  subordinate text action with the same confirmation.
+
+### Added
+
+- Review items can be deleted individually, alongside their close, edit,
+  refresh and dismiss actions.
+
 ## [0.6.0] - 2026-11-26
 
 ### Added
@@ -288,7 +308,8 @@ PWA remains the reference platform.
 - **Native builds** — Windows (`.exe`) and Android (`.apk`) wrappers built with
   Tauri v2 and published from CI.
 
-[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/benyamin-git/ClyTrade/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.6.1
 [0.6.0]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.6.0
 [0.5.6]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.6
 [0.5.5]: https://github.com/benyamin-git/ClyTrade/releases/tag/v0.5.5
